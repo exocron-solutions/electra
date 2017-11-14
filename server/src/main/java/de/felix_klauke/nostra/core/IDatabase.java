@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2017 Felix Klauke
+ * Copyright (c) 2017 Felix Klauke, JackWhite20
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,14 +22,18 @@
  * SOFTWARE.
  */
 
-package de.felix_klauke.nostra.core.btree;
-
+package de.felix_klauke.nostra.core;
 
 /**
- * Interface BTIteratorIF
- *
- * @author tnguyen
+ * @author Felix Klauke <fklauke@itemis.de>
  */
-public interface BTIteratorIF<K extends Comparable, V> {
-    boolean item(K key, V value);
+public interface IDatabase {
+
+    void save(String key, byte[] bytes);
+
+    void save(String key, String value);
+
+    byte[] get(String key);
+
+    void remove(String key);
 }

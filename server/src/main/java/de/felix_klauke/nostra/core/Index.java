@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2017 Felix Klauke
+ * Copyright (c) 2017 Felix Klauke, JackWhite20
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,20 +22,43 @@
  * SOFTWARE.
  */
 
-package de.felix_klauke.nostra.core.btree;
+package de.felix_klauke.nostra.core;
 
+import java.util.Arrays;
 
 /**
- * Class BTKeyValue
- *
- * @author tnguyen
+ * @author Felix Klauke <serious@business.felix-klauke.de>
  */
-public class BTKeyValue<K extends Comparable, V> {
-    protected K mKey;
-    protected V mValue;
+class Index {
 
-    public BTKeyValue(K key, V value) {
-        mKey = key;
-        mValue = value;
+    private int keyHash;
+    private int dataBlockCount;
+    private int[] dataBlockIndices;
+
+    Index(int keyHash, int dataBlockCount, int[] dataBlockIndices) {
+        this.keyHash = keyHash;
+        this.dataBlockCount = dataBlockCount;
+        this.dataBlockIndices = dataBlockIndices;
+    }
+
+    int getKeyHash() {
+        return keyHash;
+    }
+
+    int getDataBlockCount() {
+        return dataBlockCount;
+    }
+
+    int[] getDataBlockIndices() {
+        return dataBlockIndices;
+    }
+
+    @Override
+    public String toString() {
+        return "Index{" +
+                "keyHash=" + keyHash +
+                ", dataBlockCount=" + dataBlockCount +
+                ", dataBlockIndices=" + Arrays.toString(dataBlockIndices) +
+                '}';
     }
 }

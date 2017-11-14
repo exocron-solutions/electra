@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2017 Felix Klauke
+ * Copyright (c) 2017 Felix Klauke, JackWhite20
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,43 +22,28 @@
  * SOFTWARE.
  */
 
-package de.felix_klauke.nostra.core;
+package de.felix_klauke.nostra.core.btree;
 
-import java.util.Arrays;
 
 /**
- * @author Felix Klauke <serious@business.felix-klauke.de>
+ * Class BTException
+ *
+ * @author tnguyen
  */
-class Index {
-
-    private int keyHash;
-    private int dataBlockCount;
-    private int[] dataBlockIndices;
-
-    Index(int keyHash, int dataBlockCount, int[] dataBlockIndices) {
-        this.keyHash = keyHash;
-        this.dataBlockCount = dataBlockCount;
-        this.dataBlockIndices = dataBlockIndices;
+public class BTException extends Exception {
+    public BTException() {
+        super();
     }
 
-    int getKeyHash() {
-        return keyHash;
+    public BTException(String message) {
+        super(message);
     }
 
-    int getDataBlockCount() {
-        return dataBlockCount;
+    public BTException(String message, Throwable cause) {
+        super(message, cause);
     }
 
-    int[] getDataBlockIndices() {
-        return dataBlockIndices;
-    }
-
-    @Override
-    public String toString() {
-        return "Index{" +
-                "keyHash=" + keyHash +
-                ", dataBlockCount=" + dataBlockCount +
-                ", dataBlockIndices=" + Arrays.toString(dataBlockIndices) +
-                '}';
+    public BTException(Throwable cause) {
+        super(cause);
     }
 }

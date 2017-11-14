@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2017 Felix Klauke
+ * Copyright (c) 2017 Felix Klauke, JackWhite20
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,24 +26,10 @@ package de.felix_klauke.nostra.core.btree;
 
 
 /**
- * Class BTException
+ * Interface BTIteratorIF
  *
  * @author tnguyen
  */
-public class BTException extends Exception {
-    public BTException() {
-        super();
-    }
-
-    public BTException(String message) {
-        super(message);
-    }
-
-    public BTException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    public BTException(Throwable cause) {
-        super(cause);
-    }
+public interface BTIteratorIF<K extends Comparable, V> {
+    boolean item(K key, V value);
 }
