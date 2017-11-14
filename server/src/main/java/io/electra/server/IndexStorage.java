@@ -84,6 +84,11 @@ class IndexStorage {
     }
 
     void save(Index index) {
+        // TODO: 14.11.2017 Index btree needs to be written on disk when writing/deleting from it
         indexTree.insert(index.getKeyHash(), index);
+    }
+
+    void close() {
+        // TODO: 14.11.2017 Close channel
     }
 }

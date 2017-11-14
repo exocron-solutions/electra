@@ -35,6 +35,7 @@ public class DatabaseImpl implements IDatabase {
 
     private static final Path TEST_INDEX_PATH = Paths.get("index.nstr");
     private static final Path TEST_DATA_PATH = Paths.get("data.nstr");
+
     private final IndexStorage indexStorage;
     private final DataStorage dataStorage;
 
@@ -86,5 +87,11 @@ public class DatabaseImpl implements IDatabase {
     @Override
     public void remove(String key) {
 
+    }
+
+    @Override
+    public void close() {
+        indexStorage.close();
+        dataStorage.close();
     }
 }
