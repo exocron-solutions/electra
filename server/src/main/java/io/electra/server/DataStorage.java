@@ -44,7 +44,9 @@ class DataStorage {
     private static final int KEY_HASH_OFFSET = 4;
     private static final int KEY_LENGTH_OFFSET = 4;
     private static final int BLOCK_SIZE = 128;
+
     private final SeekableByteChannel channel;
+
     private final Queue<Integer> freeBlocks = Queues.newConcurrentLinkedQueue();
     private int freeBlock = 0;
 
@@ -127,5 +129,13 @@ class DataStorage {
         }
 
         return blocks;
+    }
+
+    void close() {
+        try {
+            channel.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

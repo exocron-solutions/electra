@@ -36,4 +36,6 @@ public interface IDatabase {
     byte[] get(String key);
 
     void remove(String key);
+
+    void close();
 }
