@@ -24,22 +24,17 @@
 
 package io.electra.server;
 
-import com.google.common.base.Charsets;
 import io.electra.server.btree.BTree;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
 
 /**
  * @author Felix Klauke <fklauke@itemis.de>
  */
 class IndexStorage {
-
-    private static final Charset DEFAULT_CHARSET = Charsets.UTF_8;
 
     private final BTree<Integer, Index> indexTree = new BTree<>();
 
@@ -79,8 +74,8 @@ class IndexStorage {
         return null;
     }
 
-    Index get(String key) {
-        return indexTree.search(Arrays.hashCode(key.getBytes(DEFAULT_CHARSET)));
+    Index get(int keyHash) {
+        return indexTree.search(keyHash);
     }
 
     void save(Index index) {

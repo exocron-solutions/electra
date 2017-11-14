@@ -25,10 +25,15 @@
 package io.electra.server;
 
 import com.google.common.base.Charsets;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 public class DatabaseImpl implements IDatabase {
 
@@ -38,9 +43,25 @@ public class DatabaseImpl implements IDatabase {
     private final IndexStorage indexStorage;
     private final DataStorage dataStorage;
 
-    public DatabaseImpl(Path dataFilePath, Path indexFilePath) {
+    private final LoadingCache<Integer, byte[]> valueCache;
+
+    private DatabaseImpl(Path dataFilePath, Path indexFilePath) {
         indexStorage = IndexStorage.createIndexStorage(indexFilePath);
         dataStorage = DataStorage.createDataStorage(dataFilePath);
+
+        // TODO: Stats in monitoring
+        valueCache = CacheBuilder.newBuilder()
+                .maximumSize(10000)
+                .expireAfterWrite(10, TimeUnit.MINUTES)
+                .expireAfterAccess(10, TimeUnit.MINUTES)
+                .recordStats()
+                .build(new CacheLoader<Integer, byte[]>() {
+                    @Override
+                    public byte[] load(Integer keyHash) throws Exception {
+                        Index index = indexStorage.get(keyHash);
+                        return dataStorage.get(index.getDataBlockIndices());
+                    }
+                });
     }
 
     public static void main(String[] args) {
@@ -82,8 +103,15 @@ public class DatabaseImpl implements IDatabase {
 
     @Override
     public byte[] get(String key) {
-        Index index = indexStorage.get(key);
-        return dataStorage.get(index.getDataBlockIndices());
+        int keyHash = Arrays.hashCode(key.getBytes(Charsets.UTF_8));
+
+        try {
+            return valueCache.get(keyHash);
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     @Override
