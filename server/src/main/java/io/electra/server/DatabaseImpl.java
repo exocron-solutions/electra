@@ -25,7 +25,6 @@
 package io.electra.server;
 
 import com.google.common.base.Charsets;
-import com.google.common.base.Strings;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -48,12 +47,15 @@ public class DatabaseImpl implements IDatabase {
         IDatabase database = new DatabaseImpl(TEST_DATA_PATH, TEST_INDEX_PATH);
 
         long time = System.currentTimeMillis();
-        for (int i = 0; i < 100; i++) {
+        /*for (int i = 1; i < 101; i++) {
             database.save("key" + i, Strings.repeat("value" + i, i));
-        }
+        }*/
+        String d = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+        database.save("key", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
         System.out.println("Saving took " + (System.currentTimeMillis() - time) + "ms.");
 
-        System.out.println(new String(database.get("key50")));
+        System.out.println("Got: " + new String(database.get("key")));
+        System.out.println("Equals: " + new String(database.get("key")).equals(d));
     }
 
     @Override

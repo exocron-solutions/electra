@@ -42,7 +42,7 @@ import java.util.Queue;
 class DataStorage {
 
     private static final int KEY_HASH_OFFSET = 4;
-    private static final int KEY_LENGTH_OFFSET = 4;
+    private static final int KEY_HASH_DATA_LENGTH_OFFSET = 8;
     private static final int BLOCK_SIZE = 128;
 
     private final SeekableByteChannel channel;
@@ -74,10 +74,10 @@ class DataStorage {
             for (int i = 0; i < dataBlockIndices.length; i++) {
                 channel.position(dataBlockIndices[i] * BLOCK_SIZE);
 
-                ByteBuffer byteBuffer = ByteBuffer.allocate(BLOCK_SIZE);
+                ByteBuffer byteBuffer = ByteBuffer.allocate(BLOCK_SIZE + KEY_HASH_DATA_LENGTH_OFFSET);
                 byteBuffer.putInt(keyHash);
-                int startPosition = i * (BLOCK_SIZE - KEY_LENGTH_OFFSET - KEY_HASH_OFFSET);
-                int endPosition = (i + 1) * (BLOCK_SIZE - KEY_LENGTH_OFFSET - KEY_HASH_OFFSET);
+                int startPosition = i * (BLOCK_SIZE);
+                int endPosition = (i + 1) * (BLOCK_SIZE);
                 endPosition = endPosition < bytes.length ? endPosition : bytes.length;
 
                 byte[] resultingData = Arrays.copyOfRange(bytes, startPosition, endPosition);
@@ -98,13 +98,17 @@ class DataStorage {
 
         for (int currentDataBlockIndex : dataBlockIndices) {
             try {
+                // The KEY_HASH_OFFSET is to skip the key hash which is also saved there
+                // key hash
+                // data length
+                // data[]
                 channel.position(currentDataBlockIndex * BLOCK_SIZE + KEY_HASH_OFFSET);
 
-                ByteBuffer valueLengthBuffer = ByteBuffer.allocate(4);
-                channel.read(valueLengthBuffer);
-                valueLengthBuffer.flip();
+                ByteBuffer dataLengthBuffer = ByteBuffer.allocate(4);
+                channel.read(dataLengthBuffer);
+                dataLengthBuffer.flip();
 
-                int valueLength = valueLengthBuffer.getInt();
+                int valueLength = dataLengthBuffer.getInt();
 
                 ByteBuffer valueBuffer = ByteBuffer.allocate(valueLength);
                 channel.read(valueBuffer);
@@ -120,7 +124,7 @@ class DataStorage {
     }
 
     int[] allocateDataBlocks(byte[] bytes) {
-        int neededBlocks = (int) Math.ceil(bytes.length / (double) (BLOCK_SIZE - KEY_LENGTH_OFFSET - KEY_HASH_OFFSET));
+        int neededBlocks = (int) Math.ceil(bytes.length / (double) (BLOCK_SIZE));
 
         int[] blocks = new int[neededBlocks];
 
