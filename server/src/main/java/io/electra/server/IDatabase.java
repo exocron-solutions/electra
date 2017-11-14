@@ -22,20 +22,18 @@
  * SOFTWARE.
  */
 
-package de.felix_klauke.nostra.core.btree;
-
+package io.electra.server;
 
 /**
- * Class BTKeyValue
- *
- * @author tnguyen
+ * @author Felix Klauke <fklauke@itemis.de>
  */
-public class BTKeyValue<K extends Comparable, V> {
-    protected K mKey;
-    protected V mValue;
+public interface IDatabase {
 
-    public BTKeyValue(K key, V value) {
-        mKey = key;
-        mValue = value;
-    }
+    void save(String key, byte[] bytes);
+
+    void save(String key, String value);
+
+    byte[] get(String key);
+
+    void remove(String key);
 }

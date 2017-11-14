@@ -22,14 +22,43 @@
  * SOFTWARE.
  */
 
-package de.felix_klauke.nostra.core.btree;
+package io.electra.server;
 
+import java.util.Arrays;
 
 /**
- * Interface BTIteratorIF
- *
- * @author tnguyen
+ * @author Felix Klauke <serious@business.felix-klauke.de>
  */
-public interface BTIteratorIF<K extends Comparable, V> {
-    boolean item(K key, V value);
+class Index {
+
+    private int keyHash;
+    private int dataBlockCount;
+    private int[] dataBlockIndices;
+
+    Index(int keyHash, int dataBlockCount, int[] dataBlockIndices) {
+        this.keyHash = keyHash;
+        this.dataBlockCount = dataBlockCount;
+        this.dataBlockIndices = dataBlockIndices;
+    }
+
+    int getKeyHash() {
+        return keyHash;
+    }
+
+    int getDataBlockCount() {
+        return dataBlockCount;
+    }
+
+    int[] getDataBlockIndices() {
+        return dataBlockIndices;
+    }
+
+    @Override
+    public String toString() {
+        return "Index{" +
+                "keyHash=" + keyHash +
+                ", dataBlockCount=" + dataBlockCount +
+                ", dataBlockIndices=" + Arrays.toString(dataBlockIndices) +
+                '}';
+    }
 }

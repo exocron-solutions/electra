@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package de.felix_klauke.nostra.core;
+package io.electra.server;
 
 import com.google.common.collect.Queues;
 import com.google.common.primitives.Bytes;

@@ -22,10 +22,10 @@
  * SOFTWARE.
  */
 
-package de.felix_klauke.nostra.core;
+package io.electra.server;
 
 import com.google.common.base.Charsets;
-import de.felix_klauke.nostra.core.btree.BTree;
+import io.electra.server.btree.BTree;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;

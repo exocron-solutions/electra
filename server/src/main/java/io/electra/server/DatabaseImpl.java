@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package de.felix_klauke.nostra.core;
+package io.electra.server;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
