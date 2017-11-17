@@ -24,6 +24,7 @@
 
 package io.electra.server;
 
+import com.google.common.collect.Lists;
 import com.google.common.primitives.Bytes;
 import io.electra.server.data.DataBlock;
 import io.electra.server.data.DataStorage;
@@ -34,6 +35,7 @@ import io.electra.server.index.IndexStorageFactory;
 
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author Felix Klauke <fklauke@itemis.de>
@@ -105,7 +107,27 @@ public class DatabaseImpl implements Database {
 
     @Override
     public void remove(String key) {
+        Index index = indexStorage.getIndex(Arrays.hashCode(key.getBytes()));
+        DataBlock dataBlock = dataStorage.readDataBlockAtIndex(index.getPosition());
 
+        List<DataBlock> deletedBlocks = Lists.newArrayList();
+
+        do {
+            deletedBlocks.add(dataBlock);
+        }
+        while (dataBlock.getNextPosition() != -1 && (dataBlock = dataStorage.readDataBlockAtIndex(dataBlock.getNextPosition())) != null);
+
+        DataBlock lastBlock = getLastFreeBlock();
+
+        if (lastBlock == null) {
+            indexStorage.getCurrentEmptyIndex().setPosition(index.getPosition());
+            return;
+        }
+
+        for (DataBlock currentBlock : deletedBlocks) {
+            dataStorage.updateNextBlock(lastBlock, currentBlock);
+            lastBlock = currentBlock;
+        }
     }
 
     @Override
@@ -115,5 +137,23 @@ public class DatabaseImpl implements Database {
 
     private int calculateNeededBlocks(int contentLength) {
         return (int) Math.ceil(contentLength / (double) (DatabaseConstants.DATA_BLOCK_SIZE));
+    }
+
+    private DataBlock getLastFreeBlock() {
+        int currentEmptyIndex = indexStorage.getCurrentEmptyIndex().getPosition();
+
+        DataBlock dataBlock = dataStorage.readDataBlockAtIndex(currentEmptyIndex);
+
+        if (dataBlock == null) {
+            return null;
+        }
+
+        DataBlock currentBlock;
+
+        while ((currentBlock = dataStorage.readDataBlockAtIndex(dataBlock.getNextPosition())) != null) {
+            dataBlock = currentBlock;
+        }
+
+        return dataBlock;
     }
 }

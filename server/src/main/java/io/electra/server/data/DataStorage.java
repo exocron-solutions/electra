@@ -34,4 +34,8 @@ public interface DataStorage {
     DataBlock readDataBlockAtPosition(int position);
 
     DataBlock readDataBlockAtIndex(int index);
+
+    int getPositionByIndex(int index);
+
+    void updateNextBlock(DataBlock dataBlock, DataBlock deletedBlock);
 }

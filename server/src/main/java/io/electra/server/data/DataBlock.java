@@ -31,12 +31,18 @@ import java.util.Arrays;
  */
 public class DataBlock {
 
+    private final int currentPosition;
     private final byte[] content;
     private final int nextPosition;
 
-    public DataBlock(byte[] content, int nextPosition) {
+    public DataBlock(int currentPosition, byte[] content, int nextPosition) {
+        this.currentPosition = currentPosition;
         this.content = content;
         this.nextPosition = nextPosition;
+    }
+
+    public int getCurrentPosition() {
+        return currentPosition;
     }
 
     public byte[] getContent() {

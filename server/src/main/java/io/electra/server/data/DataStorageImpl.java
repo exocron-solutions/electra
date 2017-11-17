@@ -96,7 +96,7 @@ public class DataStorageImpl implements DataStorage {
 
             int nextPosition = nextPositionByteBuffer.getInt();
 
-            return new DataBlock(contentByteBuffer.array(), nextPosition);
+            return new DataBlock(position / DatabaseConstants.DATA_BLOCK_SIZE, contentByteBuffer.array(), nextPosition);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -109,7 +109,23 @@ public class DataStorageImpl implements DataStorage {
         return readDataBlockAtPosition(getPositionByIndex(index));
     }
 
+    @Override
     public int getPositionByIndex(int index) {
         return index * (DatabaseConstants.DATA_BLOCK_SIZE);
+    }
+
+    @Override
+    public void updateNextBlock(DataBlock dataBlock, DataBlock deletedBlock) {
+        try {
+            channel.position(dataBlock.getCurrentPosition() * DatabaseConstants.DATA_BLOCK_SIZE + dataBlock.getContent().length);
+
+            ByteBuffer byteBuffer = ByteBuffer.allocate(4);
+            byteBuffer.putInt(deletedBlock.getCurrentPosition());
+            byteBuffer.flip();
+
+            channel.write(byteBuffer);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
