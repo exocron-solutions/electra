@@ -24,76 +24,63 @@
 
 package io.electra.server;
 
-import com.google.common.base.Charsets;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import com.google.common.primitives.Bytes;
+import io.electra.server.data.DataBlock;
+import io.electra.server.data.DataStorage;
+import io.electra.server.data.DataStorageFactory;
+import io.electra.server.index.Index;
+import io.electra.server.index.IndexStorage;
+import io.electra.server.index.IndexStorageFactory;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 
-public class DatabaseImpl implements IDatabase {
-
-    private static final Path TEST_INDEX_PATH = Paths.get("index.nstr");
-    private static final Path TEST_DATA_PATH = Paths.get("data.nstr");
+/**
+ * @author Felix Klauke <fklauke@itemis.de>
+ */
+public class DatabaseImpl implements Database {
 
     private final IndexStorage indexStorage;
     private final DataStorage dataStorage;
 
-    private final LoadingCache<Integer, byte[]> valueCache;
-
-    private DatabaseImpl(Path dataFilePath, Path indexFilePath) {
-        indexStorage = IndexStorage.createIndexStorage(indexFilePath);
-        dataStorage = DataStorage.createDataStorage(dataFilePath);
-
-        // TODO: Stats in monitoring
-        valueCache = CacheBuilder.newBuilder()
-                .maximumSize(10000)
-                .expireAfterWrite(10, TimeUnit.MINUTES)
-                .expireAfterAccess(10, TimeUnit.MINUTES)
-                .recordStats()
-                .build(new CacheLoader<Integer, byte[]>() {
-                    @Override
-                    public byte[] load(Integer keyHash) throws Exception {
-                        Index index = indexStorage.get(keyHash);
-                        return dataStorage.get(index.getDataBlockIndices());
-                    }
-                });
-    }
-
-    public static void main(String[] args) {
-        IDatabase database = new DatabaseImpl(TEST_DATA_PATH, TEST_INDEX_PATH);
-
-        long time = System.currentTimeMillis();
-        /*for (int i = 1; i < 101; i++) {
-            database.save("key" + i, Strings.repeat("value" + i, i));
-        }*/
-        String d = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-        database.save("key", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-        System.out.println("Saving took " + (System.currentTimeMillis() - time) + "ms.");
-
-        System.out.println("Got: " + new String(database.get("key")));
-        System.out.println("Equals: " + new String(database.get("key")).equals(d));
+    public DatabaseImpl(Path dataFilePath, Path indexFilePath) {
+        indexStorage = IndexStorageFactory.createIndexStorage(indexFilePath);
+        dataStorage = DataStorageFactory.createDataStorage(dataFilePath);
     }
 
     @Override
     public void save(String key, byte[] bytes) {
-        int keyHash = Arrays.hashCode(key.getBytes(Charsets.UTF_8));
-        save(keyHash, bytes);
-    }
+        int keyHash = Arrays.hashCode(key.getBytes());
+        int blocksNeeded = calculateNeededBlocks(bytes.length);
 
-    private void save(int keyHash, byte[] bytes) {
-        int[] dataBlockIndices = dataStorage.allocateDataBlocks(bytes);
+        int[] allocatedBlocks = new int[blocksNeeded];
 
-        Index index = new Index(keyHash, dataBlockIndices.length, dataBlockIndices);
-        indexStorage.save(index);
+        System.out.println("NEW SAVE -------------------------------------------------------------------- NEW SAVE");
+        System.out.println("Current empty index:    " + indexStorage.getCurrentEmptyIndex());
 
-        System.out.println("Got new index: " + index);
+        for (int i = 0; i < allocatedBlocks.length; i++) {
+            int currentFreeBlock = indexStorage.getCurrentEmptyIndex().getPosition();
 
-        dataStorage.save(keyHash, dataBlockIndices, bytes);
+            allocatedBlocks[i] = currentFreeBlock;
+            DataBlock dataBlock = dataStorage.readDataBlockAtIndex(currentFreeBlock);
+
+            indexStorage.getCurrentEmptyIndex().setPosition(dataBlock == null ? currentFreeBlock + 1 : dataBlock.getNextPosition());
+        }
+
+        System.out.println("Allocated blocks:       " + Arrays.toString(allocatedBlocks));
+
+        int firstBlock = allocatedBlocks[0];
+        Index index = new Index(keyHash, false, firstBlock);
+
+        indexStorage.saveIndex(index);
+
+        System.out.println("KeyHash:                " + keyHash);
+        System.out.println("First block:            " + firstBlock);
+        System.out.println("Index:                  " + index);
+        System.out.println("Allocated blocks:       " + Arrays.toString(allocatedBlocks));
+        System.out.println("Current free index:     " + indexStorage.getCurrentEmptyIndex());
+
+        dataStorage.save(allocatedBlocks, bytes);
     }
 
     @Override
@@ -103,15 +90,17 @@ public class DatabaseImpl implements IDatabase {
 
     @Override
     public byte[] get(String key) {
-        int keyHash = Arrays.hashCode(key.getBytes(Charsets.UTF_8));
+        Index index = indexStorage.getIndex(Arrays.hashCode(key.getBytes()));
+        DataBlock dataBlock = dataStorage.readDataBlockAtIndex(index.getPosition());
 
-        try {
-            return valueCache.get(keyHash);
-        } catch (ExecutionException e) {
-            e.printStackTrace();
+        byte[] result = dataBlock.getContent();
+
+        while (dataBlock.getNextPosition() != -1) {
+            dataBlock = dataStorage.readDataBlockAtIndex(dataBlock.getNextPosition());
+            result = Bytes.concat(result, dataBlock.getContent());
         }
 
-        return null;
+        return result;
     }
 
     @Override
@@ -121,7 +110,10 @@ public class DatabaseImpl implements IDatabase {
 
     @Override
     public void close() {
-        indexStorage.close();
-        dataStorage.close();
+
+    }
+
+    private int calculateNeededBlocks(int contentLength) {
+        return (int) Math.ceil(contentLength / (double) (DatabaseConstants.DATA_BLOCK_SIZE));
     }
 }

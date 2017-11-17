@@ -22,20 +22,36 @@
  * SOFTWARE.
  */
 
-package io.electra.server;
+package io.electra.server.data;
+
+import java.util.Arrays;
 
 /**
  * @author Felix Klauke <fklauke@itemis.de>
  */
-public interface IDatabase {
+public class DataBlock {
 
-    void save(String key, byte[] bytes);
+    private final byte[] content;
+    private final int nextPosition;
 
-    void save(String key, String value);
+    public DataBlock(byte[] content, int nextPosition) {
+        this.content = content;
+        this.nextPosition = nextPosition;
+    }
 
-    byte[] get(String key);
+    public byte[] getContent() {
+        return content;
+    }
 
-    void remove(String key);
+    public int getNextPosition() {
+        return nextPosition;
+    }
 
-    void close();
+    @Override
+    public String toString() {
+        return "DataBlock{" +
+                "content=" + Arrays.toString(content) +
+                ", nextPosition=" + nextPosition +
+                '}';
+    }
 }

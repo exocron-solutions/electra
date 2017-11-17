@@ -24,41 +24,14 @@
 
 package io.electra.server;
 
-import java.util.Arrays;
-
 /**
- * @author Felix Klauke <serious@business.felix-klauke.de>
+ * @author Felix Klauke <fklauke@itemis.de>
  */
-class Index {
+public class DatabaseConstants {
 
-    private int keyHash;
-    private int dataBlockCount;
-    private int[] dataBlockIndices;
+    public static int DATA_BLOCK_SIZE = 128;
 
-    Index(int keyHash, int dataBlockCount, int[] dataBlockIndices) {
-        this.keyHash = keyHash;
-        this.dataBlockCount = dataBlockCount;
-        this.dataBlockIndices = dataBlockIndices;
-    }
+    public static int CONTENT_LENGTH_OFFSET = 4;
 
-    int getKeyHash() {
-        return keyHash;
-    }
-
-    int getDataBlockCount() {
-        return dataBlockCount;
-    }
-
-    int[] getDataBlockIndices() {
-        return dataBlockIndices;
-    }
-
-    @Override
-    public String toString() {
-        return "Index{" +
-                "keyHash=" + keyHash +
-                ", dataBlockCount=" + dataBlockCount +
-                ", dataBlockIndices=" + Arrays.toString(dataBlockIndices) +
-                '}';
-    }
+    public static int NEXT_POSITION_OFFSET = 4;
 }
