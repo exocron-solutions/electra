@@ -35,4 +35,6 @@ public interface IndexStorage {
     void saveIndex(Index index);
 
     Index getIndex(int keyHash);
+
+    void removeIndex(Index index);
 }

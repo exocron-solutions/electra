@@ -128,6 +128,8 @@ public class DatabaseImpl implements Database {
             dataStorage.updateNextBlock(lastBlock, currentBlock);
             lastBlock = currentBlock;
         }
+
+        indexStorage.removeIndex(index);
     }
 
     @Override

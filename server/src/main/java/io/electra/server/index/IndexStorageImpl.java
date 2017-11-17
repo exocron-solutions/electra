@@ -92,4 +92,9 @@ public class IndexStorageImpl implements IndexStorage {
     public Index getIndex(int keyHash) {
         return currentIndices.search(keyHash);
     }
+
+    @Override
+    public void removeIndex(Index index) {
+        currentIndices.delete(index.getKeyHash());
+    }
 }
