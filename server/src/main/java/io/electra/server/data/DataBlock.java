@@ -24,8 +24,6 @@
 
 package io.electra.server.data;
 
-import java.util.Arrays;
-
 /**
  * @author Felix Klauke <fklauke@itemis.de>
  */
@@ -56,7 +54,6 @@ public class DataBlock {
     @Override
     public String toString() {
         return "DataBlock{" +
-                "content=" + Arrays.toString(content) +
                 ", nextPosition=" + nextPosition +
                 '}';
     }

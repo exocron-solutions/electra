@@ -31,11 +31,11 @@ public interface DataStorage {
 
     void save(int[] allocatedBlocks, byte[] bytes);
 
-    DataBlock readDataBlockAtPosition(int position);
-
     DataBlock readDataBlockAtIndex(int index);
 
     int getPositionByIndex(int index);
 
-    void updateNextBlock(DataBlock dataBlock, DataBlock deletedBlock);
+    int readNextBlockAtIndex(int blockIndex);
+
+    void writeNextBlockAtIndex(int blockIndex, int nextBlockIndex);
 }

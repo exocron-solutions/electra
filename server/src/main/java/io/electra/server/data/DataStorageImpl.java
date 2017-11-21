@@ -27,6 +27,7 @@ package io.electra.server.data;
 import io.electra.server.DatabaseConstants;
 
 import java.io.IOException;
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
 import java.util.Arrays;
@@ -56,9 +57,9 @@ public class DataStorageImpl implements DataStorage {
             int nextBlock = i == allocatedBlocks.length - 1 ? -1 : allocatedBlocks[i + 1];
 
             ByteBuffer byteBuffer = ByteBuffer.allocate(DatabaseConstants.DATA_BLOCK_SIZE);
+            byteBuffer.putInt(nextBlock);
             byteBuffer.putInt(currentBlockContent.length);
             byteBuffer.put(currentBlockContent);
-            byteBuffer.putInt(nextBlock);
 
             byteBuffer.flip();
 
@@ -71,10 +72,20 @@ public class DataStorageImpl implements DataStorage {
         }
     }
 
-    @Override
-    public DataBlock readDataBlockAtPosition(int position) {
+    private DataBlock readDataBlockAtPosition(int position) {
+        if (position < 0) {
+            throw new IllegalArgumentException("Illegal reading position: " + position);
+        }
+
         try {
             channel.position(position);
+
+            ByteBuffer nextPositionByteBuffer = ByteBuffer.allocate(4);
+            channel.read(nextPositionByteBuffer);
+
+            nextPositionByteBuffer.flip();
+
+            int nextPosition = nextPositionByteBuffer.getInt();
 
             ByteBuffer contentLengthByteBuffer = ByteBuffer.allocate(4);
             channel.read(contentLengthByteBuffer);
@@ -90,18 +101,13 @@ public class DataStorageImpl implements DataStorage {
             channel.read(contentByteBuffer);
             contentByteBuffer.flip();
 
-            ByteBuffer nextPositionByteBuffer = ByteBuffer.allocate(4);
-            channel.read(nextPositionByteBuffer);
-            nextPositionByteBuffer.flip();
-
-            int nextPosition = nextPositionByteBuffer.getInt();
-
             return new DataBlock(position / DatabaseConstants.DATA_BLOCK_SIZE, contentByteBuffer.array(), nextPosition);
         } catch (IOException e) {
             e.printStackTrace();
+            return null;
+        } catch (BufferUnderflowException e) {
+            return null;
         }
-
-        return null;
     }
 
     @Override
@@ -115,12 +121,29 @@ public class DataStorageImpl implements DataStorage {
     }
 
     @Override
-    public void updateNextBlock(DataBlock dataBlock, DataBlock deletedBlock) {
+    public int readNextBlockAtIndex(int blockIndex) {
         try {
-            channel.position(dataBlock.getCurrentPosition() * DatabaseConstants.DATA_BLOCK_SIZE + dataBlock.getContent().length);
+            channel.position(blockIndex * DatabaseConstants.DATA_BLOCK_SIZE);
 
             ByteBuffer byteBuffer = ByteBuffer.allocate(4);
-            byteBuffer.putInt(deletedBlock.getCurrentPosition());
+            channel.read(byteBuffer);
+            byteBuffer.flip();
+
+            return byteBuffer.hasRemaining() ? byteBuffer.getInt() : -1;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return -1;
+    }
+
+    @Override
+    public void writeNextBlockAtIndex(int blockIndex, int nextBlockIndex) {
+        try {
+            channel.position(blockIndex * DatabaseConstants.DATA_BLOCK_SIZE);
+
+            ByteBuffer byteBuffer = ByteBuffer.allocate(4);
+            byteBuffer.putInt(nextBlockIndex);
             byteBuffer.flip();
 
             channel.write(byteBuffer);

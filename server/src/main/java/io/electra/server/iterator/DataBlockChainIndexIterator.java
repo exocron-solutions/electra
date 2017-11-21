@@ -22,33 +22,48 @@
  * SOFTWARE.
  */
 
-package io.electra.server.data;
+package io.electra.server.iterator;
 
-import java.io.IOException;
-import java.nio.channels.SeekableByteChannel;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
+import io.electra.server.data.DataStorage;
+
+import java.util.Iterator;
 
 /**
  * @author Felix Klauke <fklauke@itemis.de>
  */
-public class DataStorageFactory {
+public class DataBlockChainIndexIterator implements Iterator<Integer> {
 
-    public static DataStorage createDataStorage(Path dataFilePath) {
-        DataStorage dataStorage = null;
+    private final DataStorage dataStorage;
+    private int blockIndex;
+    private int nextBlockIndex = -1;
+    private boolean firstRun = true;
 
-        try {
-            if (!Files.exists(dataFilePath)) {
-                Files.createFile(dataFilePath);
-            }
+    public DataBlockChainIndexIterator(DataStorage dataStorage, int blockIndex) {
+        this.dataStorage = dataStorage;
+        this.blockIndex = blockIndex;
+    }
 
-            SeekableByteChannel channel = Files.newByteChannel(dataFilePath, StandardOpenOption.READ, StandardOpenOption.WRITE);
-            dataStorage = new DataStorageImpl(channel);
-        } catch (IOException e) {
-            e.printStackTrace();
+    @Override
+    public boolean hasNext() {
+        return firstRun || (nextBlockIndex = dataStorage.readNextBlockAtIndex(blockIndex)) != -1;
+
+    }
+
+    @Override
+    public Integer next() {
+        if (firstRun) {
+            firstRun = false;
+            return blockIndex;
         }
 
-        return dataStorage;
+        if (nextBlockIndex == -1) {
+            nextBlockIndex = dataStorage.readNextBlockAtIndex(blockIndex);
+        }
+
+        blockIndex = nextBlockIndex;
+
+        nextBlockIndex = -1;
+
+        return blockIndex;
     }
 }
