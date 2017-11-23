@@ -24,23 +24,23 @@
 
 package io.electra.server.index;
 
+import com.google.common.collect.Maps;
 import com.google.common.collect.Queues;
-import io.electra.server.btree.BTree;
+import io.electra.server.DatabaseConstants;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
 import java.util.Queue;
+import java.util.TreeMap;
 
 /**
  * @author Felix Klauke <fklauke@itemis.de>
  */
 public class IndexStorageImpl implements IndexStorage {
 
-    private static final int BLOCK_SIZE = 4 + 1 + 4;
-
     private final Queue<Integer> emptyIndices = Queues.newPriorityQueue();
-    private final BTree<Integer, Index> currentIndices = new BTree<>();
+    private final TreeMap<Integer, Index> currentIndices = Maps.newTreeMap();
     private final SeekableByteChannel channel;
     private int lastIndexPosition;
     private Index emptyDataIndex;
@@ -71,7 +71,7 @@ public class IndexStorageImpl implements IndexStorage {
 
             while (byteBuffer.hasRemaining()) {
                 Index index = readIndex(byteBuffer);
-                index.setIndexFilePosition(byteBuffer.position() / BLOCK_SIZE);
+                index.setIndexFilePosition(byteBuffer.position() / DatabaseConstants.INDEX_BLOCK_SIZE);
 
                 if (index.isEmpty()) {
                     emptyIndices.offer(index.getIndexFilePosition());
@@ -109,7 +109,7 @@ public class IndexStorageImpl implements IndexStorage {
 
     @Override
     public void saveIndex(Index index) {
-        currentIndices.insert(index.getKeyHash(), index);
+        currentIndices.put(index.getKeyHash(), index);
 
         int freeBlock = allocateFreeBlock();
         index.setIndexFilePosition(freeBlock);
@@ -118,7 +118,7 @@ public class IndexStorageImpl implements IndexStorage {
 
     @Override
     public Index getIndex(int keyHash) {
-        return currentIndices.search(keyHash);
+        return currentIndices.get(keyHash);
     }
 
     @Override
@@ -128,7 +128,7 @@ public class IndexStorageImpl implements IndexStorage {
         index.setEmpty(true);
         writeIndex(index.getIndexFilePosition(), index);
 
-        currentIndices.delete(index.getKeyHash());
+        currentIndices.remove(index.getKeyHash());
     }
 
     @Override
@@ -143,14 +143,14 @@ public class IndexStorageImpl implements IndexStorage {
     }
 
     private void writeIndex(int position, Index index) {
-        ByteBuffer byteBuffer = ByteBuffer.allocate(BLOCK_SIZE);
+        ByteBuffer byteBuffer = ByteBuffer.allocate(DatabaseConstants.INDEX_BLOCK_SIZE);
         byteBuffer.putInt(index.getKeyHash());
         byteBuffer.put((byte) (index.isEmpty() ? 1 : 0));
         byteBuffer.putInt(index.getDataFilePosition());
         byteBuffer.flip();
 
         try {
-            channel.position(position * BLOCK_SIZE);
+            channel.position(position * DatabaseConstants.INDEX_BLOCK_SIZE);
             channel.write(byteBuffer);
         } catch (IOException e) {
             e.printStackTrace();

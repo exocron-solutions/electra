@@ -46,4 +46,9 @@ public class DatabaseConstants {
      * The amount of bytes needed to store the next position pointer.
      */
     public static int NEXT_POSITION_OFFSET = 4;
+
+    /**
+     * The size of one index block.
+     */
+    public static int INDEX_BLOCK_SIZE = 9;
 }

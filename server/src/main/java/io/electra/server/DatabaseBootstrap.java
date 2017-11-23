@@ -40,7 +40,7 @@ public class DatabaseBootstrap {
     public static void main(String[] args) {
         Database database = new DatabaseImpl(dataFilePath, indexFilePath);
 
-        int n = 100000;
+        int n = 1000000;
 
         long start = System.currentTimeMillis();
         for (int i = 0; i < n; i++) {
