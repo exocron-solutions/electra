@@ -24,22 +24,15 @@
 
 package io.electra.server;
 
+import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.LoadingCache;
-import com.google.common.collect.Iterators;
-import com.google.common.collect.Sets;
 import io.electra.server.data.DataStorage;
 import io.electra.server.data.DataStorageFactory;
-import io.electra.server.index.Index;
 import io.electra.server.index.IndexStorage;
 import io.electra.server.index.IndexStorageFactory;
-import io.electra.server.iterator.DataBlockChainIndexIterator;
-import io.electra.server.loader.DatabaseValueLoader;
 
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.TreeSet;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -47,21 +40,28 @@ import java.util.concurrent.TimeUnit;
  */
 public class DatabaseImpl implements Database {
 
-    private final IndexStorage indexStorage;
-    private final DataStorage dataStorage;
-    private final LoadingCache<Integer, byte[]> valueCache;
-    private final TreeSet<Integer> freeBlocks;
+    private final Cache<String, byte[]> cache;
+    private final StorageManager storageManager;
 
     DatabaseImpl(Path dataFilePath, Path indexFilePath) {
-        indexStorage = IndexStorageFactory.createIndexStorage(indexFilePath);
-        dataStorage = DataStorageFactory.createDataStorage(dataFilePath);
+        IndexStorage indexStorage = IndexStorageFactory.createIndexStorage(indexFilePath);
+        DataStorage dataStorage = DataStorageFactory.createDataStorage(dataFilePath);
 
-        valueCache = CacheBuilder.newBuilder()
-                .recordStats()
+        storageManager = new StorageManager(indexStorage, dataStorage);
+
+        cache = CacheBuilder.newBuilder()
                 .expireAfterAccess(1, TimeUnit.MINUTES)
-                .build(new DatabaseValueLoader(indexStorage, dataStorage));
+                .recordStats()
+                .build();
+    }
 
-        freeBlocks = Sets.newTreeSet(() -> new DataBlockChainIndexIterator(dataStorage, indexStorage.getCurrentEmptyIndex().getDataFilePosition()));
+
+    @Override
+    public void save(String key, byte[] bytes) {
+        int keyHash = Arrays.hashCode(bytes);
+        storageManager.save(keyHash, bytes);
+
+        cache.put(key, bytes);
     }
 
     @Override
@@ -71,89 +71,28 @@ public class DatabaseImpl implements Database {
 
     @Override
     public byte[] get(String key) {
-        int keyHash = Arrays.hashCode(key.getBytes());
+        byte[] result = cache.getIfPresent(key);
 
-        try {
-            return valueCache.get(keyHash);
-        } catch (ExecutionException e) {
-            e.printStackTrace();
+        if (result != null) {
+            return result;
         }
 
-        return null;
-    }
-
-    private int calculateNeededBlocks(int contentLength) {
-        return (int) Math.ceil(contentLength / (double) (DatabaseConstants.DATA_BLOCK_SIZE));
-    }
-
-    @Override
-    public void close() {
-        dataStorage.close();
-        indexStorage.close();
-    }
-
-    @Override
-    public void save(String key, byte[] bytes) {
         int keyHash = Arrays.hashCode(key.getBytes());
-        int blocksNeeded = calculateNeededBlocks(bytes.length);
-
-        int[] allocatedBlocks = new int[blocksNeeded];
-
-        for (int i = 0; i < allocatedBlocks.length; i++) {
-            int nextFreeBlock = freeBlocks.pollFirst();
-
-            if (freeBlocks.isEmpty()) {
-                freeBlocks.add(nextFreeBlock + 1);
-            }
-
-            allocatedBlocks[i] = nextFreeBlock;
-            indexStorage.getCurrentEmptyIndex().setDataFilePosition(nextFreeBlock + 1);
-        }
-
-        int firstBlock = allocatedBlocks[0];
-        Index index = new Index(keyHash, false, firstBlock);
-
-        indexStorage.saveIndex(index);
-
-        dataStorage.save(allocatedBlocks, bytes);
-
-        valueCache.put(keyHash, bytes);
+        return storageManager.get(keyHash);
     }
 
     @Override
     public void remove(String key) {
         int keyHash = Arrays.hashCode(key.getBytes());
-        Index index = indexStorage.getIndex(keyHash);
-        Index currentEmptyIndex = indexStorage.getCurrentEmptyIndex();
+        storageManager.remove(keyHash);
 
-        Integer[] affectedBlocks = Iterators.toArray(new DataBlockChainIndexIterator(dataStorage, index.getDataFilePosition()), Integer.class);
+        cache.invalidate(key);
+    }
 
-        for (int i = affectedBlocks.length - 1; i >= 0; i--) {
-            int currentAffectedBlockIndex = affectedBlocks[i];
+    @Override
+    public void close() {
+        storageManager.close();
 
-            if (currentAffectedBlockIndex < currentEmptyIndex.getDataFilePosition()) {
-                freeBlocks.add(currentEmptyIndex.getDataFilePosition());
-                dataStorage.writeNextBlockAtIndex(currentAffectedBlockIndex, currentEmptyIndex.getDataFilePosition());
-                currentEmptyIndex.setDataFilePosition(currentAffectedBlockIndex);
-            }
-
-            Integer lower = freeBlocks.lower(currentAffectedBlockIndex);
-
-            if (lower != null) {
-                dataStorage.writeNextBlockAtIndex(lower, currentAffectedBlockIndex);
-            }
-
-            Integer higher = freeBlocks.higher(currentAffectedBlockIndex);
-
-            if (higher != null) {
-                dataStorage.writeNextBlockAtIndex(currentAffectedBlockIndex, higher);
-            }
-
-            freeBlocks.add(currentAffectedBlockIndex);
-        }
-
-        indexStorage.removeIndex(index);
-
-        valueCache.invalidate(keyHash);
+        cache.cleanUp();
     }
 }
