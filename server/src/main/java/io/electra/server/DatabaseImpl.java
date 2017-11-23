@@ -36,10 +36,7 @@ import io.electra.server.index.IndexStorageFactory;
 import io.electra.server.iterator.DataBlockChainIndexIterator;
 import io.electra.server.loader.DatabaseValueLoader;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutionException;
@@ -49,9 +46,6 @@ import java.util.concurrent.TimeUnit;
  * @author Felix Klauke <fklauke@itemis.de>
  */
 public class DatabaseImpl implements Database {
-
-    private static final Path indexFilePath = Paths.get("index.lctr");
-    private static final Path dataFilePath = Paths.get("data.lctr");
 
     private final IndexStorage indexStorage;
     private final DataStorage dataStorage;
@@ -98,39 +92,6 @@ public class DatabaseImpl implements Database {
         indexStorage.close();
     }
 
-    public static void main(String[] args) {
-        Database database = new DatabaseImpl(dataFilePath, indexFilePath);
-
-        int n = 100000;
-
-        long start = System.currentTimeMillis();
-        for (int i = 0; i < n; i++) {
-            database.save("Key" + i, "Value" + i);
-        }
-        System.out.println("Saving " + n + " entries took " + (System.currentTimeMillis() - start) + "ms. ");
-
-        start = System.currentTimeMillis();
-        for (int i = 0; i < n; i++) {
-            database.get("Key" + i);
-        }
-        System.out.println("Reading " + n + " entries took " + (System.currentTimeMillis() - start) + "ms. ");
-
-        start = System.currentTimeMillis();
-        for (int i = 0; i < n; i++) {
-            database.remove("Key" + i);
-        }
-        System.out.println("Deleting " + n + " entries took " + (System.currentTimeMillis() - start) + "ms. ");
-
-        try {
-            Files.delete(dataFilePath);
-            Files.delete(indexFilePath);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        database.close();
-    }
-
     @Override
     public void save(String key, byte[] bytes) {
         int keyHash = Arrays.hashCode(key.getBytes());
@@ -152,8 +113,6 @@ public class DatabaseImpl implements Database {
         int firstBlock = allocatedBlocks[0];
         Index index = new Index(keyHash, false, firstBlock);
 
-        System.out.println("Writing blocks: " + Arrays.toString(allocatedBlocks));
-
         indexStorage.saveIndex(index);
 
         dataStorage.save(allocatedBlocks, bytes);
@@ -168,8 +127,6 @@ public class DatabaseImpl implements Database {
         Index currentEmptyIndex = indexStorage.getCurrentEmptyIndex();
 
         Integer[] affectedBlocks = Iterators.toArray(new DataBlockChainIndexIterator(dataStorage, index.getDataFilePosition()), Integer.class);
-
-        System.out.println("Removing blocks: " + Arrays.toString(affectedBlocks));
 
         for (int i = affectedBlocks.length - 1; i >= 0; i--) {
             int currentAffectedBlockIndex = affectedBlocks[i];
