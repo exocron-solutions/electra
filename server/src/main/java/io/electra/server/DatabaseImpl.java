@@ -24,6 +24,9 @@
 
 package io.electra.server;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Iterators;
 import com.google.common.primitives.Bytes;
 import io.electra.server.data.DataBlock;
@@ -39,11 +42,23 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Felix Klauke <fklauke@itemis.de>
  */
 public class DatabaseImpl implements Database {
+
+    private final LoadingCache<Integer, byte[]> valueCache = CacheBuilder.newBuilder()
+            .recordStats()
+            .expireAfterAccess(1, TimeUnit.MINUTES)
+            .build(new CacheLoader<Integer, byte[]>() {
+                @Override
+                public byte[] load(Integer keyHash) throws Exception {
+                    return get(keyHash);
+                }
+            });
 
     private final IndexStorage indexStorage;
     private final DataStorage dataStorage;
@@ -63,18 +78,23 @@ public class DatabaseImpl implements Database {
     public static void main(String[] args) {
         Database database = new DatabaseImpl(dataFilePath, indexFilePath);
 
-        database.save("Test", "Hey");
-        database.save("Test1", "Ich bin auch ein Test");
-        database.save("Test2", "Ich bin auch ein Test, naja wenn auch nur so ein bisschen aber das muss jeder selber wissen.");
-        database.save("Test3", "Ich bin auch ein TestIch bin auch ein TestIch bin auch ein TestIch bin auch ein TestIch bin auch ein TestIch bin auch ein TestIch bin auch ein TestIch bin auch ein TestIch bin auch ein TestIch bin auch ein TestIch bin auch ein TestIch bin auch ein TestIch bin auch ein TestIch bin auch ein TestIch bin auch ein Test");
-        database.save("Test4", "Ich bin auch ein TestIch bin auch ein TestIch bin auch ein TestIch bin auch ein TestIch bin auch ein TestIch bin auch ein TestIch bin auch ein TestIch bin auch ein TestIch bin auch ein TestIch bin auch ein TestIch bin auch ein TestIch bin auch ein TestIch bin auch ein TestIch bin auch ein TestIch bin auch ein Test");
+        int n = 1000000;
 
-        database.remove("Test1");
+        long start = System.currentTimeMillis();
+        for (int i = 0; i < n; i++) {
+            database.save("Key" + i, "Value" + i);
+        }
+        System.out.println("Saving " + n + " entries took " + (System.currentTimeMillis() - start) + "ms. ");
 
-        database.remove("Test3");
+        start = System.currentTimeMillis();
+        for (int i = 0; i < n; i++) {
+            database.get("Key" + i);
+        }
+        System.out.println("Reading " + n + " entries took " + (System.currentTimeMillis() - start) + "ms. ");
 
         try {
             Files.delete(dataFilePath);
+            Files.delete(indexFilePath);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -86,7 +106,19 @@ public class DatabaseImpl implements Database {
 
     @Override
     public byte[] get(String key) {
-        Index index = indexStorage.getIndex(Arrays.hashCode(key.getBytes()));
+        int keyHash = Arrays.hashCode(key.getBytes());
+
+        try {
+            return valueCache.get(keyHash);
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    private byte[] get(int keyHash) {
+        Index index = indexStorage.getIndex(keyHash);
         DataBlock dataBlock = dataStorage.readDataBlockAtIndex(index.getDataFilePosition());
 
         byte[] result = dataBlock.getContent();
@@ -142,11 +174,14 @@ public class DatabaseImpl implements Database {
         System.out.println("Current free index:     " + indexStorage.getCurrentEmptyIndex());
 
         dataStorage.save(allocatedBlocks, bytes);
+
+        valueCache.put(keyHash, bytes);
     }
 
     @Override
     public void remove(String key) {
-        Index index = indexStorage.getIndex(Arrays.hashCode(key.getBytes()));
+        int keyHash = Arrays.hashCode(key.getBytes());
+        Index index = indexStorage.getIndex(keyHash);
         Index currentEmptyIndex = indexStorage.getCurrentEmptyIndex();
 
         Integer[] affectedBlocks = Iterators.toArray(new DataBlockChainIndexIterator(dataStorage, index.getDataFilePosition()), Integer.class);
@@ -179,6 +214,8 @@ public class DatabaseImpl implements Database {
         }
 
         indexStorage.removeIndex(index);
+
+        valueCache.invalidate(keyHash);
     }
 
     private Integer[] addPos(Integer[] a, int pos, int num) {
