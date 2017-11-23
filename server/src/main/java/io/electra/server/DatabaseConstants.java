@@ -25,13 +25,25 @@
 package io.electra.server;
 
 /**
+ * Storage of central important constants that have to be available always and everywhere.
+ *
  * @author Felix Klauke <fklauke@itemis.de>
  */
 public class DatabaseConstants {
 
+    /**
+     * The size of the blocks our data is organized in. Remember that the pure content of the size will have a length of
+     * DATA_BLOCK_SIZ - {@link #CONTENT_LENGTH_OFFSET} - {@link #NEXT_POSITION_OFFSET}.
+     */
     public static int DATA_BLOCK_SIZE = 128;
 
+    /**
+     * The amount of bytes needed to store the content length.
+     */
     public static int CONTENT_LENGTH_OFFSET = 4;
 
+    /**
+     * The amount of bytes needed to store the next position pointer.
+     */
     public static int NEXT_POSITION_OFFSET = 4;
 }
