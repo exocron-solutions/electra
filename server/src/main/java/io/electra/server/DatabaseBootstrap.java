@@ -24,10 +24,14 @@
 
 package io.electra.server;
 
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.UUID;
 
 /**
  * @author Felix Klauke <fklauke@itemis.de>
@@ -40,11 +44,16 @@ public class DatabaseBootstrap {
     public static void main(String[] args) {
         Database database = new DatabaseImpl(dataFilePath, indexFilePath);
 
-        int n = 1000000;
+        int n = 100000;
 
         long start = System.currentTimeMillis();
         for (int i = 0; i < n; i++) {
-            database.save("Key" + i, "Value" + i);
+            database.save("Key" + i, new JSONObject()
+                    .put("name", "Blablablablabla")
+                    .put("age", 20)
+                    .put("uuid", UUID.randomUUID())
+                    .put("id", UUID.randomUUID())
+                    .put("pets", Arrays.asList("whalla", "miau", "wuff", "piet", "sfefwgwgwegwgwegw", "egrregerhe", "oipoiztpjtzpjtpjtzpjoztjpztjoptzojpoztp")).toString().getBytes());
         }
         System.out.println("Saving " + n + " entries took " + (System.currentTimeMillis() - start) + "ms. ");
 
@@ -59,6 +68,8 @@ public class DatabaseBootstrap {
             database.remove("Key" + i);
         }
         System.out.println("Deleting " + n + " entries took " + (System.currentTimeMillis() - start) + "ms. ");
+
+        System.out.println("Total allocated: " + ByteBufferAllocator.getCapacity() + " Average: " + ByteBufferAllocator.getCapacity() / ByteBufferAllocator.getTimes());
 
         try {
             Files.delete(dataFilePath);

@@ -27,6 +27,7 @@ package io.electra.server.data;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import io.electra.server.ByteBufferAllocator;
 import io.electra.server.DatabaseConstants;
 import io.electra.server.data.loader.DataBlockLoader;
 
@@ -61,9 +62,15 @@ public class DataStorageImpl implements DataStorage {
                 .build(new CacheLoader<Integer, Integer>() {
                     @Override
                     public Integer load(Integer key) throws Exception {
+                        DataBlock dataBlock = dataBlockCache.getIfPresent(key);
+
+                        if (dataBlock != null) {
+                            return dataBlock.getNextPosition();
+                        }
+
                         channel.position(key * DatabaseConstants.DATA_BLOCK_SIZE);
 
-                        ByteBuffer byteBuffer = ByteBuffer.allocate(4);
+                        ByteBuffer byteBuffer = ByteBufferAllocator.allocate(4);
                         channel.read(byteBuffer);
                         byteBuffer.flip();
 
@@ -85,7 +92,7 @@ public class DataStorageImpl implements DataStorage {
 
             int nextBlock = i == allocatedBlocks.length - 1 ? -1 : allocatedBlocks[i + 1];
 
-            ByteBuffer byteBuffer = ByteBuffer.allocate(DatabaseConstants.DATA_BLOCK_SIZE);
+            ByteBuffer byteBuffer = ByteBufferAllocator.allocate(DatabaseConstants.DATA_BLOCK_SIZE);
             byteBuffer.putInt(nextBlock);
             byteBuffer.putInt(currentBlockContent.length);
             byteBuffer.put(currentBlockContent);
@@ -137,7 +144,7 @@ public class DataStorageImpl implements DataStorage {
         try {
             channel.position(blockIndex * DatabaseConstants.DATA_BLOCK_SIZE);
 
-            ByteBuffer byteBuffer = ByteBuffer.allocate(4);
+            ByteBuffer byteBuffer = ByteBufferAllocator.allocate(4);
             byteBuffer.putInt(nextBlockIndex);
             byteBuffer.flip();
 

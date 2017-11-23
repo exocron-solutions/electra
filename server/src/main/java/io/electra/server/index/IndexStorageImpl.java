@@ -26,6 +26,7 @@ package io.electra.server.index;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Queues;
+import io.electra.server.ByteBufferAllocator;
 import io.electra.server.DatabaseConstants;
 
 import java.io.IOException;
@@ -63,7 +64,7 @@ public class IndexStorageImpl implements IndexStorage {
 
             contentSize = channel.size();
 
-            ByteBuffer byteBuffer = ByteBuffer.allocate(Math.toIntExact(contentSize));
+            ByteBuffer byteBuffer = ByteBufferAllocator.allocate(Math.toIntExact(contentSize));
             channel.read(byteBuffer);
             byteBuffer.flip();
 
@@ -143,7 +144,7 @@ public class IndexStorageImpl implements IndexStorage {
     }
 
     private void writeIndex(int position, Index index) {
-        ByteBuffer byteBuffer = ByteBuffer.allocate(DatabaseConstants.INDEX_BLOCK_SIZE);
+        ByteBuffer byteBuffer = ByteBufferAllocator.allocate(DatabaseConstants.INDEX_BLOCK_SIZE);
         byteBuffer.putInt(index.getKeyHash());
         byteBuffer.put((byte) (index.isEmpty() ? 1 : 0));
         byteBuffer.putInt(index.getDataFilePosition());

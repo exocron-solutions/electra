@@ -76,5 +76,12 @@
             <version>23.4-jre</version>
             <scope>compile</scope>
         </dependency>
+
+        <!-- JSON -->
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20171018</version>
+        </dependency>
     </dependencies>
 </project>

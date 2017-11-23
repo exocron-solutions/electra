@@ -25,6 +25,7 @@
 package io.electra.server.data.loader;
 
 import com.google.common.cache.CacheLoader;
+import io.electra.server.ByteBufferAllocator;
 import io.electra.server.DatabaseConstants;
 import io.electra.server.data.DataBlock;
 
@@ -55,14 +56,14 @@ public class DataBlockLoader extends CacheLoader<Integer, DataBlock> {
         try {
             channel.position(position);
 
-            ByteBuffer nextPositionByteBuffer = ByteBuffer.allocate(4);
+            ByteBuffer nextPositionByteBuffer = ByteBufferAllocator.allocate(4);
             channel.read(nextPositionByteBuffer);
 
             nextPositionByteBuffer.flip();
 
             int nextPosition = nextPositionByteBuffer.getInt();
 
-            ByteBuffer contentLengthByteBuffer = ByteBuffer.allocate(4);
+            ByteBuffer contentLengthByteBuffer = ByteBufferAllocator.allocate(4);
             channel.read(contentLengthByteBuffer);
             contentLengthByteBuffer.flip();
 
@@ -72,7 +73,7 @@ public class DataBlockLoader extends CacheLoader<Integer, DataBlock> {
 
             int contentLength = contentLengthByteBuffer.getInt();
 
-            ByteBuffer contentByteBuffer = ByteBuffer.allocate(contentLength);
+            ByteBuffer contentByteBuffer = ByteBufferAllocator.allocate(contentLength);
             channel.read(contentByteBuffer);
             contentByteBuffer.flip();
 
