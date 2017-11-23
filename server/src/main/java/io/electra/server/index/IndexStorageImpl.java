@@ -24,22 +24,28 @@
 
 package io.electra.server.index;
 
+import com.google.common.collect.Queues;
 import io.electra.server.btree.BTree;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
+import java.util.Queue;
 
 /**
  * @author Felix Klauke <fklauke@itemis.de>
  */
 public class IndexStorageImpl implements IndexStorage {
 
+    private static final int BLOCK_SIZE = 4 + 1 + 4;
+
+    private final Queue<Integer> emptyIndices = Queues.newPriorityQueue();
     private final BTree<Integer, Index> currentIndices = new BTree<>();
     private final SeekableByteChannel channel;
-    private Index currentEmptyIndex = new Index(0, true, 0);
+    private int lastIndexPosition;
+    private Index emptyDataIndex;
 
-    public IndexStorageImpl(SeekableByteChannel channel) {
+    IndexStorageImpl(SeekableByteChannel channel) {
         this.channel = channel;
 
         readIndices();
@@ -47,23 +53,45 @@ public class IndexStorageImpl implements IndexStorage {
 
     private void readIndices() {
         try {
+            channel.position(0);
             long contentSize = channel.size();
+
+            if (contentSize == 0) {
+                initializeIndexFile();
+                channel.position(0);
+            }
+
+            contentSize = channel.size();
+
             ByteBuffer byteBuffer = ByteBuffer.allocate(Math.toIntExact(contentSize));
             channel.read(byteBuffer);
             byteBuffer.flip();
 
+            emptyDataIndex = readIndex(byteBuffer);
+
             while (byteBuffer.hasRemaining()) {
                 Index index = readIndex(byteBuffer);
+                index.setIndexFilePosition(byteBuffer.position() / BLOCK_SIZE);
 
                 if (index.isEmpty()) {
-                    currentEmptyIndex = index;
+                    emptyIndices.offer(index.getIndexFilePosition());
                 }
 
                 saveIndex(index);
+
+                lastIndexPosition = index.getIndexFilePosition();
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void initializeIndexFile() {
+        int position = allocateFreeBlock();
+        Index index = new Index(-1, false, 0);
+        index.setIndexFilePosition(position);
+
+        writeIndex(0, index);
     }
 
     private Index readIndex(ByteBuffer byteBuffer) {
@@ -76,16 +104,16 @@ public class IndexStorageImpl implements IndexStorage {
 
     @Override
     public Index getCurrentEmptyIndex() {
-        return currentEmptyIndex;
-    }
-
-    public void setCurrentEmptyIndex(Index currentEmptyIndex) {
-        this.currentEmptyIndex = currentEmptyIndex;
+        return emptyDataIndex;
     }
 
     @Override
     public void saveIndex(Index index) {
         currentIndices.insert(index.getKeyHash(), index);
+
+        int freeBlock = allocateFreeBlock();
+        index.setIndexFilePosition(freeBlock);
+        writeIndex(freeBlock, index);
     }
 
     @Override
@@ -95,6 +123,41 @@ public class IndexStorageImpl implements IndexStorage {
 
     @Override
     public void removeIndex(Index index) {
+        emptyIndices.offer(index.getIndexFilePosition());
+
+        index.setEmpty(true);
+        writeIndex(index.getIndexFilePosition(), index);
+
         currentIndices.delete(index.getKeyHash());
+    }
+
+    @Override
+    public void close() {
+        writeIndex(0, emptyDataIndex);
+
+        try {
+            channel.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void writeIndex(int position, Index index) {
+        ByteBuffer byteBuffer = ByteBuffer.allocate(BLOCK_SIZE);
+        byteBuffer.putInt(index.getKeyHash());
+        byteBuffer.put((byte) (index.isEmpty() ? 1 : 0));
+        byteBuffer.putInt(index.getDataFilePosition());
+        byteBuffer.flip();
+
+        try {
+            channel.position(position * BLOCK_SIZE);
+            channel.write(byteBuffer);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private int allocateFreeBlock() {
+        return emptyIndices.isEmpty() ? ++lastIndexPosition : emptyIndices.poll();
     }
 }

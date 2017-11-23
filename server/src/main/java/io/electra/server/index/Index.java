@@ -30,29 +30,42 @@ package io.electra.server.index;
 public class Index {
 
     private final int keyHash;
-    private final boolean empty;
-    private int position;
+    private boolean empty;
+    private int dataFilePosition;
+    private int indexFilePosition;
 
     public Index(int keyHash, boolean empty, int position) {
         this.keyHash = keyHash;
         this.empty = empty;
-        this.position = position;
+        this.dataFilePosition = position;
     }
 
-    public int getPosition() {
-        return position;
+    public int getDataFilePosition() {
+        return dataFilePosition;
     }
 
-    public void setPosition(int position) {
-        this.position = position;
+    public void setDataFilePosition(int dataFilePosition) {
+        this.dataFilePosition = dataFilePosition;
     }
 
-    public int getKeyHash() {
+    int getKeyHash() {
         return keyHash;
     }
 
-    public boolean isEmpty() {
+    boolean isEmpty() {
         return empty;
+    }
+
+    public void setEmpty(boolean empty) {
+        this.empty = empty;
+    }
+
+    int getIndexFilePosition() {
+        return indexFilePosition;
+    }
+
+    void setIndexFilePosition(int indexFilePosition) {
+        this.indexFilePosition = indexFilePosition;
     }
 
     @Override
@@ -60,7 +73,8 @@ public class Index {
         return "Index{" +
                 "keyHash=" + keyHash +
                 ", empty=" + empty +
-                ", position=" + position +
+                ", dataFilePosition=" + dataFilePosition +
+                ", indexFilePosition=" + indexFilePosition +
                 '}';
     }
 }

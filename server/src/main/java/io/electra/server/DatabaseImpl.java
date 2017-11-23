@@ -60,32 +60,6 @@ public class DatabaseImpl implements Database {
         save(key, value.getBytes());
     }
 
-    @Override
-    public byte[] get(String key) {
-        Index index = indexStorage.getIndex(Arrays.hashCode(key.getBytes()));
-        DataBlock dataBlock = dataStorage.readDataBlockAtIndex(index.getPosition());
-
-        byte[] result = dataBlock.getContent();
-
-        while (dataBlock.getNextPosition() != -1) {
-            dataBlock = dataStorage.readDataBlockAtIndex(dataBlock.getNextPosition());
-            result = Bytes.concat(result, dataBlock.getContent());
-        }
-
-        return result;
-    }
-
-    private static final Path indexFilePath = Paths.get("index.lctr");
-
-    @Override
-    public void close() {
-
-    }
-
-    private int calculateNeededBlocks(int contentLength) {
-        return (int) Math.ceil(contentLength / (double) (DatabaseConstants.DATA_BLOCK_SIZE));
-    }
-
     public static void main(String[] args) {
         Database database = new DatabaseImpl(dataFilePath, indexFilePath);
 
@@ -104,6 +78,35 @@ public class DatabaseImpl implements Database {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        database.close();
+    }
+
+    private static final Path indexFilePath = Paths.get("index.lctr");
+
+    @Override
+    public byte[] get(String key) {
+        Index index = indexStorage.getIndex(Arrays.hashCode(key.getBytes()));
+        DataBlock dataBlock = dataStorage.readDataBlockAtIndex(index.getDataFilePosition());
+
+        byte[] result = dataBlock.getContent();
+
+        while (dataBlock.getNextPosition() != -1) {
+            dataBlock = dataStorage.readDataBlockAtIndex(dataBlock.getNextPosition());
+            result = Bytes.concat(result, dataBlock.getContent());
+        }
+
+        return result;
+    }
+
+    private int calculateNeededBlocks(int contentLength) {
+        return (int) Math.ceil(contentLength / (double) (DatabaseConstants.DATA_BLOCK_SIZE));
+    }
+
+    @Override
+    public void close() {
+        dataStorage.close();
+        indexStorage.close();
     }
 
     @Override
@@ -117,12 +120,12 @@ public class DatabaseImpl implements Database {
         System.out.println("Current empty index:    " + indexStorage.getCurrentEmptyIndex());
 
         for (int i = 0; i < allocatedBlocks.length; i++) {
-            int currentFreeBlock = indexStorage.getCurrentEmptyIndex().getPosition();
+            int currentFreeBlock = indexStorage.getCurrentEmptyIndex().getDataFilePosition();
 
             allocatedBlocks[i] = currentFreeBlock;
             int dataBlock = dataStorage.readNextBlockAtIndex(currentFreeBlock);
 
-            indexStorage.getCurrentEmptyIndex().setPosition(dataBlock == -1 ? currentFreeBlock + 1 : dataBlock);
+            indexStorage.getCurrentEmptyIndex().setDataFilePosition(dataBlock == -1 ? currentFreeBlock + 1 : dataBlock);
         }
 
         System.out.println("Allocated blocks:       " + Arrays.toString(allocatedBlocks));
@@ -146,31 +149,26 @@ public class DatabaseImpl implements Database {
         Index index = indexStorage.getIndex(Arrays.hashCode(key.getBytes()));
         Index currentEmptyIndex = indexStorage.getCurrentEmptyIndex();
 
-        Integer[] affectedBlocks = Iterators.toArray(new DataBlockChainIndexIterator(dataStorage, index.getPosition()), Integer.class);
-        Integer[] freeBlocks = Iterators.toArray(new DataBlockChainIndexIterator(dataStorage, currentEmptyIndex.getPosition()), Integer.class);
+        Integer[] affectedBlocks = Iterators.toArray(new DataBlockChainIndexIterator(dataStorage, index.getDataFilePosition()), Integer.class);
+        Integer[] freeBlocks = Iterators.toArray(new DataBlockChainIndexIterator(dataStorage, currentEmptyIndex.getDataFilePosition()), Integer.class);
 
         for (int i = affectedBlocks.length - 1; i >= 0; i--) {
             int currentAffectedBlockIndex = affectedBlocks[i];
 
-            System.out.println("----------------------------------------------------------------");
-            System.out.println("Current block to delete: " + currentAffectedBlockIndex);
-
-            if (currentAffectedBlockIndex < currentEmptyIndex.getPosition()) {
-                freeBlocks = addPos(freeBlocks, 0, currentEmptyIndex.getPosition());
-                dataStorage.writeNextBlockAtIndex(currentAffectedBlockIndex, currentEmptyIndex.getPosition());
-                currentEmptyIndex.setPosition(currentAffectedBlockIndex);
+            if (currentAffectedBlockIndex < currentEmptyIndex.getDataFilePosition()) {
+                freeBlocks = addPos(freeBlocks, 0, currentEmptyIndex.getDataFilePosition());
+                dataStorage.writeNextBlockAtIndex(currentAffectedBlockIndex, currentEmptyIndex.getDataFilePosition());
+                currentEmptyIndex.setDataFilePosition(currentAffectedBlockIndex);
             }
 
             for (int j = freeBlocks.length - 1; j >= 0; j--) {
                 int currentFreeBlockIndex = freeBlocks[j];
 
                 if (currentFreeBlockIndex < currentAffectedBlockIndex) {
-                    System.out.println("Writing link: " + currentFreeBlockIndex + " to " + currentAffectedBlockIndex);
                     dataStorage.writeNextBlockAtIndex(currentFreeBlockIndex, currentAffectedBlockIndex);
 
                     if (j != freeBlocks.length - 1) {
                         dataStorage.writeNextBlockAtIndex(currentAffectedBlockIndex, freeBlocks[j + 1]);
-                        System.out.println("Insert link: " + currentAffectedBlockIndex + " to " + freeBlocks[j + 1]);
                     }
 
                     freeBlocks = addPos(freeBlocks, j + 1, currentAffectedBlockIndex);

@@ -29,7 +29,6 @@ package io.electra.server.index;
  */
 public interface IndexStorage {
 
-
     Index getCurrentEmptyIndex();
 
     void saveIndex(Index index);
@@ -37,4 +36,6 @@ public interface IndexStorage {
     Index getIndex(int keyHash);
 
     void removeIndex(Index index);
+
+    void close();
 }
