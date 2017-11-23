@@ -25,23 +25,23 @@
 package io.electra.server;
 
 import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Iterators;
-import com.google.common.primitives.Bytes;
-import io.electra.server.data.DataBlock;
+import com.google.common.collect.Sets;
 import io.electra.server.data.DataStorage;
 import io.electra.server.data.DataStorageFactory;
 import io.electra.server.index.Index;
 import io.electra.server.index.IndexStorage;
 import io.electra.server.index.IndexStorageFactory;
 import io.electra.server.iterator.DataBlockChainIndexIterator;
+import io.electra.server.loader.DatabaseValueLoader;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.TreeSet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -50,23 +50,12 @@ import java.util.concurrent.TimeUnit;
  */
 public class DatabaseImpl implements Database {
 
-    private final LoadingCache<Integer, byte[]> valueCache = CacheBuilder.newBuilder()
-            .recordStats()
-            .expireAfterAccess(1, TimeUnit.MINUTES)
-            .build(new CacheLoader<Integer, byte[]>() {
-                @Override
-                public byte[] load(Integer keyHash) throws Exception {
-                    return get(keyHash);
-                }
-            });
+    private static long timeWhole;
 
     private final IndexStorage indexStorage;
     private final DataStorage dataStorage;
-
-    public DatabaseImpl(Path dataFilePath, Path indexFilePath) {
-        indexStorage = IndexStorageFactory.createIndexStorage(indexFilePath);
-        dataStorage = DataStorageFactory.createDataStorage(dataFilePath);
-    }
+    private static long timeIterating;
+    private final LoadingCache<Integer, byte[]> valueCache;
 
     private static final Path dataFilePath = Paths.get("data.lctr");
 
@@ -75,32 +64,7 @@ public class DatabaseImpl implements Database {
         save(key, value.getBytes());
     }
 
-    public static void main(String[] args) {
-        Database database = new DatabaseImpl(dataFilePath, indexFilePath);
-
-        int n = 1000000;
-
-        long start = System.currentTimeMillis();
-        for (int i = 0; i < n; i++) {
-            database.save("Key" + i, "Value" + i);
-        }
-        System.out.println("Saving " + n + " entries took " + (System.currentTimeMillis() - start) + "ms. ");
-
-        start = System.currentTimeMillis();
-        for (int i = 0; i < n; i++) {
-            database.get("Key" + i);
-        }
-        System.out.println("Reading " + n + " entries took " + (System.currentTimeMillis() - start) + "ms. ");
-
-        try {
-            Files.delete(dataFilePath);
-            Files.delete(indexFilePath);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        database.close();
-    }
+    private final TreeSet<Integer> freeBlocks;
 
     private static final Path indexFilePath = Paths.get("index.lctr");
 
@@ -115,20 +79,6 @@ public class DatabaseImpl implements Database {
         }
 
         return null;
-    }
-
-    private byte[] get(int keyHash) {
-        Index index = indexStorage.getIndex(keyHash);
-        DataBlock dataBlock = dataStorage.readDataBlockAtIndex(index.getDataFilePosition());
-
-        byte[] result = dataBlock.getContent();
-
-        while (dataBlock.getNextPosition() != -1) {
-            dataBlock = dataStorage.readDataBlockAtIndex(dataBlock.getNextPosition());
-            result = Bytes.concat(result, dataBlock.getContent());
-        }
-
-        return result;
     }
 
     private int calculateNeededBlocks(int contentLength) {
@@ -178,51 +128,114 @@ public class DatabaseImpl implements Database {
         valueCache.put(keyHash, bytes);
     }
 
+    DatabaseImpl(Path dataFilePath, Path indexFilePath) {
+        indexStorage = IndexStorageFactory.createIndexStorage(indexFilePath);
+        dataStorage = DataStorageFactory.createDataStorage(dataFilePath);
+
+        valueCache = CacheBuilder.newBuilder()
+                .recordStats()
+                .expireAfterAccess(1, TimeUnit.MINUTES)
+                .build(new DatabaseValueLoader(indexStorage, dataStorage));
+
+        freeBlocks = Sets.newTreeSet(() -> new DataBlockChainIndexIterator(dataStorage, indexStorage.getCurrentEmptyIndex().getDataFilePosition()));
+    }
+
+    public static void main(String[] args) {
+        Database database = new DatabaseImpl(dataFilePath, indexFilePath);
+
+        int n = 2;
+
+        long start = System.currentTimeMillis();
+        for (int i = 0; i < n; i++) {
+            database.save("Key" + i, "Value" + i);
+        }
+        System.out.println("Saving " + n + " entries took " + (System.currentTimeMillis() - start) + "ms. ");
+
+        start = System.currentTimeMillis();
+        for (int i = 0; i < n; i++) {
+            database.get("Key" + i);
+        }
+        System.out.println("Reading " + n + " entries took " + (System.currentTimeMillis() - start) + "ms. ");
+
+        start = System.currentTimeMillis();
+        for (int i = 0; i < n; i++) {
+            database.remove("Key" + i);
+        }
+        System.out.println("Deleting " + n + " entries took " + (System.currentTimeMillis() - start) + "ms. ");
+
+        start = System.currentTimeMillis();
+        for (int i = 0; i < n; i++) {
+            database.save("Key" + i, "Value" + i);
+        }
+        System.out.println("Saving " + n + " entries took " + (System.currentTimeMillis() - start) + "ms. ");
+
+        start = System.currentTimeMillis();
+        for (int i = 0; i < n; i++) {
+            database.get("Key" + i);
+        }
+        System.out.println("Reading " + n + " entries took " + (System.currentTimeMillis() - start) + "ms. ");
+
+        start = System.currentTimeMillis();
+        for (int i = 0; i < n; i++) {
+            database.remove("Key" + i);
+        }
+        System.out.println("Deleting " + n + " entries took " + (System.currentTimeMillis() - start) + "ms. ");
+
+        System.out.println(timeWhole);
+        System.out.println(timeIterating);
+
+        try {
+            Files.delete(dataFilePath);
+            Files.delete(indexFilePath);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        database.close();
+    }
+
     @Override
     public void remove(String key) {
+        long start = System.nanoTime();
+
         int keyHash = Arrays.hashCode(key.getBytes());
         Index index = indexStorage.getIndex(keyHash);
         Index currentEmptyIndex = indexStorage.getCurrentEmptyIndex();
 
         Integer[] affectedBlocks = Iterators.toArray(new DataBlockChainIndexIterator(dataStorage, index.getDataFilePosition()), Integer.class);
-        Integer[] freeBlocks = Iterators.toArray(new DataBlockChainIndexIterator(dataStorage, currentEmptyIndex.getDataFilePosition()), Integer.class);
+
+        long startIt = System.nanoTime();
+
+        timeIterating += System.nanoTime() - startIt;
 
         for (int i = affectedBlocks.length - 1; i >= 0; i--) {
             int currentAffectedBlockIndex = affectedBlocks[i];
 
             if (currentAffectedBlockIndex < currentEmptyIndex.getDataFilePosition()) {
-                freeBlocks = addPos(freeBlocks, 0, currentEmptyIndex.getDataFilePosition());
+                freeBlocks.add(currentEmptyIndex.getDataFilePosition());
                 dataStorage.writeNextBlockAtIndex(currentAffectedBlockIndex, currentEmptyIndex.getDataFilePosition());
                 currentEmptyIndex.setDataFilePosition(currentAffectedBlockIndex);
             }
 
-            for (int j = freeBlocks.length - 1; j >= 0; j--) {
-                int currentFreeBlockIndex = freeBlocks[j];
+            Integer lower = freeBlocks.lower(currentAffectedBlockIndex);
 
-                if (currentFreeBlockIndex < currentAffectedBlockIndex) {
-                    dataStorage.writeNextBlockAtIndex(currentFreeBlockIndex, currentAffectedBlockIndex);
-
-                    if (j != freeBlocks.length - 1) {
-                        dataStorage.writeNextBlockAtIndex(currentAffectedBlockIndex, freeBlocks[j + 1]);
-                    }
-
-                    freeBlocks = addPos(freeBlocks, j + 1, currentAffectedBlockIndex);
-
-                    break;
-                }
+            if (lower != null) {
+                dataStorage.writeNextBlockAtIndex(lower, currentAffectedBlockIndex);
             }
+
+            Integer higher = freeBlocks.higher(currentAffectedBlockIndex);
+
+            if (higher != null) {
+                dataStorage.writeNextBlockAtIndex(currentAffectedBlockIndex, higher);
+            }
+
+            freeBlocks.add(currentAffectedBlockIndex);
         }
 
         indexStorage.removeIndex(index);
 
         valueCache.invalidate(keyHash);
-    }
 
-    private Integer[] addPos(Integer[] a, int pos, int num) {
-        Integer[] result = new Integer[a.length + 1];
-        System.arraycopy(a, 0, result, 0, pos - 1 + 1);
-        result[pos] = num;
-        System.arraycopy(a, pos, result, pos + 1, a.length - pos);
-        return result;
+        timeWhole += System.nanoTime() - start;
     }
 }
