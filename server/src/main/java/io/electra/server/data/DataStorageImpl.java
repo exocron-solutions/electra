@@ -24,6 +24,9 @@
 
 package io.electra.server.data;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import io.electra.server.DatabaseConstants;
 
 import java.io.IOException;
@@ -31,11 +34,23 @@ import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
 import java.util.Arrays;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Felix Klauke <fklauke@itemis.de>
  */
 public class DataStorageImpl implements DataStorage {
+
+    private final LoadingCache<Integer, DataBlock> dataBlockCache = CacheBuilder.newBuilder()
+            .recordStats()
+            .expireAfterAccess(1, TimeUnit.MINUTES)
+            .build(new CacheLoader<Integer, DataBlock>() {
+                @Override
+                public DataBlock load(Integer dataBlockIndex) throws Exception {
+                    return readDataBlockAtPosition(getPositionByIndex(dataBlockIndex));
+                }
+            });
 
     private final SeekableByteChannel channel;
 
@@ -62,6 +77,9 @@ public class DataStorageImpl implements DataStorage {
             byteBuffer.put(currentBlockContent);
 
             byteBuffer.flip();
+
+            DataBlock dataBlock = new DataBlock(currentBlock, currentBlockContent, nextBlock);
+            dataBlockCache.put(currentBlock, dataBlock);
 
             try {
                 channel.position(currentBlock * DatabaseConstants.DATA_BLOCK_SIZE);
@@ -102,17 +120,21 @@ public class DataStorageImpl implements DataStorage {
             contentByteBuffer.flip();
 
             return new DataBlock(position / DatabaseConstants.DATA_BLOCK_SIZE, contentByteBuffer.array(), nextPosition);
-        } catch (IOException e) {
+        } catch (IOException | BufferUnderflowException e) {
             e.printStackTrace();
-            return null;
-        } catch (BufferUnderflowException e) {
             return null;
         }
     }
 
     @Override
     public DataBlock readDataBlockAtIndex(int index) {
-        return readDataBlockAtPosition(getPositionByIndex(index));
+        try {
+            return dataBlockCache.get(index);
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     @Override
@@ -122,6 +144,12 @@ public class DataStorageImpl implements DataStorage {
 
     @Override
     public int readNextBlockAtIndex(int blockIndex) {
+        DataBlock dataBlock = dataBlockCache.getIfPresent(blockIndex);
+
+        if (dataBlock != null) {
+            return dataBlock.getNextPosition();
+        }
+
         try {
             channel.position(blockIndex * DatabaseConstants.DATA_BLOCK_SIZE);
 
@@ -147,6 +175,13 @@ public class DataStorageImpl implements DataStorage {
             byteBuffer.flip();
 
             channel.write(byteBuffer);
+
+            try {
+                DataBlock dataBlock = dataBlockCache.get(blockIndex);
+                dataBlock.setNextPosition(nextBlockIndex);
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }

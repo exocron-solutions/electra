@@ -31,7 +31,7 @@ public class DataBlock {
 
     private final int currentPosition;
     private final byte[] content;
-    private final int nextPosition;
+    private int nextPosition;
 
     public DataBlock(int currentPosition, byte[] content, int nextPosition) {
         this.currentPosition = currentPosition;
@@ -49,6 +49,10 @@ public class DataBlock {
 
     public int getNextPosition() {
         return nextPosition;
+    }
+
+    public void setNextPosition(int nextPosition) {
+        this.nextPosition = nextPosition;
     }
 
     @Override
