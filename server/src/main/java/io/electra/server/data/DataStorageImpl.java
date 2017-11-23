@@ -39,7 +39,7 @@ public class DataStorageImpl implements DataStorage {
 
     private final SeekableByteChannel channel;
 
-    public DataStorageImpl(SeekableByteChannel channel) {
+    DataStorageImpl(SeekableByteChannel channel) {
         this.channel = channel;
     }
 
@@ -147,6 +147,15 @@ public class DataStorageImpl implements DataStorage {
             byteBuffer.flip();
 
             channel.write(byteBuffer);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void close() {
+        try {
+            channel.close();
         } catch (IOException e) {
             e.printStackTrace();
         }

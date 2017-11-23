@@ -38,4 +38,6 @@ public interface DataStorage {
     int readNextBlockAtIndex(int blockIndex);
 
     void writeNextBlockAtIndex(int blockIndex, int nextBlockIndex);
+
+    void close();
 }
