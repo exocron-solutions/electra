@@ -45,7 +45,6 @@ class StorageManager {
 
     private final TreeSet<Integer> freeBlocks;
 
-
     StorageManager(IndexStorage indexStorage, DataStorage dataStorage) {
         this.indexStorage = indexStorage;
         this.dataStorage = dataStorage;
@@ -57,16 +56,29 @@ class StorageManager {
         return (int) Math.ceil(contentLength / (double) (DatabaseConstants.DATA_BLOCK_SIZE));
     }
 
+    private long timeBlocksNeededCalculation;
+    private long timeFreeBlockAllocation;
+    private long timeIndexSaving;
+    private long timeDataSaving;
+
     void close() {
         dataStorage.close();
         indexStorage.close();
+
+        System.out.println("BLOCKS NEEDED:  " + timeBlocksNeededCalculation);
+        System.out.println("FREE BLOCKS:    " + timeFreeBlockAllocation);
+        System.out.println("INDEX SAVING:   " + timeIndexSaving);
+        System.out.println("DATA SAVING:    " + timeDataSaving);
     }
 
     void save(int keyHash, byte[] bytes) {
+        long start = System.nanoTime();
         int blocksNeeded = calculateNeededBlocks(bytes.length);
+        timeBlocksNeededCalculation += System.nanoTime() - start;
 
         int[] allocatedBlocks = new int[blocksNeeded];
 
+        start = System.nanoTime();
         for (int i = 0; i < allocatedBlocks.length; i++) {
             int nextFreeBlock = freeBlocks.pollFirst();
 
@@ -75,14 +87,21 @@ class StorageManager {
             }
 
             allocatedBlocks[i] = nextFreeBlock;
-            indexStorage.getCurrentEmptyIndex().setDataFilePosition(nextFreeBlock + 1);
         }
+        indexStorage.getCurrentEmptyIndex().setDataFilePosition(freeBlocks.first());
+
+        timeFreeBlockAllocation += System.nanoTime() - start;
 
         int firstBlock = allocatedBlocks[0];
         Index index = new Index(keyHash, false, firstBlock);
 
+        start = System.nanoTime();
         indexStorage.saveIndex(index);
+        timeIndexSaving += System.nanoTime() - start;
+
+        start = System.nanoTime();
         dataStorage.save(allocatedBlocks, bytes);
+        timeDataSaving += System.nanoTime() - start;
     }
 
     void remove(int keyHash) {

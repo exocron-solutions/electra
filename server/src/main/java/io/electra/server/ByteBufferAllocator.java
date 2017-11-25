@@ -24,6 +24,10 @@
 
 package io.electra.server;
 
+import io.electra.server.pooling.ByteBufferPool;
+import io.electra.server.pooling.Pool;
+import io.electra.server.pooling.PooledByteBuffer;
+
 import java.nio.ByteBuffer;
 
 /**
@@ -36,7 +40,11 @@ public class ByteBufferAllocator {
     private static int times;
     private static long capacity;
 
-    public static ByteBuffer allocate(int size) {
+    private static Pool<PooledByteBuffer> byteBufferPool = new ByteBufferPool(4, true);
+    private static Pool<PooledByteBuffer> byteBufferPool1 = new ByteBufferPool(9, true);
+    private static Pool<PooledByteBuffer> byteBufferPool2 = new ByteBufferPool(128, true);
+
+    public static PooledByteBuffer allocate(int size) {
         times++;
         capacity += size;
 
@@ -48,7 +56,15 @@ public class ByteBufferAllocator {
             min = size;
         }
 
-        return ByteBuffer.allocate(size);
+        if (size == 4) {
+            return byteBufferPool.acquire();
+        } else if (size == 9) {
+            return byteBufferPool1.acquire();
+        } else if (size == 128) {
+            return byteBufferPool2.acquire();
+        }
+
+        return new PooledByteBuffer(ByteBuffer.allocateDirect(size), null);
     }
 
     public static long getCapacity() {
