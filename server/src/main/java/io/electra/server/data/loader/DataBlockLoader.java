@@ -28,10 +28,10 @@ import com.google.common.cache.CacheLoader;
 import io.electra.server.ByteBufferAllocator;
 import io.electra.server.DatabaseConstants;
 import io.electra.server.data.DataBlock;
+import io.electra.server.pooling.PooledByteBuffer;
 
 import java.io.IOException;
 import java.nio.BufferUnderflowException;
-import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
 
 /**
@@ -56,15 +56,15 @@ public class DataBlockLoader extends CacheLoader<Integer, DataBlock> {
         try {
             channel.position(position);
 
-            ByteBuffer nextPositionByteBuffer = ByteBufferAllocator.allocate(4);
-            channel.read(nextPositionByteBuffer);
+            PooledByteBuffer nextPositionByteBuffer = ByteBufferAllocator.allocate(4);
+            channel.read(nextPositionByteBuffer.nio());
 
             nextPositionByteBuffer.flip();
 
             int nextPosition = nextPositionByteBuffer.getInt();
 
-            ByteBuffer contentLengthByteBuffer = ByteBufferAllocator.allocate(4);
-            channel.read(contentLengthByteBuffer);
+            PooledByteBuffer contentLengthByteBuffer = ByteBufferAllocator.allocate(4);
+            channel.read(contentLengthByteBuffer.nio());
             contentLengthByteBuffer.flip();
 
             if (!contentLengthByteBuffer.hasRemaining()) {
@@ -73,11 +73,15 @@ public class DataBlockLoader extends CacheLoader<Integer, DataBlock> {
 
             int contentLength = contentLengthByteBuffer.getInt();
 
-            ByteBuffer contentByteBuffer = ByteBufferAllocator.allocate(contentLength);
-            channel.read(contentByteBuffer);
+            PooledByteBuffer contentByteBuffer = ByteBufferAllocator.allocate(contentLength);
+            channel.read(contentByteBuffer.nio());
             contentByteBuffer.flip();
 
-            return new DataBlock(position / DatabaseConstants.DATA_BLOCK_SIZE, contentByteBuffer.array(), nextPosition);
+            DataBlock dataBlock = new DataBlock(position / DatabaseConstants.DATA_BLOCK_SIZE, contentByteBuffer.array(), nextPosition);
+
+            contentByteBuffer.release();
+
+            return dataBlock;
         } catch (IOException | BufferUnderflowException e) {
             e.printStackTrace();
             return null;

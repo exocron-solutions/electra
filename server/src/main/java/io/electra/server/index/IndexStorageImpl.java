@@ -24,16 +24,17 @@
 
 package io.electra.server.index;
 
-import com.google.common.collect.Maps;
 import com.google.common.collect.Queues;
 import io.electra.server.ByteBufferAllocator;
 import io.electra.server.DatabaseConstants;
+import io.electra.server.pooling.PooledByteBuffer;
+import net.openhft.koloboke.collect.map.IntObjMap;
+import net.openhft.koloboke.collect.map.hash.HashIntObjMaps;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
 import java.util.Queue;
-import java.util.TreeMap;
 
 /**
  * @author Felix Klauke <fklauke@itemis.de>
@@ -41,13 +42,16 @@ import java.util.TreeMap;
 public class IndexStorageImpl implements IndexStorage {
 
     private final Queue<Integer> emptyIndices = Queues.newPriorityQueue();
-    private final TreeMap<Integer, Index> currentIndices = Maps.newTreeMap();
+    //private final TreeMap<Integer, Index> currentIndices = Maps.newTreeMap();
     private final SeekableByteChannel channel;
+    private IntObjMap<Index> currentIndices;
     private int lastIndexPosition;
     private Index emptyDataIndex;
 
     IndexStorageImpl(SeekableByteChannel channel) {
         this.channel = channel;
+
+        currentIndices = HashIntObjMaps.getDefaultFactory().newMutableMap();
 
         readIndices();
     }
@@ -64,14 +68,14 @@ public class IndexStorageImpl implements IndexStorage {
 
             contentSize = channel.size();
 
-            ByteBuffer byteBuffer = ByteBufferAllocator.allocate(Math.toIntExact(contentSize));
-            channel.read(byteBuffer);
+            PooledByteBuffer byteBuffer = ByteBufferAllocator.allocate(Math.toIntExact(contentSize));
+            channel.read(byteBuffer.nio());
             byteBuffer.flip();
 
-            emptyDataIndex = readIndex(byteBuffer);
+            emptyDataIndex = readIndex(byteBuffer.nio());
 
             while (byteBuffer.hasRemaining()) {
-                Index index = readIndex(byteBuffer);
+                Index index = readIndex(byteBuffer.nio());
                 index.setIndexFilePosition(byteBuffer.position() / DatabaseConstants.INDEX_BLOCK_SIZE);
 
                 if (index.isEmpty()) {
@@ -82,6 +86,8 @@ public class IndexStorageImpl implements IndexStorage {
 
                 lastIndexPosition = index.getIndexFilePosition();
             }
+
+            byteBuffer.release();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -144,7 +150,7 @@ public class IndexStorageImpl implements IndexStorage {
     }
 
     private void writeIndex(int position, Index index) {
-        ByteBuffer byteBuffer = ByteBufferAllocator.allocate(DatabaseConstants.INDEX_BLOCK_SIZE);
+        PooledByteBuffer byteBuffer = ByteBufferAllocator.allocate(DatabaseConstants.INDEX_BLOCK_SIZE);
         byteBuffer.putInt(index.getKeyHash());
         byteBuffer.put((byte) (index.isEmpty() ? 1 : 0));
         byteBuffer.putInt(index.getDataFilePosition());
@@ -152,9 +158,11 @@ public class IndexStorageImpl implements IndexStorage {
 
         try {
             channel.position(position * DatabaseConstants.INDEX_BLOCK_SIZE);
-            channel.write(byteBuffer);
+            channel.write(byteBuffer.nio());
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            byteBuffer.release();
         }
     }
 

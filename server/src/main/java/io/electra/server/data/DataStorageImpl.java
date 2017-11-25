@@ -30,9 +30,9 @@ import com.google.common.cache.LoadingCache;
 import io.electra.server.ByteBufferAllocator;
 import io.electra.server.DatabaseConstants;
 import io.electra.server.data.loader.DataBlockLoader;
+import io.electra.server.pooling.PooledByteBuffer;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
 import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
@@ -48,6 +48,9 @@ public class DataStorageImpl implements DataStorage {
 
     private final SeekableByteChannel channel;
 
+    private long timeCalculation;
+    private long timeBufferWriting;
+    private long timeWrite;
     DataStorageImpl(SeekableByteChannel channel) {
         this.channel = channel;
 
@@ -70,11 +73,14 @@ public class DataStorageImpl implements DataStorage {
 
                         channel.position(key * DatabaseConstants.DATA_BLOCK_SIZE);
 
-                        ByteBuffer byteBuffer = ByteBufferAllocator.allocate(4);
-                        channel.read(byteBuffer);
+                        PooledByteBuffer byteBuffer = ByteBufferAllocator.allocate(4);
+                        channel.read(byteBuffer.nio());
                         byteBuffer.flip();
 
-                        return byteBuffer.hasRemaining() ? byteBuffer.getInt() : -1;
+                        int nextBlock = byteBuffer.hasRemaining() ? byteBuffer.getInt() : -1;
+
+                        byteBuffer.release();
+                        return nextBlock;
                     }
                 });
     }
@@ -82,6 +88,7 @@ public class DataStorageImpl implements DataStorage {
     @Override
     public void save(int[] allocatedBlocks, byte[] bytes) {
         for (int i = 0; i < allocatedBlocks.length; i++) {
+            long start = System.nanoTime();
             int currentBlock = allocatedBlocks[i];
 
             int startPosition = i * DatabaseConstants.DATA_BLOCK_SIZE;
@@ -92,20 +99,25 @@ public class DataStorageImpl implements DataStorage {
 
             int nextBlock = i == allocatedBlocks.length - 1 ? -1 : allocatedBlocks[i + 1];
 
-            ByteBuffer byteBuffer = ByteBufferAllocator.allocate(DatabaseConstants.DATA_BLOCK_SIZE);
+            timeCalculation += System.nanoTime() - start;
+
+            start = System.nanoTime();
+            PooledByteBuffer byteBuffer = ByteBufferAllocator.allocate(DatabaseConstants.DATA_BLOCK_SIZE);
             byteBuffer.putInt(nextBlock);
             byteBuffer.putInt(currentBlockContent.length);
             byteBuffer.put(currentBlockContent);
 
             byteBuffer.flip();
-
-            DataBlock dataBlock = new DataBlock(currentBlock, currentBlockContent, nextBlock);
-            dataBlockCache.put(currentBlock, dataBlock);
-            nextBlockCache.put(currentBlock, nextBlock);
+            timeBufferWriting += System.nanoTime() - start;
 
             try {
+                start = System.nanoTime();
                 channel.position(currentBlock * DatabaseConstants.DATA_BLOCK_SIZE);
-                channel.write(byteBuffer);
+                channel.write(byteBuffer.nio());
+
+                timeWrite += System.nanoTime() - start;
+            } catch (RuntimeException e) {
+                e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -141,14 +153,15 @@ public class DataStorageImpl implements DataStorage {
 
     @Override
     public void writeNextBlockAtIndex(int blockIndex, int nextBlockIndex) {
+        PooledByteBuffer byteBuffer = ByteBufferAllocator.allocate(4);
+
         try {
             channel.position(blockIndex * DatabaseConstants.DATA_BLOCK_SIZE);
 
-            ByteBuffer byteBuffer = ByteBufferAllocator.allocate(4);
             byteBuffer.putInt(nextBlockIndex);
             byteBuffer.flip();
 
-            channel.write(byteBuffer);
+            channel.write(byteBuffer.nio());
 
             nextBlockCache.put(blockIndex, nextBlockIndex);
 
@@ -158,6 +171,8 @@ public class DataStorageImpl implements DataStorage {
             }
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            byteBuffer.release();
         }
     }
 
@@ -168,5 +183,9 @@ public class DataStorageImpl implements DataStorage {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        System.out.println("CALCULATE: " + timeCalculation);
+        System.out.println("BUFFERING: " + timeBufferWriting);
+        System.out.println("WRITING:   " + timeWrite);
     }
 }
