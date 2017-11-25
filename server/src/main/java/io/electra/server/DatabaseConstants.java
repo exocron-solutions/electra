@@ -33,7 +33,7 @@ public class DatabaseConstants {
 
     /**
      * The size of the blocks our data is organized in. Remember that the pure content of the size will have a length of
-     * DATA_BLOCK_SIZ - {@link #CONTENT_LENGTH_OFFSET} - {@link #NEXT_POSITION_OFFSET}.
+     * DATA_BLOCK_SIZE - {@link #CONTENT_LENGTH_OFFSET} - {@link #NEXT_POSITION_OFFSET}.
      */
     public static int DATA_BLOCK_SIZE = 128;
 
