@@ -24,6 +24,7 @@
 
 package io.electra.server;
 
+import com.google.common.base.Charsets;
 import io.electra.server.data.DataStorage;
 import io.electra.server.data.DataStorageFactory;
 import io.electra.server.index.IndexStorage;
@@ -49,24 +50,24 @@ public class DatabaseImpl implements Database {
 
     @Override
     public void save(String key, byte[] bytes) {
-        int keyHash = Arrays.hashCode(key.getBytes());
+        int keyHash = Arrays.hashCode(key.getBytes(Charsets.UTF_8));
         storageManager.save(keyHash, bytes);
     }
 
     @Override
     public void save(String key, String value) {
-        save(key, value.getBytes());
+        save(key, value.getBytes(Charsets.UTF_8));
     }
 
     @Override
     public byte[] get(String key) {
-        int keyHash = Arrays.hashCode(key.getBytes());
+        int keyHash = Arrays.hashCode(key.getBytes(Charsets.UTF_8));
         return storageManager.get(keyHash);
     }
 
     @Override
     public void remove(String key) {
-        int keyHash = Arrays.hashCode(key.getBytes());
+        int keyHash = Arrays.hashCode(key.getBytes(Charsets.UTF_8));
         storageManager.remove(keyHash);
     }
 
