@@ -24,14 +24,10 @@
 
 package io.electra.server;
 
-import org.json.JSONObject;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.UUID;
 
 /**
  * @author Felix Klauke <fklauke@itemis.de>
@@ -48,12 +44,7 @@ public class DatabaseBootstrap {
 
         long start = System.currentTimeMillis();
         for (int i = 0; i < n; i++) {
-            database.save("Key" + i, new JSONObject()
-                    .put("name", "Blablablablabla")
-                    .put("age", 20)
-                    .put("uuid", UUID.randomUUID())
-                    .put("id", UUID.randomUUID())
-                    .put("pets", Arrays.asList("whalla", "miau", "wuff", "piet", "sfefwgwgwegwgwegw", "egrregerhe", "oipoiztpjtzpjtpjtzpjoztjpztjoptzojpoztp")).toString().getBytes());
+            database.save("Key" + i, "Value" + i);
         }
         System.out.println("Saving " + n + " entries took " + (System.currentTimeMillis() - start) + "ms. ");
 

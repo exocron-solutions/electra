@@ -41,8 +41,8 @@ public class ByteBufferAllocator {
     private static long capacity;
 
     private static Pool<PooledByteBuffer> byteBufferPool = new ByteBufferPool(4, true);
-    private static Pool<PooledByteBuffer> byteBufferPool1 = new ByteBufferPool(9, true);
-    private static Pool<PooledByteBuffer> byteBufferPool2 = new ByteBufferPool(128, true);
+    private static Pool<PooledByteBuffer> byteBufferPool1 = new ByteBufferPool(DatabaseConstants.INDEX_BLOCK_SIZE, true);
+    private static Pool<PooledByteBuffer> byteBufferPool2 = new ByteBufferPool(DatabaseConstants.DATA_BLOCK_SIZE, false);
 
     public static PooledByteBuffer allocate(int size) {
         times++;
@@ -58,20 +58,20 @@ public class ByteBufferAllocator {
 
         if (size == 4) {
             return byteBufferPool.acquire();
-        } else if (size == 9) {
+        } else if (size == DatabaseConstants.INDEX_BLOCK_SIZE) {
             return byteBufferPool1.acquire();
-        } else if (size == 128) {
+        } else if (size == DatabaseConstants.DATA_BLOCK_SIZE) {
             return byteBufferPool2.acquire();
         }
 
         return new PooledByteBuffer(ByteBuffer.allocateDirect(size), null);
     }
 
-    public static long getCapacity() {
+    static long getCapacity() {
         return capacity;
     }
 
-    public static int getTimes() {
+    static int getTimes() {
         return times;
     }
 

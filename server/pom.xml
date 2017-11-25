@@ -84,6 +84,7 @@
             <version>20171018</version>
         </dependency>
 
+        <!-- Koloboke -->
         <dependency>
             <groupId>net.openhft</groupId>
             <artifactId>koloboke-api-jdk8</artifactId>

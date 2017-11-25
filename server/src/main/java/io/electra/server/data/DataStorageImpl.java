@@ -110,15 +110,16 @@ public class DataStorageImpl implements DataStorage {
             byteBuffer.flip();
             timeBufferWriting += System.nanoTime() - start;
 
+            dataBlockCache.put(currentBlock, new DataBlock(currentBlock, byteBuffer.nio().array(), nextBlock));
+            nextBlockCache.put(currentBlock, nextBlock);
+
             try {
                 start = System.nanoTime();
                 channel.position(currentBlock * DatabaseConstants.DATA_BLOCK_SIZE);
                 channel.write(byteBuffer.nio());
 
                 timeWrite += System.nanoTime() - start;
-            } catch (RuntimeException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
+            } catch (RuntimeException | IOException e) {
                 e.printStackTrace();
             }
         }

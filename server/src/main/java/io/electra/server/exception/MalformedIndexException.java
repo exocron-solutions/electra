@@ -22,50 +22,29 @@
  * SOFTWARE.
  */
 
-package io.electra.server.pooling;
-
-import com.google.common.collect.Queues;
-
-import java.util.Queue;
+package io.electra.server.exception;
 
 /**
  * @author Felix Klauke <fklauke@itemis.de>
  */
-public abstract class AbstractPool<PooledType> implements Pool<PooledType> {
+public class MalformedIndexException extends RuntimeException {
 
-    private final Queue<PooledType> pooledInstances;
-
-    public AbstractPool() {
-        this(Queues.newLinkedBlockingQueue());
+    public MalformedIndexException() {
     }
 
-    public AbstractPool(Queue<PooledType> pooledInstances) {
-        this.pooledInstances = pooledInstances;
+    public MalformedIndexException(String message) {
+        super(message);
     }
 
-    @Override
-    public PooledType acquire() {
-        synchronized (pooledInstances) {
-            if (pooledInstances.isEmpty()) {
-                pooledInstances.add(createInstance());
-            }
-
-            return pooledInstances.poll();
-        }
+    public MalformedIndexException(String message, Throwable cause) {
+        super(message, cause);
     }
 
-    abstract PooledType createInstance();
-
-    @Override
-    public void clear() {
-        synchronized (pooledInstances) {
-            pooledInstances.clear();
-        }
+    public MalformedIndexException(Throwable cause) {
+        super(cause);
     }
 
-    void release(PooledType pooled) {
-        synchronized (pooledInstances) {
-            pooledInstances.add(pooled);
-        }
+    public MalformedIndexException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
     }
 }

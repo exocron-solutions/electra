@@ -24,8 +24,6 @@
 
 package io.electra.server;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import io.electra.server.data.DataStorage;
 import io.electra.server.data.DataStorageFactory;
 import io.electra.server.index.IndexStorage;
@@ -33,14 +31,12 @@ import io.electra.server.index.IndexStorageFactory;
 
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author Felix Klauke <fklauke@itemis.de>
  */
 public class DatabaseImpl implements Database {
 
-    private final Cache<String, byte[]> cache;
     private final StorageManager storageManager;
 
     DatabaseImpl(Path dataFilePath, Path indexFilePath) {
@@ -48,20 +44,13 @@ public class DatabaseImpl implements Database {
         DataStorage dataStorage = DataStorageFactory.createDataStorage(dataFilePath);
 
         storageManager = new StorageManager(indexStorage, dataStorage);
-
-        cache = CacheBuilder.newBuilder()
-                .expireAfterAccess(1, TimeUnit.MINUTES)
-                .recordStats()
-                .build();
     }
 
 
     @Override
     public void save(String key, byte[] bytes) {
-        int keyHash = Arrays.hashCode(bytes);
+        int keyHash = Arrays.hashCode(key.getBytes());
         storageManager.save(keyHash, bytes);
-
-        cache.put(key, bytes);
     }
 
     @Override
@@ -71,12 +60,6 @@ public class DatabaseImpl implements Database {
 
     @Override
     public byte[] get(String key) {
-        byte[] result = cache.getIfPresent(key);
-
-        if (result != null) {
-            return result;
-        }
-
         int keyHash = Arrays.hashCode(key.getBytes());
         return storageManager.get(keyHash);
     }
@@ -85,14 +68,10 @@ public class DatabaseImpl implements Database {
     public void remove(String key) {
         int keyHash = Arrays.hashCode(key.getBytes());
         storageManager.remove(keyHash);
-
-        cache.invalidate(key);
     }
 
     @Override
     public void close() {
         storageManager.close();
-
-        cache.cleanUp();
     }
 }

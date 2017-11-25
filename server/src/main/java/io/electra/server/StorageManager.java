@@ -43,7 +43,7 @@ class StorageManager {
     private final IndexStorage indexStorage;
     private final DataStorage dataStorage;
 
-    private final TreeSet<Integer> freeBlocks;
+    private TreeSet<Integer> freeBlocks;
 
     StorageManager(IndexStorage indexStorage, DataStorage dataStorage) {
         this.indexStorage = indexStorage;
@@ -141,6 +141,11 @@ class StorageManager {
 
     byte[] get(int keyHash) {
         Index index = indexStorage.getIndex(keyHash);
+
+        if (index == null) {
+            return null;
+        }
+
         DataBlock dataBlock = dataStorage.readDataBlockAtIndex(index.getDataFilePosition());
 
         byte[] result = dataBlock.getContent();
