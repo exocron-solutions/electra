@@ -9,12 +9,26 @@ import java.util.List;
  */
 public class ByteBufPool {
 
+    /**
+     * The initial size of the internal pool.
+     */
     private static final int INITIAL_SIZE = 10;
 
+    /**
+     * The default byte buffer capacity.
+     */
     private static final int CAPACITY = 128;
 
+    /**
+     * The internal byte buffer pool.
+     */
     private static final List<ByteBuf> byteBufPool = new ArrayList<>(INITIAL_SIZE);
 
+    /**
+     * Returns a free byte buffer from the pool.
+     *
+     * @return A new usable byte buffer.
+     */
     public static ByteBuf pooled() {
         synchronized (byteBufPool) {
             if (byteBufPool.size() != 0) {
@@ -25,6 +39,11 @@ public class ByteBufPool {
         }
     }
 
+    /**
+     * Releases a byte buffer to the pool.
+     *
+     * @param byteBuf The byte buffer to release.
+     */
     public static void release(ByteBuf byteBuf) {
         byteBuf.clear();
 
@@ -33,6 +52,9 @@ public class ByteBufPool {
         }
     }
 
+    /**
+     * Cleans up all pooled byte buffers.
+     */
     public static void clear() {
         byteBufPool.clear();
     }
