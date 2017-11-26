@@ -24,15 +24,50 @@
 
 package io.electra.server.storage;
 
+import io.electra.server.Database;
+import io.electra.server.StorageManagerImpl;
+import io.electra.server.data.DataStorage;
+import io.electra.server.index.IndexStorage;
+
 /**
+ * The storage manager meant to connect all pieces of the database. Usually the instance of the {@link Database}
+ * should use an instances of the {@link StorageManager} to get access to the data. This is needed to prevent direct
+ * access to the {@link IndexStorage} and {@link DataStorage}. The {@link StorageManager} will use the hashes of
+ * data keys to access data. The {@link Database} should provide its keys as the hash code of the array of bytes
+ * of its key.
+ *
+ * The default implementation of the {@link StorageManager} can be found at {@link StorageManagerImpl}.
+ *
  * @author Felix Klauke <fklauke@itemis.de>
  */
 public interface StorageManager {
+
+    /**
+     * Save the given bytes under the given key hash.
+     *
+     * @param keyHash The key hash.
+     * @param bytes   The data.
+     */
     void save(int keyHash, byte[] bytes);
 
+    /**
+     * Close the storages and clean all resources up.
+     */
     void close();
 
+    /**
+     * Remove the data of the given key hash.
+     *
+     * @param keyHash The key hash.
+     */
     void remove(int keyHash);
 
+    /**
+     * Get the data behind the given key hash.
+     *
+     * @param keyHash The key hash.
+     *
+     * @return The data.
+     */
     byte[] get(int keyHash);
 }

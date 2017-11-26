@@ -37,22 +37,48 @@ import io.electra.server.storage.StorageManager;
 import java.util.TreeSet;
 
 /**
+ * The default implementation of the {@link StorageManager}.
+ *
  * @author Felix Klauke <fklauke@itemis.de>
  */
 public class StorageManagerImpl implements StorageManager {
 
+    /**
+     * The storage of all indices.
+     */
     private final IndexStorage indexStorage;
+
+    /**
+     * The storage of all data.
+     */
     private final DataStorage dataStorage;
 
+    /**
+     * Stores all blocks that are currently free for writing.
+     */
     private TreeSet<Integer> freeBlocks;
 
+    /**
+     * Create a new instance of the {@link StorageManager} by its underlying components.
+     *
+     * @param indexStorage The index storage.
+     * @param dataStorage  The data storage.
+     */
     StorageManagerImpl(IndexStorage indexStorage, DataStorage dataStorage) {
         this.indexStorage = indexStorage;
         this.dataStorage = dataStorage;
 
+        // Read all currently free indices.
         freeBlocks = Sets.newTreeSet(() -> new DataBlockChainIndexIterator(dataStorage, indexStorage.getCurrentEmptyIndex().getDataFilePosition()));
     }
 
+    /**
+     * Calculate the amount of data blocks that will be necessary for data with the given length.
+     *
+     * @param contentLength The length.
+     *
+     * @return The amount of blocks.
+     */
     private int calculateNeededBlocks(int contentLength) {
         return (int) Math.ceil(contentLength / (double) (DatabaseConstants.DATA_BLOCK_SIZE));
     }
