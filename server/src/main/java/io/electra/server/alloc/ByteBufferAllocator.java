@@ -74,11 +74,11 @@ public class ByteBufferAllocator {
         return new PooledByteBuffer(ByteBuffer.allocate(size), null);
     }
 
-    static long getCapacity() {
+    public static long getCapacity() {
         return capacity;
     }
 
-    static int getTimes() {
+    public static int getTimes() {
         return times;
     }
 
