@@ -84,7 +84,7 @@ public class DataStorageImpl implements DataStorage {
             byteBuffer.flip();
 
             try {
-                channel.read(byteBuffer.nio(), currentBlock * DatabaseConstants.DATA_BLOCK_SIZE, byteBuffer, new CompletionHandler<Integer, PooledByteBuffer>() {
+                channel.write(byteBuffer.nio(), currentBlock * DatabaseConstants.DATA_BLOCK_SIZE, byteBuffer, new CompletionHandler<Integer, PooledByteBuffer>() {
                     @Override
                     public void completed(Integer result, PooledByteBuffer attachment) {
                         byteBuffer.release();
