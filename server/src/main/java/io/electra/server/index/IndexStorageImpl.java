@@ -24,13 +24,14 @@
 
 package io.electra.server.index;
 
-import com.google.common.collect.Maps;
 import com.google.common.collect.Queues;
 import io.electra.server.ByteBufferAllocator;
 import io.electra.server.DatabaseConstants;
 import io.electra.server.btree.BTree;
 import io.electra.server.exception.MalformedIndexException;
 import io.electra.server.pooling.PooledByteBuffer;
+import net.openhft.koloboke.collect.map.IntObjMap;
+import net.openhft.koloboke.collect.map.hash.HashIntObjMaps;
 
 import java.io.IOException;
 import java.nio.channels.AsynchronousFileChannel;
@@ -61,7 +62,7 @@ public class IndexStorageImpl implements IndexStorage {
      * NOTE: Currently we use an enhanced koloboke map. Alternative would be the {@link TreeMap} or a B+ Tree
      * like {@link BTree}.
      */
-    private TreeMap<Integer, Index> currentIndices;
+    private IntObjMap<Index> currentIndices;
 
     /**
      * The currently last known index position index in the index file.
@@ -76,7 +77,7 @@ public class IndexStorageImpl implements IndexStorage {
     IndexStorageImpl(AsynchronousFileChannel channel) {
         this.channel = channel;
 
-        currentIndices = Maps.newTreeMap();
+        currentIndices = HashIntObjMaps.newMutableMap();
         readIndices();
     }
 

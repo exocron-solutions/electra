@@ -25,7 +25,7 @@
 package io.electra.server.data;
 
 import java.io.IOException;
-import java.nio.channels.SeekableByteChannel;
+import java.nio.channels.AsynchronousFileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -43,7 +43,7 @@ public class DataStorageFactory {
                 Files.createFile(dataFilePath);
             }
 
-            SeekableByteChannel channel = Files.newByteChannel(dataFilePath, StandardOpenOption.READ, StandardOpenOption.WRITE);
+            AsynchronousFileChannel channel = AsynchronousFileChannel.open(dataFilePath, StandardOpenOption.READ, StandardOpenOption.WRITE);
             dataStorage = new DataStorageImpl(channel);
         } catch (IOException e) {
             e.printStackTrace();
