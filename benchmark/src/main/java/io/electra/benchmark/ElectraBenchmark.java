@@ -24,22 +24,66 @@
 
 package io.electra.benchmark;
 
+import de.jackwhite20.orion.Orion;
+import de.jackwhite20.orion.annotations.*;
 import io.electra.server.Database;
 import io.electra.server.DatabaseConstants;
 import io.electra.server.DatabaseFactory;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
  * @author Felix Klauke <fklauke@itemis.de>
  */
+@Benchmark(warmUpIterations = 0, iterations = 100000)
 public class ElectraBenchmark {
 
     private static final Path indexFilePath = Paths.get(DatabaseConstants.DEFAULT_INDEX_FILE_PATH);
     private static final Path dataFilePath = Paths.get(DatabaseConstants.DEFAULT_DATA_FILE_PATH);
 
+    private Database database;
+    private int currentWrite, currentRead, currentDelete;
+
     public static void main(String[] args) {
-        Database database = DatabaseFactory.createDatabase(dataFilePath, indexFilePath);
+        new Orion(new ElectraBenchmark()).run();
+    }
+
+    @Prepare
+    public void setup() {
+        database = DatabaseFactory.createDatabase(dataFilePath, indexFilePath);
+    }
+
+    @MeasureTime
+    @Order(0)
+    public void testWrite() {
+        database.save("Felix" + currentWrite, "Klauke" + currentWrite++);
+    }
+
+    @MeasureTime
+    @Order(1)
+    public void testRead() {
+        byte[] bytes = database.get("Felix" + currentRead++);
+        if (bytes == null) {
+            System.out.println("FAIL");
+        }
+    }
+
+    @MeasureTime
+    @Order(2)
+    public void testDelete() {
+        database.remove("Felix" + currentDelete++);
+    }
+
+    @Cleanup
+    public void cleanup() {
+        try {
+            Files.delete(dataFilePath);
+            Files.delete(indexFilePath);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

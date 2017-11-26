@@ -101,9 +101,6 @@ public class IndexStorageImpl implements IndexStorage {
 
                 processReadIndices();
             }
-
-            System.out.println("EMPTY INDEX: " + emptyDataIndex);
-
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
@@ -132,8 +129,6 @@ public class IndexStorageImpl implements IndexStorage {
 
                     Index index = new Index(keyHash, empty, position);
                     index.setIndexFilePosition(i);
-
-                    System.out.println("GOT INDEX: " + index);
 
                     if (index.isEmpty()) {
                         emptyIndices.offer(index.getIndexFilePosition());

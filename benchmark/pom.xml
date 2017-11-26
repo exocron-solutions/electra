@@ -34,13 +34,17 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>electra-benchmark</artifactId>
+
     <dependencies>
+        <dependency>
+            <groupId>de.jackwhite20</groupId>
+            <artifactId>Orion</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
         <dependency>
             <groupId>io.electra</groupId>
             <artifactId>electra-server</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
-
-
 </project>
