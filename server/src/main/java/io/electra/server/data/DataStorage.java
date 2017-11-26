@@ -33,8 +33,6 @@ public interface DataStorage {
 
     DataBlock readDataBlockAtIndex(int index);
 
-    int getPositionByIndex(int index);
-
     int readNextBlockAtIndex(int blockIndex);
 
     void writeNextBlockAtIndex(int blockIndex, int nextBlockIndex);

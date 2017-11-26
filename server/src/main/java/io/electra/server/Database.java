@@ -30,7 +30,7 @@ import java.nio.file.Path;
  * The basic interface showing what our database will be capable of.
  *
  * To create instances of this class you should take a look at {@link DatabaseFactory#createDatabase(Path, Path)}. The
- * default implementation for this class can be found at {@link DatabaseImpl}.
+ * default implementation for this class can be found at {@link DefaultDatabaseImpl}.
  *
  * @author Felix Klauke <fklauke@itemis.de>
  */

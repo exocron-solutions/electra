@@ -22,33 +22,58 @@
  * SOFTWARE.
  */
 
-package io.electra.server.data;
+package io.electra.server;
 
-import java.io.IOException;
-import java.nio.channels.AsynchronousFileChannel;
-import java.nio.file.Files;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Felix Klauke <fklauke@itemis.de>
  */
-public class DataStorageFactory {
+public class GuavaCachedDatabaseImpl extends DefaultDatabaseImpl {
 
-    public static DataStorage createDataStorage(Path dataFilePath) {
-        DataStorage dataStorage = null;
+    private final LoadingCache<String, byte[]> cache;
 
+    GuavaCachedDatabaseImpl(Path dataFilePath, Path indexFilePath) {
+        super(dataFilePath, indexFilePath);
+
+        this.cache = CacheBuilder.newBuilder()
+                .expireAfterAccess(1, TimeUnit.MINUTES)
+                .build(new CacheLoader<String, byte[]>() {
+                    @Override
+                    public byte[] load(String key) throws Exception {
+                        return GuavaCachedDatabaseImpl.super.get(key);
+                    }
+                });
+    }
+
+    @Override
+    public byte[] get(String key) {
         try {
-            if (!Files.exists(dataFilePath)) {
-                Files.createFile(dataFilePath);
-            }
-
-            AsynchronousFileChannel channel = AsynchronousFileChannel.open(dataFilePath, StandardOpenOption.READ, StandardOpenOption.WRITE);
-            dataStorage = new DataStorageImpl(channel);
-        } catch (IOException e) {
+            return cache.get(key);
+        } catch (ExecutionException e) {
             e.printStackTrace();
         }
 
-        return dataStorage;
+        return null;
+    }
+
+    @Override
+    public void save(String key, byte[] bytes) {
+        super.save(key, bytes);
+
+        cache.put(key, bytes);
+    }
+
+    @Override
+    public void remove(String key) {
+        super.remove(key);
+
+        cache.invalidate(key);
     }
 }

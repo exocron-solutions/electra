@@ -24,24 +24,12 @@
 
 package io.electra.server.pool;
 
-import java.nio.ByteBuffer;
-
 /**
  * @author Felix Klauke <fklauke@itemis.de>
  */
-public class ByteBufferPool extends AbstractPool<PooledByteBuffer> {
+public interface Pool<PooledType> {
 
-    private final int byteBufferSize;
-    private final boolean useDirectBuffers;
+    PooledType acquire();
 
-    public ByteBufferPool(int byteBufferSize, boolean useDirectBuffers) {
-        this.byteBufferSize = byteBufferSize;
-        this.useDirectBuffers = useDirectBuffers;
-    }
-
-    @Override
-    PooledByteBuffer createInstance() {
-        ByteBuffer byteBuffer = useDirectBuffers ? ByteBuffer.allocateDirect(byteBufferSize) : ByteBuffer.allocate(byteBufferSize);
-        return new PooledByteBuffer(byteBuffer, this);
-    }
+    void clear();
 }

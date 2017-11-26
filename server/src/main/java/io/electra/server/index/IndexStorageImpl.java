@@ -24,83 +24,135 @@
 
 package io.electra.server.index;
 
-import com.google.common.collect.Maps;
 import com.google.common.collect.Queues;
-import io.electra.server.ByteBufferAllocator;
 import io.electra.server.DatabaseConstants;
+import io.electra.server.alloc.ByteBufferAllocator;
+import io.electra.server.btree.BTree;
+import io.electra.server.exception.MalformedIndexException;
+import io.electra.server.pool.PooledByteBuffer;
+import net.openhft.koloboke.collect.map.IntObjMap;
+import net.openhft.koloboke.collect.map.hash.HashIntObjMaps;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.SeekableByteChannel;
+import java.nio.channels.AsynchronousFileChannel;
+import java.nio.channels.CompletionHandler;
 import java.util.Queue;
 import java.util.TreeMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 /**
  * @author Felix Klauke <fklauke@itemis.de>
  */
 public class IndexStorageImpl implements IndexStorage {
 
+    /**
+     * Contains all indices of the currently free blocks.
+     */
     private final Queue<Integer> emptyIndices = Queues.newPriorityQueue();
-    private final TreeMap<Integer, Index> currentIndices = Maps.newTreeMap();
-    private final SeekableByteChannel channel;
-    private int lastIndexPosition;
+
+    /**
+     * The channel to read abd write the file.
+     */
+    private final AsynchronousFileChannel channel;
+
+    /**
+     * All currently loaded indices.
+     * <p>
+     * NOTE: Currently we use an enhanced koloboke map. Alternative would be the {@link TreeMap} or a B+ Tree
+     * like {@link BTree}.
+     */
+    private IntObjMap<Index> currentIndices;
+
+    /**
+     * The currently last known index position index in the index file.
+     */
+    private int lastIndexPosition = 0;
+
+    /**
+     * The index that points to the first empty data block.
+     */
     private Index emptyDataIndex;
 
-    IndexStorageImpl(SeekableByteChannel channel) {
+    IndexStorageImpl(AsynchronousFileChannel channel) {
         this.channel = channel;
 
+        currentIndices = HashIntObjMaps.newMutableMap();
         readIndices();
     }
 
     private void readIndices() {
+        PooledByteBuffer byteBuffer = ByteBufferAllocator.allocate(DatabaseConstants.INDEX_BLOCK_SIZE);
+
+        Future<Integer> read = channel.read(byteBuffer.nio(), 0);
+
         try {
-            channel.position(0);
-            long contentSize = channel.size();
-
-            if (contentSize == 0) {
+            if (read.get() < DatabaseConstants.INDEX_BLOCK_SIZE) {
                 initializeIndexFile();
-                channel.position(0);
+                emptyDataIndex = new Index(-1, true, 0);
+            } else {
+                byteBuffer.flip();
+                int keyHash = byteBuffer.getInt();
+                boolean empty = byteBuffer.get() == 1;
+                int position = byteBuffer.getInt();
+
+                emptyDataIndex = new Index(keyHash, empty, position);
+                emptyDataIndex.setIndexFilePosition(0);
+
+                processReadIndices();
             }
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
 
-            contentSize = channel.size();
+        byteBuffer.release();
+    }
 
-            ByteBuffer byteBuffer = ByteBufferAllocator.allocate(Math.toIntExact(contentSize));
-            channel.read(byteBuffer);
-            byteBuffer.flip();
+    private void processReadIndices() {
+        try {
+            for (int i = 1; i < channel.size() / DatabaseConstants.INDEX_BLOCK_SIZE; i++) {
+                PooledByteBuffer byteBuffer = ByteBufferAllocator.allocate(DatabaseConstants.INDEX_BLOCK_SIZE);
+                Future<Integer> readFuture = channel.read(byteBuffer.nio(), i * DatabaseConstants.INDEX_BLOCK_SIZE);
+                int result = readFuture.get();
 
-            emptyDataIndex = readIndex(byteBuffer);
+                if (result == DatabaseConstants.INDEX_BLOCK_SIZE) {
+                    byteBuffer.flip();
 
-            while (byteBuffer.hasRemaining()) {
-                Index index = readIndex(byteBuffer);
-                index.setIndexFilePosition(byteBuffer.position() / DatabaseConstants.INDEX_BLOCK_SIZE);
+                    int keyHash = byteBuffer.getInt();
 
-                if (index.isEmpty()) {
-                    emptyIndices.offer(index.getIndexFilePosition());
+                    if (keyHash == 0 || keyHash == -1) {
+                        continue;
+                    }
+
+                    boolean empty = byteBuffer.get() == 1;
+                    int position = byteBuffer.getInt();
+
+                    Index index = new Index(keyHash, empty, position);
+                    index.setIndexFilePosition(i);
+
+                    if (index.isEmpty()) {
+                        emptyIndices.offer(index.getIndexFilePosition());
+                    } else {
+                        currentIndices.put(keyHash, index);
+                    }
+
+                    byteBuffer.release();
+                } else if (result > 0 && result < DatabaseConstants.INDEX_BLOCK_SIZE) {
+                    byteBuffer.release();
+                    throw new MalformedIndexException("Got a malformed index.");
                 }
-
-                saveIndex(index);
-
-                lastIndexPosition = index.getIndexFilePosition();
             }
-        } catch (IOException e) {
+
+            lastIndexPosition = Math.toIntExact(channel.size() / DatabaseConstants.INDEX_BLOCK_SIZE);
+        } catch (IOException | InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
     }
 
     private void initializeIndexFile() {
-        int position = allocateFreeBlock();
         Index index = new Index(-1, false, 0);
-        index.setIndexFilePosition(position);
-
+        index.setIndexFilePosition(0);
         writeIndex(0, index);
-    }
-
-    private Index readIndex(ByteBuffer byteBuffer) {
-        int keyHash = byteBuffer.getInt();
-        boolean empty = byteBuffer.get() == 1;
-        int position = byteBuffer.getInt();
-
-        return new Index(keyHash, empty, position);
     }
 
     @Override
@@ -111,9 +163,9 @@ public class IndexStorageImpl implements IndexStorage {
     @Override
     public void saveIndex(Index index) {
         currentIndices.put(index.getKeyHash(), index);
-
         int freeBlock = allocateFreeBlock();
         index.setIndexFilePosition(freeBlock);
+
         writeIndex(freeBlock, index);
     }
 
@@ -144,21 +196,27 @@ public class IndexStorageImpl implements IndexStorage {
     }
 
     private void writeIndex(int position, Index index) {
-        ByteBuffer byteBuffer = ByteBufferAllocator.allocate(DatabaseConstants.INDEX_BLOCK_SIZE);
+        PooledByteBuffer byteBuffer = ByteBufferAllocator.allocate(DatabaseConstants.INDEX_BLOCK_SIZE);
+
         byteBuffer.putInt(index.getKeyHash());
         byteBuffer.put((byte) (index.isEmpty() ? 1 : 0));
         byteBuffer.putInt(index.getDataFilePosition());
         byteBuffer.flip();
 
-        try {
-            channel.position(position * DatabaseConstants.INDEX_BLOCK_SIZE);
-            channel.write(byteBuffer);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        channel.write(byteBuffer.nio(), position * DatabaseConstants.INDEX_BLOCK_SIZE, byteBuffer, new CompletionHandler<Integer, PooledByteBuffer>() {
+            @Override
+            public void completed(Integer result, PooledByteBuffer attachment) {
+                byteBuffer.release();
+            }
+
+            @Override
+            public void failed(Throwable exc, PooledByteBuffer attachment) {
+                byteBuffer.release();
+            }
+        });
     }
 
     private int allocateFreeBlock() {
-        return emptyIndices.isEmpty() ? ++lastIndexPosition : emptyIndices.poll();
+        return emptyIndices.isEmpty() ? lastIndexPosition++ : emptyIndices.poll();
     }
 }

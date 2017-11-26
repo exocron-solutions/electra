@@ -22,26 +22,41 @@
  * SOFTWARE.
  */
 
-package io.electra.server.pool;
+package io.electra.server;
 
-import java.nio.ByteBuffer;
+import net.openhft.koloboke.collect.map.ObjObjMap;
+import net.openhft.koloboke.collect.map.hash.HashObjObjMaps;
+
+import java.nio.file.Path;
 
 /**
  * @author Felix Klauke <fklauke@itemis.de>
  */
-public class ByteBufferPool extends AbstractPool<PooledByteBuffer> {
+public class KolobokeCachedDatabaseImpl extends DefaultDatabaseImpl {
 
-    private final int byteBufferSize;
-    private final boolean useDirectBuffers;
+    private final ObjObjMap<String, byte[]> cache;
 
-    public ByteBufferPool(int byteBufferSize, boolean useDirectBuffers) {
-        this.byteBufferSize = byteBufferSize;
-        this.useDirectBuffers = useDirectBuffers;
+    KolobokeCachedDatabaseImpl(Path dataFilePath, Path indexFilePath) {
+        super(dataFilePath, indexFilePath);
+
+        this.cache = HashObjObjMaps.newMutableMap();
     }
 
     @Override
-    PooledByteBuffer createInstance() {
-        ByteBuffer byteBuffer = useDirectBuffers ? ByteBuffer.allocateDirect(byteBufferSize) : ByteBuffer.allocate(byteBufferSize);
-        return new PooledByteBuffer(byteBuffer, this);
+    public byte[] get(String key) {
+        byte[] value = cache.get(key);
+        return value == null ? super.get(key) : value;
+    }
+
+    @Override
+    public void save(String key, byte[] bytes) {
+        super.save(key, bytes);
+        cache.put(key, bytes);
+    }
+
+    @Override
+    public void remove(String key) {
+        super.remove(key);
+        cache.remove(key);
     }
 }

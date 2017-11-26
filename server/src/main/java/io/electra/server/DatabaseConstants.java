@@ -33,7 +33,7 @@ public class DatabaseConstants {
 
     /**
      * The size of the blocks our data is organized in. Remember that the pure content of the size will have a length of
-     * DATA_BLOCK_SIZ - {@link #CONTENT_LENGTH_OFFSET} - {@link #NEXT_POSITION_OFFSET}.
+     * DATA_BLOCK_SIZE - {@link #CONTENT_LENGTH_OFFSET} - {@link #NEXT_POSITION_OFFSET}.
      */
     public static int DATA_BLOCK_SIZE = 128;
 
@@ -51,4 +51,14 @@ public class DatabaseConstants {
      * The size of one index block.
      */
     public static int INDEX_BLOCK_SIZE = 9;
+
+    /**
+     * The default path for a basic data file.
+     */
+    public static String DEFAULT_DATA_FILE_PATH = "data.lctr";
+
+    /**
+     * The default path for a basic index file.
+     */
+    public static String DEFAULT_INDEX_FILE_PATH = "index.lctr";
 }

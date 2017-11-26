@@ -32,6 +32,14 @@ import java.nio.file.Path;
 public class DatabaseFactory {
 
     public static Database createDatabase(Path dataFilePath, Path indexFilePath) {
-        return new DatabaseImpl(dataFilePath, indexFilePath);
+        return new DefaultDatabaseImpl(dataFilePath, indexFilePath);
+    }
+
+    public static Database createKolobokeValueCachedDatabase(Path dataFilePath, Path indexFilePath) {
+        return new KolobokeCachedDatabaseImpl(dataFilePath, indexFilePath);
+    }
+
+    public static Database createGuavaValueCachedDatabase(Path dataFilePath, Path indexFilePath) {
+        return new GuavaCachedDatabaseImpl(dataFilePath, indexFilePath);
     }
 }

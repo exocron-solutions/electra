@@ -32,37 +32,59 @@ import io.electra.server.data.DataStorage;
 import io.electra.server.index.Index;
 import io.electra.server.index.IndexStorage;
 import io.electra.server.iterator.DataBlockChainIndexIterator;
+import io.electra.server.storage.StorageManager;
 
 import java.util.TreeSet;
 
 /**
+ * The default implementation of the {@link StorageManager}.
+ *
  * @author Felix Klauke <fklauke@itemis.de>
  */
-class StorageManager {
+public class StorageManagerImpl implements StorageManager {
 
+    /**
+     * The storage of all indices.
+     */
     private final IndexStorage indexStorage;
+
+    /**
+     * The storage of all data.
+     */
     private final DataStorage dataStorage;
 
-    private final TreeSet<Integer> freeBlocks;
+    /**
+     * Stores all blocks that are currently free for writing.
+     */
+    private TreeSet<Integer> freeBlocks;
 
-
-    StorageManager(IndexStorage indexStorage, DataStorage dataStorage) {
+    /**
+     * Create a new instance of the {@link StorageManager} by its underlying components.
+     *
+     * @param indexStorage The index storage.
+     * @param dataStorage  The data storage.
+     */
+    StorageManagerImpl(IndexStorage indexStorage, DataStorage dataStorage) {
         this.indexStorage = indexStorage;
         this.dataStorage = dataStorage;
 
+        // Read all currently free indices.
         freeBlocks = Sets.newTreeSet(() -> new DataBlockChainIndexIterator(dataStorage, indexStorage.getCurrentEmptyIndex().getDataFilePosition()));
     }
 
+    /**
+     * Calculate the amount of data blocks that will be necessary for data with the given length.
+     *
+     * @param contentLength The length.
+     *
+     * @return The amount of blocks.
+     */
     private int calculateNeededBlocks(int contentLength) {
         return (int) Math.ceil(contentLength / (double) (DatabaseConstants.DATA_BLOCK_SIZE));
     }
 
-    void close() {
-        dataStorage.close();
-        indexStorage.close();
-    }
-
-    void save(int keyHash, byte[] bytes) {
+    @Override
+    public void save(int keyHash, byte[] bytes) {
         int blocksNeeded = calculateNeededBlocks(bytes.length);
 
         int[] allocatedBlocks = new int[blocksNeeded];
@@ -75,17 +97,25 @@ class StorageManager {
             }
 
             allocatedBlocks[i] = nextFreeBlock;
-            indexStorage.getCurrentEmptyIndex().setDataFilePosition(nextFreeBlock + 1);
         }
+        indexStorage.getCurrentEmptyIndex().setDataFilePosition(freeBlocks.first());
 
         int firstBlock = allocatedBlocks[0];
         Index index = new Index(keyHash, false, firstBlock);
 
         indexStorage.saveIndex(index);
+
         dataStorage.save(allocatedBlocks, bytes);
     }
 
-    void remove(int keyHash) {
+    @Override
+    public void close() {
+        dataStorage.close();
+        indexStorage.close();
+    }
+
+    @Override
+    public void remove(int keyHash) {
         Index index = indexStorage.getIndex(keyHash);
         Index currentEmptyIndex = indexStorage.getCurrentEmptyIndex();
 
@@ -102,9 +132,11 @@ class StorageManager {
                 freeBlocks.add(currentEmptyIndex.getDataFilePosition());
                 dataStorage.writeNextBlockAtIndex(currentAffectedBlockIndex, currentEmptyIndex.getDataFilePosition());
                 currentEmptyIndex.setDataFilePosition(currentAffectedBlockIndex);
+                continue;
             }
 
             Integer lower = freeBlocks.lower(currentAffectedBlockIndex);
+
             if (lower != null) {
                 dataStorage.writeNextBlockAtIndex(lower, currentAffectedBlockIndex);
             }
@@ -120,8 +152,14 @@ class StorageManager {
         indexStorage.removeIndex(index);
     }
 
-    byte[] get(int keyHash) {
+    @Override
+    public byte[] get(int keyHash) {
         Index index = indexStorage.getIndex(keyHash);
+
+        if (index == null) {
+            return null;
+        }
+
         DataBlock dataBlock = dataStorage.readDataBlockAtIndex(index.getDataFilePosition());
 
         byte[] result = dataBlock.getContent();

@@ -25,7 +25,7 @@
 package io.electra.server.index;
 
 import java.io.IOException;
-import java.nio.channels.SeekableByteChannel;
+import java.nio.channels.AsynchronousFileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -41,7 +41,7 @@ public class IndexStorageFactory {
                 Files.createFile(indexFilePath);
             }
 
-            SeekableByteChannel channel = Files.newByteChannel(indexFilePath, StandardOpenOption.READ, StandardOpenOption.WRITE);
+            AsynchronousFileChannel channel = AsynchronousFileChannel.open(indexFilePath, StandardOpenOption.READ, StandardOpenOption.WRITE);
             return new IndexStorageImpl(channel);
         } catch (IOException e) {
             e.printStackTrace();
