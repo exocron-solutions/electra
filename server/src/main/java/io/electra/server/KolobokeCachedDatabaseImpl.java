@@ -24,22 +24,39 @@
 
 package io.electra.server;
 
+import net.openhft.koloboke.collect.map.ObjObjMap;
+import net.openhft.koloboke.collect.map.hash.HashObjObjMaps;
+
 import java.nio.file.Path;
 
 /**
  * @author Felix Klauke <fklauke@itemis.de>
  */
-public class DatabaseFactory {
+public class KolobokeCachedDatabaseImpl extends DefaultDatabaseImpl {
 
-    public static Database createDatabase(Path dataFilePath, Path indexFilePath) {
-        return new DefaultDatabaseImpl(dataFilePath, indexFilePath);
+    private final ObjObjMap<String, byte[]> cache;
+
+    KolobokeCachedDatabaseImpl(Path dataFilePath, Path indexFilePath) {
+        super(dataFilePath, indexFilePath);
+
+        this.cache = HashObjObjMaps.newMutableMap();
     }
 
-    public static Database createKolobokeValueCachedDatabase(Path dataFilePath, Path indexFilePath) {
-        return new KolobokeCachedDatabaseImpl(dataFilePath, indexFilePath);
+    @Override
+    public byte[] get(String key) {
+        byte[] value = cache.get(key);
+        return value == null ? super.get(key) : value;
     }
 
-    public static Database createGuavaValueCachedDatabase(Path dataFilePath, Path indexFilePath) {
-        return new GuavaCachedDatabaseImpl(dataFilePath, indexFilePath);
+    @Override
+    public void save(String key, byte[] bytes) {
+        super.save(key, bytes);
+        cache.put(key, bytes);
+    }
+
+    @Override
+    public void remove(String key) {
+        super.remove(key);
+        cache.remove(key);
     }
 }

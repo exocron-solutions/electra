@@ -53,7 +53,7 @@ public class ElectraBenchmark {
 
     @Prepare
     public void setup() {
-        database = DatabaseFactory.createDatabase(dataFilePath, indexFilePath);
+        database = DatabaseFactory.createGuavaValueCachedDatabase(dataFilePath, indexFilePath);
     }
 
     @MeasureTime

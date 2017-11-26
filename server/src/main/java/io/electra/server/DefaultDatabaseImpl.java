@@ -29,8 +29,6 @@ import io.electra.server.data.DataStorage;
 import io.electra.server.data.DataStorageFactory;
 import io.electra.server.index.IndexStorage;
 import io.electra.server.index.IndexStorageFactory;
-import net.openhft.koloboke.collect.map.IntObjMap;
-import net.openhft.koloboke.collect.map.hash.HashIntObjMaps;
 
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -38,19 +36,15 @@ import java.util.Arrays;
 /**
  * @author Felix Klauke <fklauke@itemis.de>
  */
-public class DatabaseImpl implements Database {
+public class DefaultDatabaseImpl implements Database {
 
     private final StorageManager storageManager;
 
-    private final IntObjMap<byte[]> valueCache;
-
-    DatabaseImpl(Path dataFilePath, Path indexFilePath) {
+    DefaultDatabaseImpl(Path dataFilePath, Path indexFilePath) {
         IndexStorage indexStorage = IndexStorageFactory.createIndexStorage(indexFilePath);
         DataStorage dataStorage = DataStorageFactory.createDataStorage(dataFilePath);
 
         storageManager = new StorageManager(indexStorage, dataStorage);
-
-        valueCache = HashIntObjMaps.newMutableMap();
     }
 
 
@@ -58,8 +52,6 @@ public class DatabaseImpl implements Database {
     public void save(String key, byte[] bytes) {
         int keyHash = Arrays.hashCode(key.getBytes(Charsets.UTF_8));
         storageManager.save(keyHash, bytes);
-
-        valueCache.put(keyHash, bytes);
     }
 
     @Override
@@ -70,11 +62,6 @@ public class DatabaseImpl implements Database {
     @Override
     public byte[] get(String key) {
         int keyHash = Arrays.hashCode(key.getBytes(Charsets.UTF_8));
-        byte[] bytes = valueCache.get(keyHash);
-
-        if (bytes != null) {
-            return bytes;
-        }
 
         return storageManager.get(keyHash);
     }
@@ -82,9 +69,8 @@ public class DatabaseImpl implements Database {
     @Override
     public void remove(String key) {
         int keyHash = Arrays.hashCode(key.getBytes(Charsets.UTF_8));
-        storageManager.remove(keyHash);
 
-        valueCache.remove(keyHash);
+        storageManager.remove(keyHash);
     }
 
     @Override
