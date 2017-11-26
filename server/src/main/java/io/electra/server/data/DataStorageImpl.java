@@ -154,11 +154,6 @@ public class DataStorageImpl implements DataStorage {
     }
 
     @Override
-    public int getPositionByIndex(int index) {
-        return index * (DatabaseConstants.DATA_BLOCK_SIZE);
-    }
-
-    @Override
     public int readNextBlockAtIndex(int blockIndex) {
         int next = nextBlockCache.getOrDefault(blockIndex, -1);
 
