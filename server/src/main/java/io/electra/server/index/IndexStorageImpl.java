@@ -82,12 +82,12 @@ public class IndexStorageImpl implements IndexStorage {
     }
 
     private void readIndices() {
-        PooledByteBuffer byteBuffer = ByteBufferAllocator.allocate(9);
+        PooledByteBuffer byteBuffer = ByteBufferAllocator.allocate(DatabaseConstants.INDEX_BLOCK_SIZE);
 
         Future<Integer> read = channel.read(byteBuffer.nio(), 0);
 
         try {
-            if (read.get() < 9) {
+            if (read.get() < DatabaseConstants.INDEX_BLOCK_SIZE) {
                 initializeIndexFile();
                 emptyDataIndex = new Index(-1, true, 0);
             } else {
@@ -113,12 +113,12 @@ public class IndexStorageImpl implements IndexStorage {
 
     private void processReadIndices() {
         try {
-            for (int i = 1; i < channel.size() / 9; i++) {
-                PooledByteBuffer byteBuffer = ByteBufferAllocator.allocate(9);
-                Future<Integer> readFuture = channel.read(byteBuffer.nio(), i * 9);
+            for (int i = 1; i < channel.size() / DatabaseConstants.INDEX_BLOCK_SIZE; i++) {
+                PooledByteBuffer byteBuffer = ByteBufferAllocator.allocate(DatabaseConstants.INDEX_BLOCK_SIZE);
+                Future<Integer> readFuture = channel.read(byteBuffer.nio(), i * DatabaseConstants.INDEX_BLOCK_SIZE);
                 int result = readFuture.get();
 
-                if (result == 9) {
+                if (result == DatabaseConstants.INDEX_BLOCK_SIZE) {
                     byteBuffer.flip();
 
                     int keyHash = byteBuffer.getInt();
@@ -142,13 +142,13 @@ public class IndexStorageImpl implements IndexStorage {
                     }
 
                     byteBuffer.release();
-                } else if (result > 0 && result < 9) {
+                } else if (result > 0 && result < DatabaseConstants.INDEX_BLOCK_SIZE) {
                     byteBuffer.release();
                     throw new MalformedIndexException("Got a malformed index.");
                 }
             }
 
-            lastIndexPosition = Math.toIntExact(channel.size() / 9);
+            lastIndexPosition = Math.toIntExact(channel.size() / DatabaseConstants.INDEX_BLOCK_SIZE);
         } catch (IOException | InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
