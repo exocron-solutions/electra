@@ -22,26 +22,50 @@
  * SOFTWARE.
  */
 
-package io.electra.server.pooling;
+package io.electra.server.pool;
 
-import java.nio.ByteBuffer;
+import com.google.common.collect.Queues;
+
+import java.util.Queue;
 
 /**
  * @author Felix Klauke <fklauke@itemis.de>
  */
-public class ByteBufferPool extends AbstractPool<PooledByteBuffer> {
+public abstract class AbstractPool<PooledType> implements Pool<PooledType> {
 
-    private final int byteBufferSize;
-    private final boolean useDirectBuffers;
+    private final Queue<PooledType> pooledInstances;
 
-    public ByteBufferPool(int byteBufferSize, boolean useDirectBuffers) {
-        this.byteBufferSize = byteBufferSize;
-        this.useDirectBuffers = useDirectBuffers;
+    public AbstractPool() {
+        this(Queues.newLinkedBlockingQueue());
+    }
+
+    public AbstractPool(Queue<PooledType> pooledInstances) {
+        this.pooledInstances = pooledInstances;
     }
 
     @Override
-    PooledByteBuffer createInstance() {
-        ByteBuffer byteBuffer = useDirectBuffers ? ByteBuffer.allocateDirect(byteBufferSize) : ByteBuffer.allocate(byteBufferSize);
-        return new PooledByteBuffer(byteBuffer, this);
+    public PooledType acquire() {
+        synchronized (pooledInstances) {
+            if (pooledInstances.isEmpty()) {
+                pooledInstances.add(createInstance());
+            }
+
+            return pooledInstances.poll();
+        }
+    }
+
+    abstract PooledType createInstance();
+
+    @Override
+    public void clear() {
+        synchronized (pooledInstances) {
+            pooledInstances.clear();
+        }
+    }
+
+    void release(PooledType pooled) {
+        synchronized (pooledInstances) {
+            pooledInstances.add(pooled);
+        }
     }
 }

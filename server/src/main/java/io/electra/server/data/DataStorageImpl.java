@@ -26,9 +26,9 @@ package io.electra.server.data;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import io.electra.server.ByteBufferAllocator;
 import io.electra.server.DatabaseConstants;
-import io.electra.server.pooling.PooledByteBuffer;
+import io.electra.server.alloc.ByteBufferAllocator;
+import io.electra.server.pool.PooledByteBuffer;
 import net.openhft.koloboke.collect.map.IntIntMap;
 import net.openhft.koloboke.collect.map.hash.HashIntIntMaps;
 

@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package io.electra.server.pooling;
+package io.electra.server.pool;
 
 /**
  * @author Felix Klauke <fklauke@itemis.de>

@@ -22,11 +22,12 @@
  * SOFTWARE.
  */
 
-package io.electra.server;
+package io.electra.server.alloc;
 
-import io.electra.server.pooling.ByteBufferPool;
-import io.electra.server.pooling.Pool;
-import io.electra.server.pooling.PooledByteBuffer;
+import io.electra.server.DatabaseConstants;
+import io.electra.server.pool.ByteBufferPool;
+import io.electra.server.pool.Pool;
+import io.electra.server.pool.PooledByteBuffer;
 
 import java.nio.ByteBuffer;
 

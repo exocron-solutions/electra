@@ -25,11 +25,11 @@
 package io.electra.server.index;
 
 import com.google.common.collect.Queues;
-import io.electra.server.ByteBufferAllocator;
 import io.electra.server.DatabaseConstants;
+import io.electra.server.alloc.ByteBufferAllocator;
 import io.electra.server.btree.BTree;
 import io.electra.server.exception.MalformedIndexException;
-import io.electra.server.pooling.PooledByteBuffer;
+import io.electra.server.pool.PooledByteBuffer;
 import net.openhft.koloboke.collect.map.IntObjMap;
 import net.openhft.koloboke.collect.map.hash.HashIntObjMaps;
 

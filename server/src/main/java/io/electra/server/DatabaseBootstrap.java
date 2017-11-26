@@ -24,6 +24,8 @@
 
 package io.electra.server;
 
+import io.electra.server.alloc.ByteBufferAllocator;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
