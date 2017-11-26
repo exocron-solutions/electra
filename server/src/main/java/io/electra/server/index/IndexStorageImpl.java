@@ -124,7 +124,12 @@ public class IndexStorageImpl implements IndexStorage {
 
                             Index index = new Index(keyHash, empty, position);
                             index.setIndexFilePosition(current);
-                            currentIndices.put(keyHash, index);
+
+                            if (index.isEmpty()) {
+                                emptyIndices.offer(index.getIndexFilePosition());
+                            } else {
+                                currentIndices.put(keyHash, index);
+                            }
 
                             byteBuffer.release();
                         } else if (result > 0 && result < 9) {
