@@ -51,4 +51,14 @@ public class DatabaseConstants {
      * The size of one index block.
      */
     public static int INDEX_BLOCK_SIZE = 9;
+
+    /**
+     * The default path for a basic data file.
+     */
+    public static String DEFAULT_DATA_FILE_PATH = "data.lctr";
+
+    /**
+     * The default path for a basic index file.
+     */
+    public static String DEFAULT_INDEX_FILE_PATH = "index.lctr";
 }

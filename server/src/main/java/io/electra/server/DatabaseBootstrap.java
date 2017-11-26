@@ -36,11 +36,11 @@ import java.nio.file.Paths;
  */
 public class DatabaseBootstrap {
 
-    private static final Path indexFilePath = Paths.get("index.lctr");
-    private static final Path dataFilePath = Paths.get("data.lctr");
+    private static final Path indexFilePath = Paths.get(DatabaseConstants.DEFAULT_INDEX_FILE_PATH);
+    private static final Path dataFilePath = Paths.get(DatabaseConstants.DEFAULT_DATA_FILE_PATH);
 
     public static void main(String[] args) {
-        Database database = new DatabaseImpl(dataFilePath, indexFilePath);
+        Database database = DatabaseFactory.createDatabase(dataFilePath, indexFilePath);
 
         int n = 100000;
 
