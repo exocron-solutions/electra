@@ -56,8 +56,6 @@ class StorageManager {
         return (int) Math.ceil(contentLength / (double) (DatabaseConstants.DATA_BLOCK_SIZE));
     }
 
-    private long indexInstantiation;
-
     void save(int keyHash, byte[] bytes) {
         int blocksNeeded = calculateNeededBlocks(bytes.length);
 
@@ -82,35 +80,21 @@ class StorageManager {
         dataStorage.save(allocatedBlocks, bytes);
     }
 
-    private long affectedBlockFetching;
-    private long freeBlockOffering;
-    private long indexRemoval;
-
     void close() {
         dataStorage.close();
         indexStorage.close();
-
-        System.out.println("Index Instantiation:        " + indexInstantiation);
-        System.out.println("Affected block fetching:    " + affectedBlockFetching);
-        System.out.println("Free block offering:        " + freeBlockOffering);
-        System.out.println("Index Removal:              " + indexRemoval);
     }
 
     void remove(int keyHash) {
-        long start = System.nanoTime();
         Index index = indexStorage.getIndex(keyHash);
         Index currentEmptyIndex = indexStorage.getCurrentEmptyIndex();
-        indexInstantiation += System.nanoTime() - start;
 
         if (index == null) {
             return;
         }
 
-        start = System.nanoTime();
         Integer[] affectedBlocks = Iterators.toArray(new DataBlockChainIndexIterator(dataStorage, index.getDataFilePosition()), Integer.class);
-        affectedBlockFetching += System.nanoTime() - start;
 
-        start = System.nanoTime();
         for (int i = affectedBlocks.length - 1; i >= 0; i--) {
             int currentAffectedBlockIndex = affectedBlocks[i];
 
@@ -134,11 +118,8 @@ class StorageManager {
 
             freeBlocks.add(currentAffectedBlockIndex);
         }
-        freeBlockOffering += System.nanoTime() - start;
 
-        start = System.nanoTime();
         indexStorage.removeIndex(index);
-        indexRemoval += System.nanoTime() - start;
     }
 
     byte[] get(int keyHash) {

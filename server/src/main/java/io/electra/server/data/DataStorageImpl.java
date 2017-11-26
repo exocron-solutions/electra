@@ -128,12 +128,14 @@ public class DataStorageImpl implements DataStorage {
                 return null;
             }
 
-            contentBuffer = ByteBufferAllocator.allocate(position + 4 + contentLengthByteBuffer.getInt());
+            contentBuffer = ByteBufferAllocator.allocate(contentLengthByteBuffer.getInt());
             channel.read(contentBuffer.nio(), position + 4 + 4).get();
 
             if (!nextPositionReading.isDone()) {
                 nextPositionReading.get();
             }
+
+            nextPositionByteBuffer.flip();
 
             return new DataBlock(position, contentBuffer.array(), nextPositionByteBuffer.getInt());
         } catch (InterruptedException | ExecutionException e) {
@@ -219,6 +221,7 @@ public class DataStorageImpl implements DataStorage {
     @Override
     public void close() {
         try {
+            channel.force(true);
             channel.close();
         } catch (IOException e) {
             e.printStackTrace();

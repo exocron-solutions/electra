@@ -67,7 +67,7 @@ public class IndexStorageImpl implements IndexStorage {
     /**
      * The currently last known index position index in the index file.
      */
-    private int lastIndexPosition;
+    private int lastIndexPosition = 0;
 
     /**
      * The index that points to the first empty data block.
@@ -83,7 +83,6 @@ public class IndexStorageImpl implements IndexStorage {
 
     private void readIndices() {
         PooledByteBuffer byteBuffer = ByteBufferAllocator.allocate(9);
-        byteBuffer.flip();
 
         Future<Integer> read = channel.read(byteBuffer.nio(), 0);
 
@@ -92,6 +91,7 @@ public class IndexStorageImpl implements IndexStorage {
                 initializeIndexFile();
                 emptyDataIndex = new Index(-1, true, 0);
             } else {
+                byteBuffer.flip();
                 int keyHash = byteBuffer.getInt();
                 boolean empty = byteBuffer.get() == 1;
                 int position = byteBuffer.getInt();
@@ -101,6 +101,9 @@ public class IndexStorageImpl implements IndexStorage {
 
                 processReadIndices();
             }
+
+            System.out.println("EMPTY INDEX: " + emptyDataIndex);
+
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
@@ -112,51 +115,48 @@ public class IndexStorageImpl implements IndexStorage {
         try {
             for (int i = 1; i < channel.size() / 9; i++) {
                 PooledByteBuffer byteBuffer = ByteBufferAllocator.allocate(9);
-                channel.read(byteBuffer.nio(), i * 9, i, new CompletionHandler<Integer, Integer>() {
-                    @Override
-                    public void completed(Integer result, Integer current) {
-                        if (result == 9) {
-                            byteBuffer.flip();
+                Future<Integer> readFuture = channel.read(byteBuffer.nio(), i * 9);
+                int result = readFuture.get();
 
-                            int keyHash = byteBuffer.getInt();
-                            boolean empty = byteBuffer.get() == 1;
-                            int position = byteBuffer.getInt();
+                if (result == 9) {
+                    byteBuffer.flip();
 
-                            Index index = new Index(keyHash, empty, position);
-                            index.setIndexFilePosition(current);
+                    int keyHash = byteBuffer.getInt();
 
-                            if (index.isEmpty()) {
-                                emptyIndices.offer(index.getIndexFilePosition());
-                            } else {
-                                currentIndices.put(keyHash, index);
-                            }
-
-                            byteBuffer.release();
-                        } else if (result > 0 && result < 9) {
-                            byteBuffer.release();
-                            throw new MalformedIndexException("Got a malformed index.");
-                        }
+                    if (keyHash == 0 || keyHash == -1) {
+                        continue;
                     }
 
-                    @Override
-                    public void failed(Throwable exc, Integer current) {
-                        exc.printStackTrace();
-                        byteBuffer.release();
+                    boolean empty = byteBuffer.get() == 1;
+                    int position = byteBuffer.getInt();
+
+                    Index index = new Index(keyHash, empty, position);
+                    index.setIndexFilePosition(i);
+
+                    System.out.println("GOT INDEX: " + index);
+
+                    if (index.isEmpty()) {
+                        emptyIndices.offer(index.getIndexFilePosition());
+                    } else {
+                        currentIndices.put(keyHash, index);
                     }
-                });
+
+                    byteBuffer.release();
+                } else if (result > 0 && result < 9) {
+                    byteBuffer.release();
+                    throw new MalformedIndexException("Got a malformed index.");
+                }
             }
 
             lastIndexPosition = Math.toIntExact(channel.size() / 9);
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
     }
 
     private void initializeIndexFile() {
-        int position = allocateFreeBlock();
         Index index = new Index(-1, false, 0);
-        index.setIndexFilePosition(position);
-
+        index.setIndexFilePosition(0);
         writeIndex(0, index);
     }
 
@@ -170,6 +170,7 @@ public class IndexStorageImpl implements IndexStorage {
         currentIndices.put(index.getKeyHash(), index);
         int freeBlock = allocateFreeBlock();
         index.setIndexFilePosition(freeBlock);
+
         writeIndex(freeBlock, index);
     }
 
@@ -221,6 +222,6 @@ public class IndexStorageImpl implements IndexStorage {
     }
 
     private int allocateFreeBlock() {
-        return emptyIndices.isEmpty() ? ++lastIndexPosition : emptyIndices.poll();
+        return emptyIndices.isEmpty() ? lastIndexPosition++ : emptyIndices.poll();
     }
 }
