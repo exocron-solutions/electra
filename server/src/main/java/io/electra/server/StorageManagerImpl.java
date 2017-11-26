@@ -32,20 +32,21 @@ import io.electra.server.data.DataStorage;
 import io.electra.server.index.Index;
 import io.electra.server.index.IndexStorage;
 import io.electra.server.iterator.DataBlockChainIndexIterator;
+import io.electra.server.storage.StorageManager;
 
 import java.util.TreeSet;
 
 /**
  * @author Felix Klauke <fklauke@itemis.de>
  */
-class StorageManager {
+public class StorageManagerImpl implements StorageManager {
 
     private final IndexStorage indexStorage;
     private final DataStorage dataStorage;
 
     private TreeSet<Integer> freeBlocks;
 
-    StorageManager(IndexStorage indexStorage, DataStorage dataStorage) {
+    StorageManagerImpl(IndexStorage indexStorage, DataStorage dataStorage) {
         this.indexStorage = indexStorage;
         this.dataStorage = dataStorage;
 
@@ -56,7 +57,8 @@ class StorageManager {
         return (int) Math.ceil(contentLength / (double) (DatabaseConstants.DATA_BLOCK_SIZE));
     }
 
-    void save(int keyHash, byte[] bytes) {
+    @Override
+    public void save(int keyHash, byte[] bytes) {
         int blocksNeeded = calculateNeededBlocks(bytes.length);
 
         int[] allocatedBlocks = new int[blocksNeeded];
@@ -80,12 +82,14 @@ class StorageManager {
         dataStorage.save(allocatedBlocks, bytes);
     }
 
-    void close() {
+    @Override
+    public void close() {
         dataStorage.close();
         indexStorage.close();
     }
 
-    void remove(int keyHash) {
+    @Override
+    public void remove(int keyHash) {
         Index index = indexStorage.getIndex(keyHash);
         Index currentEmptyIndex = indexStorage.getCurrentEmptyIndex();
 
@@ -122,7 +126,8 @@ class StorageManager {
         indexStorage.removeIndex(index);
     }
 
-    byte[] get(int keyHash) {
+    @Override
+    public byte[] get(int keyHash) {
         Index index = indexStorage.getIndex(keyHash);
 
         if (index == null) {

@@ -29,6 +29,7 @@ import io.electra.server.data.DataStorage;
 import io.electra.server.data.DataStorageFactory;
 import io.electra.server.index.IndexStorage;
 import io.electra.server.index.IndexStorageFactory;
+import io.electra.server.storage.StorageManager;
 
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -44,7 +45,7 @@ public class DefaultDatabaseImpl implements Database {
         IndexStorage indexStorage = IndexStorageFactory.createIndexStorage(indexFilePath);
         DataStorage dataStorage = DataStorageFactory.createDataStorage(dataFilePath);
 
-        storageManager = new StorageManager(indexStorage, dataStorage);
+        storageManager = new StorageManagerImpl(indexStorage, dataStorage);
     }
 
 
