@@ -42,7 +42,6 @@ import java.util.Queue;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author Felix Klauke <fklauke@itemis.de>
@@ -89,11 +88,11 @@ public class IndexStorageImpl implements IndexStorage {
      */
     IndexStorageImpl(AsynchronousFileChannel channel) {
         this.channel = channel;
-        indexCache = new IndexCache(10, TimeUnit.MINUTES, 10000);
+        indexCache = new IndexCache(10000);
 
         logger.info("Beginning to read indices.");
         readIndices();
-        logger.info("Loaded all indices.");
+        logger.info("Loaded {} indices.", indexCache.size());
     }
 
     /**
