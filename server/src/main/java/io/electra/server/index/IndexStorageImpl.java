@@ -32,6 +32,8 @@ import io.electra.server.exception.MalformedIndexException;
 import io.electra.server.pool.PooledByteBuffer;
 import net.openhft.koloboke.collect.map.IntObjMap;
 import net.openhft.koloboke.collect.map.hash.HashIntObjMaps;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.channels.AsynchronousFileChannel;
@@ -45,6 +47,11 @@ import java.util.concurrent.Future;
  * @author Felix Klauke <fklauke@itemis.de>
  */
 public class IndexStorageImpl implements IndexStorage {
+
+    /**
+     * The logger to log actions regarding indices.
+     */
+    private final Logger logger = LoggerFactory.getLogger(IndexStorageImpl.class);
 
     /**
      * Contains all indices of the currently free blocks.
@@ -74,13 +81,23 @@ public class IndexStorageImpl implements IndexStorage {
      */
     private Index emptyDataIndex;
 
+    /**
+     * Create a new index storage instance by its underlying channel.
+     *
+     * @param channel The channel.
+     */
     IndexStorageImpl(AsynchronousFileChannel channel) {
         this.channel = channel;
-
         currentIndices = HashIntObjMaps.newMutableMap();
+
+        logger.info("Beginning to read indices.");
         readIndices();
+        logger.info("Found {} indices.", currentIndices.size());
     }
 
+    /**
+     * Read all first index from the disk and continue to read the whole file if a first index exists.
+     */
     private void readIndices() {
         PooledByteBuffer byteBuffer = ByteBufferAllocator.allocate(DatabaseConstants.INDEX_BLOCK_SIZE);
 
@@ -88,7 +105,10 @@ public class IndexStorageImpl implements IndexStorage {
 
         try {
             if (read.get() < DatabaseConstants.INDEX_BLOCK_SIZE) {
+                logger.info("The index file seems to be empty. Initializing index file...");
                 initializeIndexFile();
+                logger.info("Index file initialized.");
+
                 emptyDataIndex = new Index(-1, true, 0);
             } else {
                 byteBuffer.flip();
@@ -102,7 +122,7 @@ public class IndexStorageImpl implements IndexStorage {
                 processReadIndices();
             }
         } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
+            logger.error("Error while reading initial index.", e);
         }
 
         byteBuffer.release();
@@ -145,7 +165,7 @@ public class IndexStorageImpl implements IndexStorage {
 
             lastIndexPosition = Math.toIntExact(channel.size() / DatabaseConstants.INDEX_BLOCK_SIZE);
         } catch (IOException | InterruptedException | ExecutionException e) {
-            e.printStackTrace();
+            logger.error("Error while reading all indices.", e);
         }
     }
 
@@ -186,13 +206,19 @@ public class IndexStorageImpl implements IndexStorage {
 
     @Override
     public void close() {
+        logger.info("Closing index resource.");
+
+        logger.info("Writing important data to disk...");
         writeIndex(0, emptyDataIndex);
+        logger.info("Important data was written to disk.");
 
         try {
             channel.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Couldn't close index resources properly. ", e);
         }
+
+        logger.info("Closed index resources.");
     }
 
     @Override
@@ -218,6 +244,7 @@ public class IndexStorageImpl implements IndexStorage {
 
             @Override
             public void failed(Throwable exc, PooledByteBuffer attachment) {
+                logger.error("Error whole writing an index to disk.", exc);
                 byteBuffer.release();
             }
         });
