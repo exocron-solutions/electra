@@ -101,10 +101,8 @@ public class StorageManagerImpl implements StorageManager {
         indexStorage.getCurrentEmptyIndex().setDataFilePosition(freeBlocks.first());
 
         int firstBlock = allocatedBlocks[0];
-        Index index = new Index(keyHash, false, firstBlock);
 
-        indexStorage.saveIndex(index);
-
+        indexStorage.createIndex(keyHash, false, firstBlock);
         dataStorage.save(allocatedBlocks, bytes);
     }
 

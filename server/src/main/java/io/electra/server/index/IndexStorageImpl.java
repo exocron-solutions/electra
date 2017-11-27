@@ -195,6 +195,13 @@ public class IndexStorageImpl implements IndexStorage {
         }
     }
 
+    @Override
+    public Index createIndex(int keyHash, boolean empty, int firstBlock) {
+        Index index = new Index(keyHash, false, firstBlock);
+        saveIndex(index);
+        return index;
+    }
+
     private void writeIndex(int position, Index index) {
         PooledByteBuffer byteBuffer = ByteBufferAllocator.allocate(DatabaseConstants.INDEX_BLOCK_SIZE);
 
