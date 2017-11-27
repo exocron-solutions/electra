@@ -1,4 +1,4 @@
-package io.electra.server.rest.service;
+package io.electra.server.rest.resource;
 
 import io.electra.server.rest.RestServer;
 

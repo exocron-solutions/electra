@@ -1,7 +1,7 @@
 package io.electra.server.rest;
 
 import com.google.common.collect.Sets;
-import io.electra.server.rest.service.DatabaseResource;
+import io.electra.server.rest.resource.DatabaseResource;
 
 import javax.ws.rs.core.Application;
 import java.util.Set;

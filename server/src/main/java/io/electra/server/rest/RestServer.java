@@ -37,7 +37,7 @@ public class RestServer {
 
         DeploymentInfo deploymentInfo = server.undertowDeployment(deployment, "/");
         deploymentInfo.setClassLoader(RestServer.class.getClassLoader());
-        deploymentInfo.setDeploymentName("Electra REST service");
+        deploymentInfo.setDeploymentName("Electra REST server");
         deploymentInfo.setContextPath("/");
 
         server.deploy(deploymentInfo);
