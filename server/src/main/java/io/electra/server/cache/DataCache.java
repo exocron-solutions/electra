@@ -12,4 +12,8 @@ public class DataCache extends AbstractCache<Integer, byte[]> {
     public DataCache(long expire, TimeUnit timeUnit, int expectedSize) {
         super(HashIntObjMaps.newMutableMap(expectedSize), expire, timeUnit, expectedSize);
     }
+
+    public DataCache(int expectedSize) {
+        this(-1, null, expectedSize);
+    }
 }

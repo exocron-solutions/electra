@@ -22,7 +22,9 @@ public class AbstractCache<Key, Value> implements Cache<Key, Value> {
         this.timeUnit = timeUnit;
 
         // TODO: 27.11.2017 Cleanup delay
-        Executors.newScheduledThreadPool(1).scheduleAtFixedRate(this::cleanup, 1, 1, TimeUnit.MINUTES);
+        if (expire > 0) {
+            Executors.newScheduledThreadPool(1).scheduleAtFixedRate(this::cleanup, 1, 1, TimeUnit.MINUTES);
+        }
     }
 
     private void cleanup() {
@@ -44,7 +46,7 @@ public class AbstractCache<Key, Value> implements Cache<Key, Value> {
 
     @Override
     public void put(Key key, Value value) {
-        long expireBy = System.currentTimeMillis() + timeUnit.toMillis(expire);
+        long expireBy = timeUnit != null ? System.currentTimeMillis() + timeUnit.toMillis(expire) : -1;
 
         synchronized (cache) {
             cache.put(key, new CacheEntry<>(expireBy, value));
@@ -62,7 +64,7 @@ public class AbstractCache<Key, Value> implements Cache<Key, Value> {
 
             // Check expiration
             long timestamp = entry.getExpireBy();
-            if (System.currentTimeMillis() > timestamp) {
+            if (expire != - 1 && System.currentTimeMillis() > timestamp) {
                 cache.remove(key);
                 return null;
             }
@@ -74,6 +76,13 @@ public class AbstractCache<Key, Value> implements Cache<Key, Value> {
     @Override
     public void invalidate(Key key) {
         remove(key);
+    }
+
+    @Override
+    public int size() {
+        synchronized (cache) {
+            return cache.size();
+        }
     }
 
     @Override
