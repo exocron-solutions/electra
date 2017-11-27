@@ -39,7 +39,6 @@ import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.CompletionHandler;
 import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -96,6 +95,7 @@ public class DataStorageImpl implements DataStorage {
 
                     @Override
                     public void failed(Throwable exc, PooledByteBuffer attachment) {
+                        exc.printStackTrace();
                         byteBuffer.release();
                     }
                 });
@@ -113,45 +113,30 @@ public class DataStorageImpl implements DataStorage {
             return dataBlock;
         }
 
-        int position = index * DatabaseConstants.DATA_BLOCK_SIZE;
-        PooledByteBuffer nextPositionByteBuffer = ByteBufferAllocator.allocate(4);
-        Future<Integer> nextPositionReading = channel.read(nextPositionByteBuffer.nio(), index * DatabaseConstants.DATA_BLOCK_SIZE);
-
-        return readDataBlock(nextPositionReading, nextPositionByteBuffer, position);
-    }
-
-    private DataBlock readDataBlock(Future<Integer> nextPositionReading, PooledByteBuffer nextPositionByteBuffer, int position) {
-        PooledByteBuffer contentLengthByteBuffer = ByteBufferAllocator.allocate(4);
-        PooledByteBuffer contentBuffer = null;
+        int position = (index * DatabaseConstants.DATA_BLOCK_SIZE);
+        PooledByteBuffer byteBuffer = ByteBufferAllocator.allocate(4, false);
 
         try {
-            int bytesRead = channel.read(contentLengthByteBuffer.nio(), position + 4).get();
-            contentLengthByteBuffer.flip();
+            channel.read(byteBuffer.nio(), position).get();
+            byteBuffer.flip();
 
-            if (bytesRead == -1) {
-                return null;
-            }
+            int nextPosition = byteBuffer.getInt();
+            byteBuffer.release();
 
-            contentBuffer = ByteBufferAllocator.allocate(contentLengthByteBuffer.getInt());
+            byteBuffer = ByteBufferAllocator.allocate(4, false);
+            channel.read(byteBuffer.nio(), position + 4).get();
+            byteBuffer.flip();
+
+            int length = byteBuffer.getInt();
+            byteBuffer.release();
+
+            PooledByteBuffer contentBuffer = ByteBufferAllocator.allocate(length, false);
             channel.read(contentBuffer.nio(), position + 4 + 4).get();
+            contentBuffer.flip();
 
-            if (!nextPositionReading.isDone()) {
-                nextPositionReading.get();
-            }
-
-            nextPositionByteBuffer.flip();
-
-            return new DataBlock(position, contentBuffer.array(), nextPositionByteBuffer.getInt());
+            return new DataBlock(index, contentBuffer.array(), nextPosition);
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
-        } finally {
-            contentLengthByteBuffer.release();
-
-            if (contentBuffer != null) {
-                contentBuffer.release();
-            }
-
-            contentLengthByteBuffer.release();
         }
 
         return null;

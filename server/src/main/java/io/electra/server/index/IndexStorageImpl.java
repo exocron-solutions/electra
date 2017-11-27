@@ -74,7 +74,7 @@ public class IndexStorageImpl implements IndexStorage {
     /**
      * The currently last known index position index in the index file.
      */
-    private int lastIndexPosition = 0;
+    private int lastIndexPosition = 1;
 
     /**
      * The index that points to the first empty data block.
@@ -111,6 +111,12 @@ public class IndexStorageImpl implements IndexStorage {
 
                 emptyDataIndex = new Index(-1, true, 0);
             } else {
+                try {
+                    lastIndexPosition = (int) (channel.size() / DatabaseConstants.INDEX_BLOCK_SIZE);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
                 byteBuffer.flip();
                 int keyHash = byteBuffer.getInt();
                 boolean empty = byteBuffer.get() == 1;
@@ -162,8 +168,6 @@ public class IndexStorageImpl implements IndexStorage {
                     throw new MalformedIndexException("Got a malformed index.");
                 }
             }
-
-            lastIndexPosition = Math.toIntExact(channel.size() / DatabaseConstants.INDEX_BLOCK_SIZE);
         } catch (IOException | InterruptedException | ExecutionException e) {
             logger.error("Error while reading all indices.", e);
         }
