@@ -24,6 +24,9 @@
 
 package io.electra.server.data;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.file.Files;
@@ -31,22 +34,39 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
 /**
+ * The factory to create data storage instances.
+ *
  * @author Felix Klauke <fklauke@itemis.de>
  */
 public class DataStorageFactory {
 
+    /**
+     * The logger to log the data storage initialization process.
+     */
+    private static Logger logger = LoggerFactory.getLogger(DataStorageFactory.class);
+
+    /**
+     * Create a new data storage instance by its underlying file.
+     *
+     * @param dataFilePath The underlying data file.
+     * @return The data storage instance.
+     */
     public static DataStorage createDataStorage(Path dataFilePath) {
         DataStorage dataStorage = null;
 
         try {
             if (!Files.exists(dataFilePath)) {
+                logger.info("Index file could not be found. Creating new one...");
                 Files.createFile(dataFilePath);
+                logger.info("Created new index file.");
             }
 
+            logger.info("Opening channel to index file and creating data storage.");
             AsynchronousFileChannel channel = AsynchronousFileChannel.open(dataFilePath, StandardOpenOption.READ, StandardOpenOption.WRITE);
             dataStorage = new DataStorageImpl(channel);
+            logger.info("Data storage created.");
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Error while creating data storage.", e);
         }
 
         return dataStorage;
