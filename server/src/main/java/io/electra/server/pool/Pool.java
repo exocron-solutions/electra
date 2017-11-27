@@ -25,11 +25,22 @@
 package io.electra.server.pool;
 
 /**
+ * A simple pool to hold instances of resource intensive objects.
+ *
  * @author Felix Klauke <fklauke@itemis.de>
+ * @author Philip 'JackWhite20' <silencephil@gmail.com>
  */
 public interface Pool<PooledType> {
 
+    /**
+     * Acquire a pooled instance.
+     *
+     * @return The pooled instance.
+     */
     PooledType acquire();
 
+    /**
+     * Clear all instances from the pool.
+     */
     void clear();
 }

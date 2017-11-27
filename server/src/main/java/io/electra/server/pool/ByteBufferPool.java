@@ -27,13 +27,29 @@ package io.electra.server.pool;
 import java.nio.ByteBuffer;
 
 /**
+ * The implementation of the pool for {@link ByteBuffer}.
+ *
  * @author Felix Klauke <fklauke@itemis.de>
+ * @author Philip 'JackWhite20' <silencephil@gmail.com>
  */
 public class ByteBufferPool extends AbstractPool<PooledByteBuffer> {
 
+    /**
+     * The size of the pooled buffers.
+     */
     private final int byteBufferSize;
+
+    /**
+     * If we may use direct buffers.
+     */
     private final boolean useDirectBuffers;
 
+    /**
+     * Create a new buffer pool by its underlying parameters.
+     *
+     * @param byteBufferSize   The byte buffer size.
+     * @param useDirectBuffers If we may use direct buffers.
+     */
     public ByteBufferPool(int byteBufferSize, boolean useDirectBuffers) {
         this.byteBufferSize = byteBufferSize;
         this.useDirectBuffers = useDirectBuffers;

@@ -39,6 +39,7 @@ import java.util.TreeSet;
  * The default implementation of the {@link StorageManager}.
  *
  * @author Felix Klauke <fklauke@itemis.de>
+ * @author Philip 'JackWhite20' <silencephil@gmail.com>
  */
 public class StorageManagerImpl implements StorageManager {
 
