@@ -39,6 +39,7 @@ import io.electra.server.index.IndexStorage;
  * The default implementation of the {@link StorageManager} can be found at {@link StorageManagerImpl}.
  *
  * @author Felix Klauke <fklauke@itemis.de>
+ * @author Philip 'JackWhite20' <silencephil@gmail.com>
  */
 public interface StorageManager {
 

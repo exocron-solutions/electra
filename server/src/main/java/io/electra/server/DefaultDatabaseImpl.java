@@ -39,6 +39,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * @author Felix Klauke <fklauke@itemis.de>
+ * @author Philip 'JackWhite20' <silencephil@gmail.com>
  */
 public class DefaultDatabaseImpl implements Database {
 
