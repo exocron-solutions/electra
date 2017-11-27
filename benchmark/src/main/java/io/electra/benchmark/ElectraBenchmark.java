@@ -30,8 +30,6 @@ import io.electra.server.Database;
 import io.electra.server.DatabaseConstants;
 import io.electra.server.DatabaseFactory;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -53,16 +51,18 @@ public class ElectraBenchmark {
 
     @Prepare
     public void setup() {
-        database = DatabaseFactory.createGuavaValueCachedDatabase(dataFilePath, indexFilePath);
+        database = DatabaseFactory.createDatabase(dataFilePath, indexFilePath);
     }
 
     @MeasureTime
     @Order(0)
     public void testWrite() {
         database.save("Felix" + currentWrite, "Klauke" + currentWrite++);
+
+        //System.out.println(Arrays.toString(database.get("Felix" + (currentWrite - 1))));
     }
 
-    @MeasureTime
+    //@MeasureTime
     @Order(1)
     public void testRead() {
         byte[] bytes = database.get("Felix" + currentRead++);
@@ -71,19 +71,21 @@ public class ElectraBenchmark {
         }
     }
 
-    @MeasureTime
-    @Order(2)
+    //@MeasureTime
+    //@Order(2)
     public void testDelete() {
         database.remove("Felix" + currentDelete++);
     }
 
     @Cleanup
     public void cleanup() {
-        try {
+        /*try {
             Files.delete(dataFilePath);
             Files.delete(indexFilePath);
         } catch (IOException e) {
             e.printStackTrace();
-        }
+        }*/
+
+        database.close();
     }
 }
