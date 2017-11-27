@@ -20,5 +20,22 @@ _Electra Client:_
 ```
 
 # Concept
+Our database was planned to proof the concept of an indexed key value data storage. It was planned to
+maximize performance and speed while being as lightweight and easy to use as possible.
+
+## File Formats
+We organized our files in block formats with a fixed size.
+
+### Index File
+
+### Data File
+
+## Data Record
+
+### Index
+
+### Data
+
+## Caching Lifecycle
 
 
