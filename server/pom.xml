@@ -95,5 +95,12 @@
             <artifactId>koloboke-impl-jdk8</artifactId>
             <version>0.6.8</version>
         </dependency>
+
+        <!-- Logging -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.2.3</version>
+        </dependency>
     </dependencies>
 </project>
