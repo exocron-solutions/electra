@@ -22,62 +22,37 @@
  * SOFTWARE.
  */
 
-package io.electra.server;
+package io.electra.benchmark;
 
-import org.json.JSONObject;
+import io.electra.server.Database;
+import io.electra.server.DatabaseConstants;
+import io.electra.server.DatabaseFactory;
+import io.electra.server.alloc.ByteBufferAllocator;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.UUID;
 
 /**
  * @author Felix Klauke <fklauke@itemis.de>
  */
-public class DatabaseBootstrap {
+public class ElectraBenchmarkWrite {
 
-    private static final Path indexFilePath = Paths.get("index.lctr");
-    private static final Path dataFilePath = Paths.get("data.lctr");
+    private static final Path indexFilePath = Paths.get(DatabaseConstants.DEFAULT_INDEX_FILE_PATH);
+    private static final Path dataFilePath = Paths.get(DatabaseConstants.DEFAULT_DATA_FILE_PATH);
 
     public static void main(String[] args) {
-        Database database = new DatabaseImpl(dataFilePath, indexFilePath);
+        Database database = DatabaseFactory.createDatabase(dataFilePath, indexFilePath);
 
         int n = 100000;
 
         long start = System.currentTimeMillis();
         for (int i = 0; i < n; i++) {
-            database.save("Key" + i, new JSONObject()
-                    .put("name", "Blablablablabla")
-                    .put("age", 20)
-                    .put("uuid", UUID.randomUUID())
-                    .put("id", UUID.randomUUID())
-                    .put("pets", Arrays.asList("whalla", "miau", "wuff", "piet", "sfefwgwgwegwgwegw", "egrregerhe", "oipoiztpjtzpjtpjtzpjoztjpztjoptzojpoztp")).toString().getBytes());
+            database.save("Key" + i, "Value" + i);
         }
         System.out.println("Saving " + n + " entries took " + (System.currentTimeMillis() - start) + "ms. ");
 
-        start = System.currentTimeMillis();
-        for (int i = 0; i < n; i++) {
-            database.get("Key" + i);
-        }
-        System.out.println("Reading " + n + " entries took " + (System.currentTimeMillis() - start) + "ms. ");
-
-        start = System.currentTimeMillis();
-        for (int i = 0; i < n; i++) {
-            database.remove("Key" + i);
-        }
-        System.out.println("Deleting " + n + " entries took " + (System.currentTimeMillis() - start) + "ms. ");
-
         System.out.println("Total allocated: " + ByteBufferAllocator.getCapacity() + " Average: " + ByteBufferAllocator.getCapacity() / ByteBufferAllocator.getTimes());
 
-        try {
-            Files.delete(dataFilePath);
-            Files.delete(indexFilePath);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        database.close();
     }
 }
+

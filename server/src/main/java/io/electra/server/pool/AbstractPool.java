@@ -22,48 +22,50 @@
  * SOFTWARE.
  */
 
-package io.electra.server;
+package io.electra.server.pool;
 
-import java.nio.ByteBuffer;
+import com.google.common.collect.Queues;
+
+import java.util.Queue;
 
 /**
  * @author Felix Klauke <fklauke@itemis.de>
  */
-public class ByteBufferAllocator {
+public abstract class AbstractPool<PooledType> implements Pool<PooledType> {
 
-    private static int min;
-    private static int max;
-    private static int times;
-    private static long capacity;
+    private final Queue<PooledType> pooledInstances;
 
-    public static ByteBuffer allocate(int size) {
-        times++;
-        capacity += size;
+    public AbstractPool() {
+        this(Queues.newLinkedBlockingQueue());
+    }
 
-        if (size > max) {
-            max = size;
+    public AbstractPool(Queue<PooledType> pooledInstances) {
+        this.pooledInstances = pooledInstances;
+    }
+
+    @Override
+    public PooledType acquire() {
+        synchronized (pooledInstances) {
+            if (pooledInstances.isEmpty()) {
+                pooledInstances.add(createInstance());
+            }
+
+            return pooledInstances.poll();
         }
+    }
 
-        if (size < min) {
-            min = size;
+    abstract PooledType createInstance();
+
+    @Override
+    public void clear() {
+        synchronized (pooledInstances) {
+            pooledInstances.clear();
         }
-
-        return ByteBuffer.allocate(size);
     }
 
-    public static long getCapacity() {
-        return capacity;
-    }
-
-    public static int getTimes() {
-        return times;
-    }
-
-    public static int getMax() {
-        return max;
-    }
-
-    public static int getMin() {
-        return min;
+    void release(PooledType pooled) {
+        synchronized (pooledInstances) {
+            pooledInstances.add(pooled);
+        }
     }
 }

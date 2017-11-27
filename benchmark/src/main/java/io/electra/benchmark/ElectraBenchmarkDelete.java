@@ -22,26 +22,38 @@
  * SOFTWARE.
  */
 
-package io.electra.server.pool;
+package io.electra.benchmark;
 
-import java.nio.ByteBuffer;
+import io.electra.server.Database;
+import io.electra.server.DatabaseConstants;
+import io.electra.server.DatabaseFactory;
+import io.electra.server.alloc.ByteBufferAllocator;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * @author Felix Klauke <fklauke@itemis.de>
  */
-public class ByteBufferPool extends AbstractPool<PooledByteBuffer> {
+public class ElectraBenchmarkDelete {
 
-    private final int byteBufferSize;
-    private final boolean useDirectBuffers;
+    private static final Path indexFilePath = Paths.get(DatabaseConstants.DEFAULT_INDEX_FILE_PATH);
+    private static final Path dataFilePath = Paths.get(DatabaseConstants.DEFAULT_DATA_FILE_PATH);
 
-    public ByteBufferPool(int byteBufferSize, boolean useDirectBuffers) {
-        this.byteBufferSize = byteBufferSize;
-        this.useDirectBuffers = useDirectBuffers;
+    public static void main(String[] args) {
+        Database database = DatabaseFactory.createDatabase(dataFilePath, indexFilePath);
+
+        int n = 100000;
+
+        long start = System.currentTimeMillis();
+        for (int i = 0; i < n; i++) {
+            database.remove("Key" + i);
+        }
+        System.out.println("Deleting " + n + " entries took " + (System.currentTimeMillis() - start) + "ms. ");
+
+        System.out.println("Total allocated: " + ByteBufferAllocator.getCapacity() + " Average: " + ByteBufferAllocator.getCapacity() / ByteBufferAllocator.getTimes());
     }
 
-    @Override
-    PooledByteBuffer createInstance() {
-        ByteBuffer byteBuffer = useDirectBuffers ? ByteBuffer.allocateDirect(byteBufferSize) : ByteBuffer.allocate(byteBufferSize);
-        return new PooledByteBuffer(byteBuffer, this);
-    }
 }
+
+

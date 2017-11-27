@@ -24,75 +24,58 @@
 
 package io.electra.server;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
+import com.google.common.base.Charsets;
 import io.electra.server.data.DataStorage;
 import io.electra.server.data.DataStorageFactory;
 import io.electra.server.index.IndexStorage;
 import io.electra.server.index.IndexStorageFactory;
+import io.electra.server.storage.StorageManager;
 
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author Felix Klauke <fklauke@itemis.de>
  */
-public class DatabaseImpl implements Database {
+public class DefaultDatabaseImpl implements Database {
 
-    private final Cache<String, byte[]> cache;
     private final StorageManager storageManager;
 
-    DatabaseImpl(Path dataFilePath, Path indexFilePath) {
+    DefaultDatabaseImpl(Path dataFilePath, Path indexFilePath) {
         IndexStorage indexStorage = IndexStorageFactory.createIndexStorage(indexFilePath);
         DataStorage dataStorage = DataStorageFactory.createDataStorage(dataFilePath);
 
-        storageManager = new StorageManager(indexStorage, dataStorage);
-
-        cache = CacheBuilder.newBuilder()
-                .expireAfterAccess(1, TimeUnit.MINUTES)
-                .recordStats()
-                .build();
+        storageManager = new StorageManagerImpl(indexStorage, dataStorage);
     }
 
 
     @Override
     public void save(String key, byte[] bytes) {
-        int keyHash = Arrays.hashCode(bytes);
+        int keyHash = Arrays.hashCode(key.getBytes(Charsets.UTF_8));
         storageManager.save(keyHash, bytes);
-
-        cache.put(key, bytes);
     }
 
     @Override
     public void save(String key, String value) {
-        save(key, value.getBytes());
+        save(key, value.getBytes(Charsets.UTF_8));
     }
 
     @Override
     public byte[] get(String key) {
-        byte[] result = cache.getIfPresent(key);
+        int keyHash = Arrays.hashCode(key.getBytes(Charsets.UTF_8));
 
-        if (result != null) {
-            return result;
-        }
-
-        int keyHash = Arrays.hashCode(key.getBytes());
         return storageManager.get(keyHash);
     }
 
     @Override
     public void remove(String key) {
-        int keyHash = Arrays.hashCode(key.getBytes());
-        storageManager.remove(keyHash);
+        int keyHash = Arrays.hashCode(key.getBytes(Charsets.UTF_8));
 
-        cache.invalidate(key);
+        storageManager.remove(keyHash);
     }
 
     @Override
     public void close() {
         storageManager.close();
-
-        cache.cleanUp();
     }
 }

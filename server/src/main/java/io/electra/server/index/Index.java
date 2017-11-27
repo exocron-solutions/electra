@@ -34,7 +34,7 @@ public class Index {
     private int dataFilePosition;
     private int indexFilePosition;
 
-    public Index(int keyHash, boolean empty, int position) {
+    Index(int keyHash, boolean empty, int position) {
         this.keyHash = keyHash;
         this.empty = empty;
         this.dataFilePosition = position;

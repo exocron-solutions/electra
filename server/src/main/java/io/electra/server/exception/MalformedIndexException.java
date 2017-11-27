@@ -22,26 +22,29 @@
  * SOFTWARE.
  */
 
-package io.electra.server.pool;
-
-import java.nio.ByteBuffer;
+package io.electra.server.exception;
 
 /**
  * @author Felix Klauke <fklauke@itemis.de>
  */
-public class ByteBufferPool extends AbstractPool<PooledByteBuffer> {
+public class MalformedIndexException extends RuntimeException {
 
-    private final int byteBufferSize;
-    private final boolean useDirectBuffers;
-
-    public ByteBufferPool(int byteBufferSize, boolean useDirectBuffers) {
-        this.byteBufferSize = byteBufferSize;
-        this.useDirectBuffers = useDirectBuffers;
+    public MalformedIndexException() {
     }
 
-    @Override
-    PooledByteBuffer createInstance() {
-        ByteBuffer byteBuffer = useDirectBuffers ? ByteBuffer.allocateDirect(byteBufferSize) : ByteBuffer.allocate(byteBufferSize);
-        return new PooledByteBuffer(byteBuffer, this);
+    public MalformedIndexException(String message) {
+        super(message);
+    }
+
+    public MalformedIndexException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public MalformedIndexException(Throwable cause) {
+        super(cause);
+    }
+
+    public MalformedIndexException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
     }
 }

@@ -22,59 +22,52 @@
  * SOFTWARE.
  */
 
-package io.electra.server.data;
+package io.electra.server.storage;
+
+import io.electra.server.Database;
+import io.electra.server.StorageManagerImpl;
+import io.electra.server.data.DataStorage;
+import io.electra.server.index.IndexStorage;
 
 /**
- * The central entrypoint to access the data file. No
+ * The storage manager meant to connect all pieces of the database. Usually the instance of the {@link Database}
+ * should use an instances of the {@link StorageManager} to get access to the data. This is needed to prevent direct
+ * access to the {@link IndexStorage} and {@link DataStorage}. The {@link StorageManager} will use the hashes of
+ * data keys to access data. The {@link Database} should provide its keys as the hash code of the array of bytes
+ * of its key.
  *
- * The default implementation can be found at {@link DataStorageImpl}.
+ * The default implementation of the {@link StorageManager} can be found at {@link StorageManagerImpl}.
  *
  * @author Felix Klauke <fklauke@itemis.de>
  */
-public interface DataStorage {
+public interface StorageManager {
 
     /**
-     * Save the given data in the given blocks.
+     * Save the given bytes under the given key hash.
      *
-     * @param allocatedBlocks The blocks allocated for the given data.
-     * @param bytes           The data.
+     * @param keyHash The key hash.
+     * @param bytes   The data.
      */
-    void save(int[] allocatedBlocks, byte[] bytes);
+    void save(int keyHash, byte[] bytes);
 
     /**
-     * Get the data block at the given index.
-     *
-     * @param index The index.
-     * @return The data block.
-     */
-    DataBlock getDataBlock(int index);
-
-    /**
-     * Get the block index of the block the given block index's block is pointing to.
-     *
-     * @param blockIndex The current block.
-     * @return The next block.
-     */
-    int getNextBlock(int blockIndex);
-
-    /**
-     * Update the index the block of the block index is pointing to.
-     *
-     * @param blockIndex     The source.
-     * @param nextBlockIndex The target.
-     */
-    void setNextBlock(int blockIndex, int nextBlockIndex);
-
-    /**
-     * Save and close all resources.
+     * Close the storages and clean all resources up.
      */
     void close();
 
     /**
-     * Get the chain of blocks beginning at the given block.
+     * Remove the data of the given key hash.
      *
-     * @param dataFilePosition The first block.
-     * @return The chain of blocks linked by their next block value.
+     * @param keyHash The key hash.
      */
-    int[] getBlockChain(int dataFilePosition);
+    void remove(int keyHash);
+
+    /**
+     * Get the data behind the given key hash.
+     *
+     * @param keyHash The key hash.
+     *
+     * @return The data.
+     */
+    byte[] get(int keyHash);
 }
