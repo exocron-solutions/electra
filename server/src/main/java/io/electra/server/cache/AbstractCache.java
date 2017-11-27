@@ -79,6 +79,13 @@ public class AbstractCache<Key, Value> implements Cache<Key, Value> {
     }
 
     @Override
+    public int size() {
+        synchronized (cache) {
+            return cache.size();
+        }
+    }
+
+    @Override
     public void clear() {
         synchronized (cache) {
             cache.clear();
