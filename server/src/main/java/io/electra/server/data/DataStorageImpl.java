@@ -33,6 +33,8 @@ import io.electra.server.iterator.DataBlockChainIndexIterator;
 import io.electra.server.pool.PooledByteBuffer;
 import net.openhft.koloboke.collect.map.IntIntMap;
 import net.openhft.koloboke.collect.map.hash.HashIntIntMaps;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.channels.AsynchronousFileChannel;
@@ -48,18 +50,41 @@ import java.util.concurrent.TimeUnit;
  */
 public class DataStorageImpl implements DataStorage {
 
+    /**
+     * The logger to log all data actions.
+     */
+    private final Logger logger = LoggerFactory.getLogger(DataStorageImpl.class);
+
+    /**
+     * The channel to the underlying data file.
+     */
     private final AsynchronousFileChannel channel;
+
+    /**
+     * The cache for data blocks.
+     */
     private final Cache<Integer, DataBlock> dataBlockCache;
+
+    /**
+     * The cache for block chains.
+     */
     private final IntIntMap nextBlockCache;
 
+    /**
+     * Create a new instance of the data storage by its underlying channel.
+     *
+     * @param channel The channel.
+     */
     DataStorageImpl(AsynchronousFileChannel channel) {
         this.channel = channel;
 
+        logger.info("Initializing data caches...");
         dataBlockCache = CacheBuilder.newBuilder()
                 .expireAfterAccess(1, TimeUnit.MINUTES)
                 .build();
 
         nextBlockCache = HashIntIntMaps.newUpdatableMap();
+        logger.info("Data caches initialized.");
     }
 
     @Override
@@ -86,22 +111,18 @@ public class DataStorageImpl implements DataStorage {
 
             byteBuffer.flip();
 
-            try {
-                channel.write(byteBuffer.nio(), currentBlock * DatabaseConstants.DATA_BLOCK_SIZE, byteBuffer, new CompletionHandler<Integer, PooledByteBuffer>() {
-                    @Override
-                    public void completed(Integer result, PooledByteBuffer attachment) {
-                        byteBuffer.release();
-                    }
+            channel.write(byteBuffer.nio(), currentBlock * DatabaseConstants.DATA_BLOCK_SIZE, byteBuffer, new CompletionHandler<Integer, PooledByteBuffer>() {
+                @Override
+                public void completed(Integer result, PooledByteBuffer attachment) {
+                    byteBuffer.release();
+                }
 
-                    @Override
-                    public void failed(Throwable exc, PooledByteBuffer attachment) {
-                        exc.printStackTrace();
-                        byteBuffer.release();
-                    }
-                });
-            } catch (RuntimeException e) {
-                e.printStackTrace();
-            }
+                @Override
+                public void failed(Throwable exc, PooledByteBuffer attachment) {
+                    logger.error("Error while writing data block to disk.", exc);
+                    byteBuffer.release();
+                }
+            });
         }
     }
 
@@ -136,7 +157,7 @@ public class DataStorageImpl implements DataStorage {
 
             return new DataBlock(index, contentBuffer.array(), nextPosition);
         } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
+            logger.error("Error while reading a data block.", e);
         }
 
         return null;
@@ -167,7 +188,7 @@ public class DataStorageImpl implements DataStorage {
 
             return nextBlock;
         } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
+            logger.error("Error while reading part of a block chain.", e);
         } finally {
             byteBuffer.release();
         }
@@ -197,6 +218,7 @@ public class DataStorageImpl implements DataStorage {
 
             @Override
             public void failed(Throwable exc, PooledByteBuffer attachment) {
+                logger.error("Error while writing part of a block chain.", exc);
                 byteBuffer.release();
             }
         });
@@ -208,7 +230,7 @@ public class DataStorageImpl implements DataStorage {
             channel.force(true);
             channel.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Error while data resource closing.", e);
         }
     }
 
