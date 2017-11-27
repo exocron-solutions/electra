@@ -25,6 +25,8 @@
 package io.electra.server;
 
 import com.google.common.base.Charsets;
+import io.electra.server.cache.Cache;
+import io.electra.server.cache.DataCache;
 import io.electra.server.data.DataStorage;
 import io.electra.server.data.DataStorageFactory;
 import io.electra.server.index.IndexStorage;
@@ -33,12 +35,14 @@ import io.electra.server.storage.StorageManager;
 
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Felix Klauke <fklauke@itemis.de>
  */
 public class DefaultDatabaseImpl implements Database {
 
+    private final Cache<Integer, byte[]> dataCache;
     private final StorageManager storageManager;
 
     DefaultDatabaseImpl(Path dataFilePath, Path indexFilePath) {
@@ -49,6 +53,7 @@ public class DefaultDatabaseImpl implements Database {
         IndexStorage indexStorage = IndexStorageFactory.createIndexStorage(indexFilePath);
         DataStorage dataStorage = DataStorageFactory.createDataStorage(dataFilePath);
 
+        dataCache = new DataCache(1, TimeUnit.MINUTES, 10000);
         storageManager = new StorageManagerImpl(indexStorage, dataStorage);
     }
 
@@ -57,6 +62,8 @@ public class DefaultDatabaseImpl implements Database {
     public void save(String key, byte[] bytes) {
         int keyHash = Arrays.hashCode(key.getBytes(Charsets.UTF_8));
         storageManager.save(keyHash, bytes);
+
+        dataCache.put(keyHash, bytes);
     }
 
     @Override
@@ -68,7 +75,9 @@ public class DefaultDatabaseImpl implements Database {
     public byte[] get(String key) {
         int keyHash = Arrays.hashCode(key.getBytes(Charsets.UTF_8));
 
-        return storageManager.get(keyHash);
+        byte[] bytes = dataCache.get(keyHash);
+
+        return bytes != null ? bytes : storageManager.get(keyHash);
     }
 
     @Override
@@ -76,10 +85,13 @@ public class DefaultDatabaseImpl implements Database {
         int keyHash = Arrays.hashCode(key.getBytes(Charsets.UTF_8));
 
         storageManager.remove(keyHash);
+
+        dataCache.invalidate(keyHash);
     }
 
     @Override
     public void close() {
         storageManager.close();
+        dataCache.clear();
     }
 }
