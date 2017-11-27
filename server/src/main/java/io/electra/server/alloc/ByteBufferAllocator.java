@@ -32,23 +32,66 @@ import io.electra.server.pool.PooledByteBuffer;
 import java.nio.ByteBuffer;
 
 /**
+ * The central entry point if you want to allocate {@link ByteBuffer}. To gain more control over the buffers
+ * and their pools we are using our {@link PooledByteBuffer}.
+ *
  * @author Felix Klauke <fklauke@itemis.de>
  */
 public class ByteBufferAllocator {
 
+    /**
+     * The minimum size of the allocated byte buffers.
+     */
     private static int min;
+
+    /**
+     * The maximum size of the allocated byte buffers.
+     */
     private static int max;
+
+    /**
+     * The amount of allocated byte buffers.
+     */
     private static int times;
+
+    /**
+     * The accumulated amount of allocated bytes.
+     */
     private static long capacity;
 
-    private static Pool<PooledByteBuffer> byteBufferPool = new ByteBufferPool(DatabaseConstants.INTEGER_BYTE_SIZE, true);
-    private static Pool<PooledByteBuffer> byteBufferPool1 = new ByteBufferPool(DatabaseConstants.INDEX_BLOCK_SIZE, true);
-    private static Pool<PooledByteBuffer> byteBufferPool2 = new ByteBufferPool(DatabaseConstants.DATA_BLOCK_SIZE, false);
+    /**
+     * A pool for buffers with a size of four. Often needed for single integer reads.
+     */
+    private static Pool<PooledByteBuffer> minimumBufferPool = new ByteBufferPool(DatabaseConstants.INTEGER_BYTE_SIZE, true);
 
+    /**
+     * A pool for buffers with the size of an index.
+     */
+    private static Pool<PooledByteBuffer> indexBufferPool = new ByteBufferPool(DatabaseConstants.INDEX_BLOCK_SIZE, true);
+
+    /**
+     * A pool for buffers with the size of a full data block.
+     */
+    private static Pool<PooledByteBuffer> fullBufferPool = new ByteBufferPool(DatabaseConstants.DATA_BLOCK_SIZE, false);
+
+    /**
+     * Allocate a byte buffer with the given size. May be pooled by default.
+     *
+     * @param size The size.
+     * @return The byte buffer.
+     */
     public static PooledByteBuffer allocate(int size) {
         return allocate(size, true);
     }
 
+    /**
+     * Allocate a byre buffer with the given size and optional pooling.
+     *
+     * @param size The size.
+     * @param allowPooling If pooling should be allowed.
+     *
+     * @return The byte buffer.
+     */
     public static PooledByteBuffer allocate(int size, boolean allowPooling) {
         times++;
         capacity += size;
@@ -63,29 +106,49 @@ public class ByteBufferAllocator {
 
         if (allowPooling) {
             if (size == 4) {
-                return byteBufferPool.acquire();
+                return minimumBufferPool.acquire();
             } else if (size == DatabaseConstants.INDEX_BLOCK_SIZE) {
-                return byteBufferPool1.acquire();
+                return indexBufferPool.acquire();
             } else if (size == DatabaseConstants.DATA_BLOCK_SIZE) {
-                return byteBufferPool2.acquire();
+                return fullBufferPool.acquire();
             }
         }
 
         return new PooledByteBuffer(ByteBuffer.allocate(size), null);
     }
 
+    /**
+     * Get the accumulated size of all allocated byte buffers.
+     *
+     * @return The accumulated size.
+     */
     public static long getCapacity() {
         return capacity;
     }
 
+    /**
+     * Get the amount of allocated buffers.
+     *
+     * @return The amount.
+     */
     public static int getTimes() {
         return times;
     }
 
+    /**
+     * Get the max size of all allocated byte buffers.
+     *
+     * @return The max size.
+     */
     public static int getMax() {
         return max;
     }
 
+    /**
+     * Get the min size of all allocated byte buffers.
+     *
+     * @return The min size.
+     */
     public static int getMin() {
         return min;
     }
