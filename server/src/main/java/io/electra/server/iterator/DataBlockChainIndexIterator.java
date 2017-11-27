@@ -45,7 +45,7 @@ public class DataBlockChainIndexIterator implements Iterator<Integer> {
 
     @Override
     public boolean hasNext() {
-        return firstRun || (nextBlockIndex = dataStorage.readNextBlockAtIndex(blockIndex)) != -1;
+        return firstRun || (nextBlockIndex = dataStorage.getNextBlock(blockIndex)) != -1;
 
     }
 
@@ -57,7 +57,7 @@ public class DataBlockChainIndexIterator implements Iterator<Integer> {
         }
 
         if (nextBlockIndex == -1) {
-            nextBlockIndex = dataStorage.readNextBlockAtIndex(blockIndex);
+            nextBlockIndex = dataStorage.getNextBlock(blockIndex);
         }
 
         blockIndex = nextBlockIndex;

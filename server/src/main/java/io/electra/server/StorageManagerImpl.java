@@ -153,7 +153,7 @@ public class StorageManagerImpl implements StorageManager {
     private void updateRightReference(int currentAffectedBlockIndex) {
         Integer higher = freeBlocks.higher(currentAffectedBlockIndex);
         if (higher != null) {
-            dataStorage.writeNextBlockAtIndex(currentAffectedBlockIndex, higher);
+            dataStorage.setNextBlock(currentAffectedBlockIndex, higher);
         }
     }
 
@@ -172,7 +172,7 @@ public class StorageManagerImpl implements StorageManager {
         Integer lower = freeBlocks.lower(currentAffectedBlockIndex);
 
         if (lower != null) {
-            dataStorage.writeNextBlockAtIndex(lower, currentAffectedBlockIndex);
+            dataStorage.setNextBlock(lower, currentAffectedBlockIndex);
         }
     }
 
@@ -187,7 +187,7 @@ public class StorageManagerImpl implements StorageManager {
     private void updateEmptyIndex(int currentAffectedBlockIndex) {
         Index currentEmptyIndex = indexStorage.getCurrentEmptyIndex();
         freeBlocks.add(currentEmptyIndex.getDataFilePosition());
-        dataStorage.writeNextBlockAtIndex(currentAffectedBlockIndex, currentEmptyIndex.getDataFilePosition());
+        dataStorage.setNextBlock(currentAffectedBlockIndex, currentEmptyIndex.getDataFilePosition());
         currentEmptyIndex.setDataFilePosition(currentAffectedBlockIndex);
     }
 
@@ -199,12 +199,12 @@ public class StorageManagerImpl implements StorageManager {
             return null;
         }
 
-        DataBlock dataBlock = dataStorage.readDataBlockAtIndex(index.getDataFilePosition());
+        DataBlock dataBlock = dataStorage.getDataBlock(index.getDataFilePosition());
 
         byte[] result = dataBlock.getContent();
 
         while (dataBlock.getNextPosition() != -1) {
-            dataBlock = dataStorage.readDataBlockAtIndex(dataBlock.getNextPosition());
+            dataBlock = dataStorage.getDataBlock(dataBlock.getNextPosition());
             result = Bytes.concat(result, dataBlock.getContent());
         }
 

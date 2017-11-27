@@ -25,19 +25,56 @@
 package io.electra.server.data;
 
 /**
+ * The central entrypoint to access the data file. No
+ *
+ * The default implementation can be found at {@link DataStorageImpl}.
+ *
  * @author Felix Klauke <fklauke@itemis.de>
  */
 public interface DataStorage {
 
+    /**
+     * Save the given data in the given blocks.
+     *
+     * @param allocatedBlocks The blocks allocated for the given data.
+     * @param bytes           The data.
+     */
     void save(int[] allocatedBlocks, byte[] bytes);
 
-    DataBlock readDataBlockAtIndex(int index);
+    /**
+     * Get the data block at the given index.
+     *
+     * @param index The index.
+     * @return The data block.
+     */
+    DataBlock getDataBlock(int index);
 
-    int readNextBlockAtIndex(int blockIndex);
+    /**
+     * Get the block index of the block the given block index's block is pointing to.
+     *
+     * @param blockIndex The current block.
+     * @return The next block.
+     */
+    int getNextBlock(int blockIndex);
 
-    void writeNextBlockAtIndex(int blockIndex, int nextBlockIndex);
+    /**
+     * Update the index the block of the block index is pointing to.
+     *
+     * @param blockIndex     The source.
+     * @param nextBlockIndex The target.
+     */
+    void setNextBlock(int blockIndex, int nextBlockIndex);
 
+    /**
+     * Save and close all resources.
+     */
     void close();
 
+    /**
+     * Get the chain of blocks beginning at the given block.
+     *
+     * @param dataFilePosition The first block.
+     * @return The chain of blocks linked by their next block value.
+     */
     int[] getBlockChain(int dataFilePosition);
 }

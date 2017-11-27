@@ -43,6 +43,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * The default implementation of the {@link DataStorage}.
+ *
  * @author Felix Klauke <fklauke@itemis.de>
  */
 public class DataStorageImpl implements DataStorage {
@@ -104,7 +106,7 @@ public class DataStorageImpl implements DataStorage {
     }
 
     @Override
-    public DataBlock readDataBlockAtIndex(int index) {
+    public DataBlock getDataBlock(int index) {
         DataBlock dataBlock = dataBlockCache.getIfPresent(index);
 
         if (dataBlock != null) {
@@ -156,7 +158,7 @@ public class DataStorageImpl implements DataStorage {
     }
 
     @Override
-    public int readNextBlockAtIndex(int blockIndex) {
+    public int getNextBlock(int blockIndex) {
         int next = nextBlockCache.getOrDefault(blockIndex, -1);
 
         if (next == -1) {
@@ -189,7 +191,7 @@ public class DataStorageImpl implements DataStorage {
     }
 
     @Override
-    public void writeNextBlockAtIndex(int blockIndex, int nextBlockIndex) {
+    public void setNextBlock(int blockIndex, int nextBlockIndex) {
         PooledByteBuffer byteBuffer = ByteBufferAllocator.allocate(4);
 
         nextBlockCache.addValue(blockIndex, nextBlockIndex);
