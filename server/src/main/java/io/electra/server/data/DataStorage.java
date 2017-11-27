@@ -38,4 +38,6 @@ public interface DataStorage {
     void writeNextBlockAtIndex(int blockIndex, int nextBlockIndex);
 
     void close();
+
+    int[] getBlockChain(int dataFilePosition);
 }

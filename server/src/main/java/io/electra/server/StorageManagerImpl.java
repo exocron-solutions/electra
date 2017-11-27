@@ -24,7 +24,6 @@
 
 package io.electra.server;
 
-import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Bytes;
 import io.electra.server.data.DataBlock;
@@ -121,33 +120,75 @@ public class StorageManagerImpl implements StorageManager {
             return;
         }
 
-        Integer[] affectedBlocks = Iterators.toArray(new DataBlockChainIndexIterator(dataStorage, index.getDataFilePosition()), Integer.class);
+        int[] affectedBlocks = dataStorage.getBlockChain(index.getDataFilePosition());
 
         for (int i = affectedBlocks.length - 1; i >= 0; i--) {
             int currentAffectedBlockIndex = affectedBlocks[i];
 
             if (currentAffectedBlockIndex < currentEmptyIndex.getDataFilePosition()) {
-                freeBlocks.add(currentEmptyIndex.getDataFilePosition());
-                dataStorage.writeNextBlockAtIndex(currentAffectedBlockIndex, currentEmptyIndex.getDataFilePosition());
-                currentEmptyIndex.setDataFilePosition(currentAffectedBlockIndex);
+                updateEmptyIndex(currentAffectedBlockIndex);
                 continue;
             }
 
-            Integer lower = freeBlocks.lower(currentAffectedBlockIndex);
-
-            if (lower != null) {
-                dataStorage.writeNextBlockAtIndex(lower, currentAffectedBlockIndex);
-            }
-
-            Integer higher = freeBlocks.higher(currentAffectedBlockIndex);
-            if (higher != null) {
-                dataStorage.writeNextBlockAtIndex(currentAffectedBlockIndex, higher);
-            }
+            updateLeftReference(currentAffectedBlockIndex);
+            updateRightReference(currentAffectedBlockIndex);
 
             freeBlocks.add(currentAffectedBlockIndex);
         }
 
         indexStorage.removeIndex(index);
+    }
+
+    /**
+     * I the case we have find an empty index on the right of a new empty index we have to link them. For example:
+     * <p>
+     * Old data:
+     * 0 1 2 3 4 5 6
+     * x o o x o x x
+     * <p>
+     * The user wants to delete the third data block. In this case we have to link 3 -> 4.
+     *
+     * @param currentAffectedBlockIndex The new empty block.
+     */
+    private void updateRightReference(int currentAffectedBlockIndex) {
+        Integer higher = freeBlocks.higher(currentAffectedBlockIndex);
+        if (higher != null) {
+            dataStorage.writeNextBlockAtIndex(currentAffectedBlockIndex, higher);
+        }
+    }
+
+    /**
+     * I the case we have find an empty index on the left of a new empty index we have to link them. For example:
+     * <p>
+     * Old data:
+     * 0 1 2 3 4 5 6
+     * x x o x x x x
+     * <p>
+     * The user wants to delete the third data block. In this case we have to link 2 -> 3.
+     *
+     * @param currentAffectedBlockIndex The new empty block.
+     */
+    private void updateLeftReference(int currentAffectedBlockIndex) {
+        Integer lower = freeBlocks.lower(currentAffectedBlockIndex);
+
+        if (lower != null) {
+            dataStorage.writeNextBlockAtIndex(lower, currentAffectedBlockIndex);
+        }
+    }
+
+    /**
+     * Update the index that points to the first empty block. In this case we have to add the current first empty
+     * data block as a regular free block. Then we have to to write the reference from the new first empty data block
+     * to the old first empty data block. At last we can set the new empty index into the empty index container
+     * variable.
+     *
+     * @param currentAffectedBlockIndex The new first empty data block.
+     */
+    private void updateEmptyIndex(int currentAffectedBlockIndex) {
+        Index currentEmptyIndex = indexStorage.getCurrentEmptyIndex();
+        freeBlocks.add(currentEmptyIndex.getDataFilePosition());
+        dataStorage.writeNextBlockAtIndex(currentAffectedBlockIndex, currentEmptyIndex.getDataFilePosition());
+        currentEmptyIndex.setDataFilePosition(currentAffectedBlockIndex);
     }
 
     @Override

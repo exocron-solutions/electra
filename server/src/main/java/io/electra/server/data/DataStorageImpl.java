@@ -26,8 +26,10 @@ package io.electra.server.data;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.Streams;
 import io.electra.server.DatabaseConstants;
 import io.electra.server.alloc.ByteBufferAllocator;
+import io.electra.server.iterator.DataBlockChainIndexIterator;
 import io.electra.server.pool.PooledByteBuffer;
 import net.openhft.koloboke.collect.map.IntIntMap;
 import net.openhft.koloboke.collect.map.hash.HashIntIntMaps;
@@ -221,5 +223,10 @@ public class DataStorageImpl implements DataStorage {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public int[] getBlockChain(int dataFilePosition) {
+        return Streams.stream(new DataBlockChainIndexIterator(this, dataFilePosition)).mapToInt(Integer::intValue).toArray();
     }
 }
