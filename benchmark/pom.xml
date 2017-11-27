@@ -34,7 +34,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>electra-benchmark</artifactId>
-    
+
     <repositories>
         <repository>
             <id>jackwhite20-snapshots</id>
@@ -49,7 +49,7 @@
     <dependencies>
         <dependency>
             <groupId>de.jackwhite20</groupId>
-            <artifactId>Orion</artifactId>
+            <artifactId>orion</artifactId>
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
