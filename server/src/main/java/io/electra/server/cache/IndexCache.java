@@ -13,4 +13,8 @@ public class IndexCache extends AbstractCache<Integer, Index> {
     public IndexCache(long expire, TimeUnit timeUnit, int expectedSize) {
         super(HashIntObjMaps.newMutableMap(expectedSize), expire, timeUnit, expectedSize);
     }
+
+    public IndexCache(int expectedSize) {
+        this(-1, null, expectedSize);
+    }
 }

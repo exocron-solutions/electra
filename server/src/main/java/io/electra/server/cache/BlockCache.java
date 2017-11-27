@@ -13,4 +13,8 @@ public class BlockCache extends AbstractCache<Integer, DataBlock> {
     public BlockCache(long expire, TimeUnit timeUnit, int expectedSize) {
         super(HashIntObjMaps.newMutableMap(expectedSize), expire, timeUnit, expectedSize);
     }
+
+    public BlockCache(int expectedSize) {
+        this(-1, null, expectedSize);
+    }
 }

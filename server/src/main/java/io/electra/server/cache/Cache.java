@@ -11,5 +11,7 @@ public interface Cache<Key, Value> {
 
     void invalidate(Key key);
 
+    int size();
+
     void clear();
 }

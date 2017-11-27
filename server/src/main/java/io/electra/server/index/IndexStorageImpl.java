@@ -28,10 +28,10 @@ import com.google.common.collect.Queues;
 import io.electra.server.DatabaseConstants;
 import io.electra.server.alloc.ByteBufferAllocator;
 import io.electra.server.btree.BTree;
+import io.electra.server.cache.Cache;
+import io.electra.server.cache.IndexCache;
 import io.electra.server.exception.MalformedIndexException;
 import io.electra.server.pool.PooledByteBuffer;
-import net.openhft.koloboke.collect.map.IntObjMap;
-import net.openhft.koloboke.collect.map.hash.HashIntObjMaps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,7 +69,7 @@ public class IndexStorageImpl implements IndexStorage {
      * NOTE: Currently we use an enhanced koloboke map. Alternative would be the {@link TreeMap} or a B+ Tree
      * like {@link BTree}.
      */
-    private IntObjMap<Index> currentIndices;
+    private final Cache<Integer, Index> indexCache;
 
     /**
      * The currently last known index position index in the index file.
@@ -88,11 +88,11 @@ public class IndexStorageImpl implements IndexStorage {
      */
     IndexStorageImpl(AsynchronousFileChannel channel) {
         this.channel = channel;
-        currentIndices = HashIntObjMaps.newMutableMap();
+        indexCache = new IndexCache(10000);
 
         logger.info("Beginning to read indices.");
         readIndices();
-        logger.info("Found {} indices.", currentIndices.size());
+        logger.info("Loaded {} indices.", indexCache.size());
     }
 
     /**
@@ -159,7 +159,7 @@ public class IndexStorageImpl implements IndexStorage {
                     if (index.isEmpty()) {
                         emptyIndices.offer(index.getIndexFilePosition());
                     } else {
-                        currentIndices.put(keyHash, index);
+                        indexCache.put(keyHash, index);
                     }
 
                     byteBuffer.release();
@@ -186,7 +186,7 @@ public class IndexStorageImpl implements IndexStorage {
 
     @Override
     public void saveIndex(Index index) {
-        currentIndices.put(index.getKeyHash(), index);
+        indexCache.put(index.getKeyHash(), index);
         int freeBlock = allocateFreeBlock();
         index.setIndexFilePosition(freeBlock);
 
@@ -195,7 +195,7 @@ public class IndexStorageImpl implements IndexStorage {
 
     @Override
     public Index getIndex(int keyHash) {
-        return currentIndices.get(keyHash);
+        return indexCache.get(keyHash);
     }
 
     @Override
@@ -205,7 +205,7 @@ public class IndexStorageImpl implements IndexStorage {
         index.setEmpty(true);
         writeIndex(index.getIndexFilePosition(), index);
 
-        currentIndices.remove(index.getKeyHash());
+        indexCache.invalidate(index.getKeyHash());
     }
 
     @Override
