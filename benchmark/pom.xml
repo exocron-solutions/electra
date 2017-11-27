@@ -34,6 +34,17 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>electra-benchmark</artifactId>
+    
+    <repositories>
+        <repository>
+            <id>jackwhite20-snapshots</id>
+            <url>https://repo.jackwhite20.net/repository/maven-snapshots/</url>
+        </repository>
+        <repository>
+            <id>jackwhite20-releases</id>
+            <url>https://repo.jackwhite20.net/repository/maven-releases/</url>
+        </repository>
+    </repositories>
 
     <dependencies>
         <dependency>
