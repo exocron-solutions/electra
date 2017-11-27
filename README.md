@@ -1,6 +1,7 @@
+[![Build Status](https://travis-ci.com/FelixKlauke/electra.svg?token=v7R4FVyUfBVWw8zFwc5F&branch=master)](https://travis-ci.com/FelixKlauke/electra)
+[![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/FelixKlauke/electra)
+[![issues](https://img.shields.io/github/issues-raw/badges/shields/service-badge.svg)](https://github.com/FelixKlauke/electra)
 # electra
-
-Build Status: [![Build Status](https://travis-ci.com/FelixKlauke/electra.svg?token=v7R4FVyUfBVWw8zFwc5F&branch=master)](https://travis-ci.com/FelixKlauke/electra)
 
 # Usage
 - Install [Maven](http://maven.apache.org/download.cgi)
