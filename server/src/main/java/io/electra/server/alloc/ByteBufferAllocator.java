@@ -41,7 +41,7 @@ public class ByteBufferAllocator {
     private static int times;
     private static long capacity;
 
-    private static Pool<PooledByteBuffer> byteBufferPool = new ByteBufferPool(4, true);
+    private static Pool<PooledByteBuffer> byteBufferPool = new ByteBufferPool(DatabaseConstants.INTEGER_BYTE_SIZE, true);
     private static Pool<PooledByteBuffer> byteBufferPool1 = new ByteBufferPool(DatabaseConstants.INDEX_BLOCK_SIZE, true);
     private static Pool<PooledByteBuffer> byteBufferPool2 = new ByteBufferPool(DatabaseConstants.DATA_BLOCK_SIZE, false);
 
