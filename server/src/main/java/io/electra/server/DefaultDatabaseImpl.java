@@ -38,13 +38,29 @@ import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * The default implementation of the {@link Database}.
+ *
  * @author Felix Klauke <fklauke@itemis.de>
+ * @author Philip 'JackWhite20' <silencephil@gmail.com>
  */
 public class DefaultDatabaseImpl implements Database {
 
+    /**
+     * The top level cache that contains all data.
+     */
     private final Cache<Integer, byte[]> dataCache;
+
+    /**
+     * The storage manager to manager data.
+     */
     private final StorageManager storageManager;
 
+    /**
+     * Create a new database instance by its underlying files.
+     *
+     * @param dataFilePath  The data file.
+     * @param indexFilePath The index file.
+     */
     DefaultDatabaseImpl(Path dataFilePath, Path indexFilePath) {
         if (dataFilePath.equals(indexFilePath)) {
             throw new IllegalArgumentException("Someone tried to use the same file for indices and data.");
