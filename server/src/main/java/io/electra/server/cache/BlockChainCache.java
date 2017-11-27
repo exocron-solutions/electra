@@ -12,4 +12,8 @@ public class BlockChainCache extends AbstractCache<Integer, Integer> {
     public BlockChainCache(long expire, TimeUnit timeUnit, int expectedSize) {
         super(HashIntObjMaps.newMutableMap(expectedSize), expire, timeUnit, expectedSize);
     }
+
+    public BlockChainCache(int expectedSize) {
+        this(-1, null, expectedSize);
+    }
 }
