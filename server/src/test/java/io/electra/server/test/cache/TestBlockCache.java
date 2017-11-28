@@ -1,22 +1,25 @@
 package io.electra.server.test.cache;
 
-import io.electra.server.cache.BlockChainCache;
+import io.electra.server.cache.BlockCache;
 import io.electra.server.cache.Cache;
+import io.electra.server.data.DataBlock;
 import io.electra.server.test.ElectraTest;
 import io.electra.server.test.Order;
 import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 /**
  * @author Philip 'JackWhite20' <silencephil@gmail.com>
  */
-public class TestBlockChainCache extends ElectraTest {
+public class TestBlockCache extends ElectraTest {
 
-    private Cache<Integer, Integer> cache = new BlockChainCache(-1, null, 1);
-    private Cache<Integer, Integer> cacheWithExpire = new BlockChainCache(1, TimeUnit.MILLISECONDS, 1);
+    private Cache<Integer, DataBlock> cache = new BlockCache(-1, null, 1);
+    private Cache<Integer, DataBlock> cacheWithExpire = new BlockCache(5, TimeUnit.MILLISECONDS, 1);
 
     @Test
     public void test() {
@@ -25,14 +28,20 @@ public class TestBlockChainCache extends ElectraTest {
 
     @Order(1)
     public void testPut() {
-        cache.put(0, 100);
+        cache.put(0, new DataBlock(0, new byte[] {0}, 1));
 
         assertEquals(1, cache.size());
     }
 
     @Order(2)
     public void testGet() {
-        assertEquals(100, (int) cache.get(0));
+        DataBlock dataBlock = cache.get(0);
+
+        assertNotNull(dataBlock);
+        assertEquals(0, dataBlock.getCurrentPosition());
+        assertEquals(1, dataBlock.getContent().length);
+        assertEquals(0, dataBlock.getContent()[0]);
+        assertEquals(1, dataBlock.getNextPosition());
     }
 
     @Order(3)
@@ -49,7 +58,7 @@ public class TestBlockChainCache extends ElectraTest {
 
     @Order(5)
     public void testExpire() throws InterruptedException {
-        cacheWithExpire.put(0, 1);
+        cacheWithExpire.put(0, new DataBlock(0, new byte[] {0}, 1));
 
         assertNotNull(cacheWithExpire.get(0));
 
@@ -60,7 +69,7 @@ public class TestBlockChainCache extends ElectraTest {
 
     @Order(6)
     public void testInvalidate() {
-        cache.put(0, 100);
+        cache.put(0, new DataBlock(0, new byte[] {0}, 1));
 
         assertNotNull(cache.get(0));
 
