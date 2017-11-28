@@ -88,7 +88,7 @@ public class DataStorageImpl implements DataStorage {
         for (int i = 0; i < allocatedBlocks.length; i++) {
             int currentBlock = allocatedBlocks[i];
 
-            byte[] currentBlockContent = extractBlockContent(bytes, currentBlock);
+            byte[] currentBlockContent = extractBlockContent(bytes, i);
             saveBlock(currentBlock, currentBlockContent, i == allocatedBlocks.length - 1 ? -1 : allocatedBlocks[i + 1]);
         }
     }
