@@ -19,6 +19,8 @@ _Electra Client:_
 </dependency>
 ```
 
+# Benchmarks & Performance
+
 # Concept
 Our database was planned to proof the concept of an indexed key value data storage. It was planned to
 maximize performance and speed while being as lightweight and easy to use as possible.
