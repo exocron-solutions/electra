@@ -107,6 +107,8 @@ Which means the next positions would be set to:
 +----------------+------+---+---+------+---+----+---+------+---+
 ```
 
+Now we have a LinkedList of blocks for each record :)
+
 ## Caching Lifecycle
 Of course we try to minimize the I/O operations and only read from disk when it really has to be. The whole caching
 consists of four caches:
