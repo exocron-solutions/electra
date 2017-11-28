@@ -29,16 +29,30 @@ import com.google.common.collect.Queues;
 import java.util.Queue;
 
 /**
+ * The abstracted version of {@link Pool}.
+ *
  * @author Felix Klauke <fklauke@itemis.de>
+ * @author Philip 'JackWhite20' <silencephil@gmail.com>
  */
 public abstract class AbstractPool<PooledType> implements Pool<PooledType> {
 
+    /**
+     * All currently pooled instances.
+     */
     private final Queue<PooledType> pooledInstances;
 
+    /**
+     * Create a new pool with an underlying linked blocking queue.
+     */
     public AbstractPool() {
         this(Queues.newLinkedBlockingQueue());
     }
 
+    /**
+     * Create a new pool by its underlying queue.
+     *
+     * @param pooledInstances The queue.
+     */
     public AbstractPool(Queue<PooledType> pooledInstances) {
         this.pooledInstances = pooledInstances;
     }
@@ -54,6 +68,11 @@ public abstract class AbstractPool<PooledType> implements Pool<PooledType> {
         }
     }
 
+    /**
+     * The method that will create new instances of the pooled objects.
+     *
+     * @return The object.
+     */
     abstract PooledType createInstance();
 
     @Override

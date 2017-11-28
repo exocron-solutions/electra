@@ -32,6 +32,21 @@ package io.electra.server;
 public class DatabaseConstants {
 
     /**
+     * The port to access our rest ful web service.
+     */
+    public static final int REST_PORT = 8080;
+
+    /**
+     * The host to access our rest ful web service.
+     */
+    public static final String REST_HOST = "0.0.0.0";
+
+    /**
+     * Represents how many bytes are needed to store an integer.
+     */
+    public static final int INTEGER_BYTE_SIZE = 4;
+
+    /**
      * The size of the blocks our data is organized in. Remember that the pure content of the size will have a length of
      * DATA_BLOCK_SIZE - {@link #CONTENT_LENGTH_OFFSET} - {@link #NEXT_POSITION_OFFSET}.
      */
