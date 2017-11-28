@@ -26,6 +26,7 @@ package io.electra.server.rest;
 
 import io.electra.server.Database;
 import io.electra.server.DatabaseConstants;
+
 import io.undertow.Undertow;
 import io.undertow.servlet.api.DeploymentInfo;
 import org.jboss.resteasy.plugins.server.undertow.UndertowJaxrsServer;
@@ -34,7 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Created by JackWhite20 on 27.11.2017.
+ * @author Philip 'JackWhite20' <silencephil@gmail.com>
  */
 public class RestServer {
 
@@ -62,7 +63,9 @@ public class RestServer {
 
         DeploymentInfo deploymentInfo = server.undertowDeployment(deployment, "/");
         deploymentInfo.setClassLoader(RestServer.class.getClassLoader());
-        deploymentInfo.setDeploymentName("Electra REST service");
+
+        deploymentInfo.setDeploymentName("Electra REST server");
+
         deploymentInfo.setContextPath("/");
 
         server.deploy(deploymentInfo);
