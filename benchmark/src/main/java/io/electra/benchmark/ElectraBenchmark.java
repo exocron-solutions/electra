@@ -62,7 +62,7 @@ public class ElectraBenchmark {
         //System.out.println(Arrays.toString(database.get("Felix" + (currentWrite - 1))));
     }
 
-    //@MeasureTime
+    @MeasureTime
     @Order(1)
     public void testRead() {
         byte[] bytes = database.get("Felix" + currentRead++);
@@ -71,8 +71,8 @@ public class ElectraBenchmark {
         }
     }
 
-    //@MeasureTime
-    //@Order(2)
+    @MeasureTime
+    @Order(2)
     public void testDelete() {
         database.remove("Felix" + currentDelete++);
     }
