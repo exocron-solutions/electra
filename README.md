@@ -107,6 +107,8 @@ Which means the next positions would be set to:
 +----------------+------+---+---+------+---+----+---+------+---+
 ```
 
+Now we have a LinkedList of blocks for each record :)
+
 ## Caching Lifecycle
 Of course we try to minimize the I/O operations and only read from disk when it really has to be. The whole caching
 consists of four caches:
@@ -137,7 +139,7 @@ in runtime to make the data you save accessible in memory. But we can't hold all
 will let all values expire one minute after they were written into the cache.
 
 ## Algorithms
-In the following we try to explain our central repositories needed to organize our data.
+In the following we will try to explain our central repositories needed to organize our data.
 
 ### Saving
 
