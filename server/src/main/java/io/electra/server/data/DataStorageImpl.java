@@ -88,27 +88,46 @@ public class DataStorageImpl implements DataStorage {
         for (int i = 0; i < allocatedBlocks.length; i++) {
             int currentBlock = allocatedBlocks[i];
 
-            int startPosition = i * DatabaseConstants.DATA_BLOCK_SIZE;
-            int endPosition = (i + 1) * DatabaseConstants.DATA_BLOCK_SIZE - DatabaseConstants.NEXT_POSITION_OFFSET - DatabaseConstants.CONTENT_LENGTH_OFFSET;
-            endPosition = endPosition >= bytes.length ? bytes.length : endPosition;
-
-            byte[] currentBlockContent = Arrays.copyOfRange(bytes, startPosition, endPosition);
-
-            int nextBlock = i == allocatedBlocks.length - 1 ? -1 : allocatedBlocks[i + 1];
-
-            PooledByteBuffer byteBuffer = ByteBufferAllocator.allocate(DatabaseConstants.DATA_BLOCK_SIZE);
-            byteBuffer.putInt(nextBlock);
-            byteBuffer.putInt(currentBlockContent.length);
-            byteBuffer.put(currentBlockContent);
-
-            DataBlock dataBlock = new DataBlock(currentBlock, currentBlockContent, nextBlock);
-            dataBlockCache.put(currentBlock, dataBlock);
-            blockChainCache.put(currentBlock, nextBlock);
-
-            byteBuffer.flip();
-
-            writeBuffer(byteBuffer, currentBlock * DatabaseConstants.DATA_BLOCK_SIZE);
+            byte[] currentBlockContent = extractBlockContent(bytes, currentBlock);
+            saveBlock(currentBlock, currentBlockContent, i == allocatedBlocks.length - 1 ? -1 : allocatedBlocks[i + 1]);
         }
+    }
+
+    /**
+     * Extract the given chunk out of the bytes.
+     *
+     * @param bytes        The bytes.
+     * @param currentBlock The current chunk.
+     * @return The extracted chunk.
+     */
+    private byte[] extractBlockContent(byte[] bytes, int currentBlock) {
+        int startPosition = currentBlock * DatabaseConstants.DATA_BLOCK_SIZE;
+        int endPosition = (currentBlock + 1) * DatabaseConstants.DATA_BLOCK_SIZE - DatabaseConstants.NEXT_POSITION_OFFSET - DatabaseConstants.CONTENT_LENGTH_OFFSET;
+        endPosition = endPosition >= bytes.length ? bytes.length : endPosition;
+
+        return Arrays.copyOfRange(bytes, startPosition, endPosition);
+    }
+
+    /**
+     * Save the given content at the given block with the given next block.
+     *
+     * @param currentBlock        The block.
+     * @param currentBlockContent The content.
+     * @param nextBlock           The next block in the chain.
+     */
+    private void saveBlock(int currentBlock, byte[] currentBlockContent, int nextBlock) {
+        PooledByteBuffer byteBuffer = ByteBufferAllocator.allocate(DatabaseConstants.DATA_BLOCK_SIZE);
+        byteBuffer.putInt(nextBlock);
+        byteBuffer.putInt(currentBlockContent.length);
+        byteBuffer.put(currentBlockContent);
+
+        DataBlock dataBlock = new DataBlock(currentBlock, currentBlockContent, nextBlock);
+        dataBlockCache.put(currentBlock, dataBlock);
+        blockChainCache.put(currentBlock, nextBlock);
+
+        byteBuffer.flip();
+
+        writeBuffer(byteBuffer, currentBlock * DatabaseConstants.DATA_BLOCK_SIZE);
     }
 
     @Override
