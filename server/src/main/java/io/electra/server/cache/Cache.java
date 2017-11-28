@@ -22,42 +22,20 @@
  * SOFTWARE.
  */
 
-package io.electra.server.pool;
-
-import java.nio.ByteBuffer;
+package io.electra.server.cache;
 
 /**
- * The implementation of the pool for {@link ByteBuffer}.
- *
- * @author Felix Klauke <fklauke@itemis.de>
  * @author Philip 'JackWhite20' <silencephil@gmail.com>
  */
-public class ByteBufferPool extends AbstractPool<PooledByteBuffer> {
+public interface Cache<Key, Value> {
 
-    /**
-     * The size of the pooled buffers.
-     */
-    private final int byteBufferSize;
+    void put(Key key, Value value);
 
-    /**
-     * If we may use direct buffers.
-     */
-    private final boolean useDirectBuffers;
+    Value get(Key key);
 
-    /**
-     * Create a new buffer pool by its underlying parameters.
-     *
-     * @param byteBufferSize   The byte buffer size.
-     * @param useDirectBuffers If we may use direct buffers.
-     */
-    public ByteBufferPool(int byteBufferSize, boolean useDirectBuffers) {
-        this.byteBufferSize = byteBufferSize;
-        this.useDirectBuffers = useDirectBuffers;
-    }
+    void invalidate(Key key);
 
-    @Override
-    PooledByteBuffer createInstance() {
-        ByteBuffer byteBuffer = useDirectBuffers ? ByteBuffer.allocateDirect(byteBufferSize) : ByteBuffer.allocate(byteBufferSize);
-        return new PooledByteBuffer(byteBuffer, this);
-    }
+    int size();
+
+    void clear();
 }

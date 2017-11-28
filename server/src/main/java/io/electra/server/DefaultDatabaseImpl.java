@@ -25,6 +25,8 @@
 package io.electra.server;
 
 import com.google.common.base.Charsets;
+import io.electra.server.cache.Cache;
+import io.electra.server.cache.DataCache;
 import io.electra.server.data.DataStorage;
 import io.electra.server.data.DataStorageFactory;
 import io.electra.server.index.IndexStorage;
@@ -33,18 +35,41 @@ import io.electra.server.storage.StorageManager;
 
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 /**
+ * The default implementation of the {@link Database}.
+ *
  * @author Felix Klauke <fklauke@itemis.de>
+ * @author Philip 'JackWhite20' <silencephil@gmail.com>
  */
 public class DefaultDatabaseImpl implements Database {
 
+    /**
+     * The top level cache that contains all data.
+     */
+    private final Cache<Integer, byte[]> dataCache;
+
+    /**
+     * The storage manager to manager data.
+     */
     private final StorageManager storageManager;
 
+    /**
+     * Create a new database instance by its underlying files.
+     *
+     * @param dataFilePath  The data file.
+     * @param indexFilePath The index file.
+     */
     DefaultDatabaseImpl(Path dataFilePath, Path indexFilePath) {
+        if (dataFilePath.equals(indexFilePath)) {
+            throw new IllegalArgumentException("Someone tried to use the same file for indices and data.");
+        }
+
         IndexStorage indexStorage = IndexStorageFactory.createIndexStorage(indexFilePath);
         DataStorage dataStorage = DataStorageFactory.createDataStorage(dataFilePath);
 
+        dataCache = new DataCache(1, TimeUnit.MINUTES, 10000);
         storageManager = new StorageManagerImpl(indexStorage, dataStorage);
     }
 
@@ -53,6 +78,8 @@ public class DefaultDatabaseImpl implements Database {
     public void save(String key, byte[] bytes) {
         int keyHash = Arrays.hashCode(key.getBytes(Charsets.UTF_8));
         storageManager.save(keyHash, bytes);
+
+        dataCache.put(keyHash, bytes);
     }
 
     @Override
@@ -64,7 +91,9 @@ public class DefaultDatabaseImpl implements Database {
     public byte[] get(String key) {
         int keyHash = Arrays.hashCode(key.getBytes(Charsets.UTF_8));
 
-        return storageManager.get(keyHash);
+        byte[] bytes = dataCache.get(keyHash);
+
+        return bytes != null ? bytes : storageManager.get(keyHash);
     }
 
     @Override
@@ -72,10 +101,13 @@ public class DefaultDatabaseImpl implements Database {
         int keyHash = Arrays.hashCode(key.getBytes(Charsets.UTF_8));
 
         storageManager.remove(keyHash);
+
+        dataCache.invalidate(keyHash);
     }
 
     @Override
     public void close() {
         storageManager.close();
+        dataCache.clear();
     }
 }

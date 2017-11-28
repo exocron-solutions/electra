@@ -24,15 +24,14 @@
 
 package io.electra.server.data;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Streams;
 import io.electra.server.DatabaseConstants;
 import io.electra.server.alloc.ByteBufferAllocator;
+import io.electra.server.cache.BlockCache;
+import io.electra.server.cache.BlockChainCache;
+import io.electra.server.cache.Cache;
 import io.electra.server.iterator.DataBlockChainIndexIterator;
 import io.electra.server.pool.PooledByteBuffer;
-import net.openhft.koloboke.collect.map.IntIntMap;
-import net.openhft.koloboke.collect.map.hash.HashIntIntMaps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,7 +67,7 @@ public class DataStorageImpl implements DataStorage {
     /**
      * The cache for block chains.
      */
-    private final IntIntMap nextBlockCache;
+    private final Cache<Integer, Integer> blockChainCache;
 
     /**
      * Create a new instance of the data storage by its underlying channel.
@@ -79,11 +78,8 @@ public class DataStorageImpl implements DataStorage {
         this.channel = channel;
 
         logger.info("Initializing data caches...");
-        dataBlockCache = CacheBuilder.newBuilder()
-                .expireAfterAccess(1, TimeUnit.MINUTES)
-                .build();
-
-        nextBlockCache = HashIntIntMaps.newUpdatableMap();
+        dataBlockCache = new BlockCache(1, TimeUnit.MINUTES, 10000);
+        blockChainCache = new BlockChainCache(1, TimeUnit.MINUTES, 10000);
         logger.info("Data caches initialized.");
     }
 
@@ -107,7 +103,7 @@ public class DataStorageImpl implements DataStorage {
 
             DataBlock dataBlock = new DataBlock(currentBlock, currentBlockContent, nextBlock);
             dataBlockCache.put(currentBlock, dataBlock);
-            nextBlockCache.addValue(currentBlock, nextBlock);
+            blockChainCache.put(currentBlock, nextBlock);
 
             byteBuffer.flip();
 
@@ -128,7 +124,7 @@ public class DataStorageImpl implements DataStorage {
 
     @Override
     public DataBlock getDataBlock(int index) {
-        DataBlock dataBlock = dataBlockCache.getIfPresent(index);
+        DataBlock dataBlock = dataBlockCache.get(index);
 
         if (dataBlock != null) {
             return dataBlock;
@@ -155,7 +151,9 @@ public class DataStorageImpl implements DataStorage {
             channel.read(contentBuffer.nio(), position + 4 + 4).get();
             contentBuffer.flip();
 
-            return new DataBlock(index, contentBuffer.array(), nextPosition);
+            dataBlock = new DataBlock(index, contentBuffer.array(), nextPosition);
+            dataBlockCache.put(index, dataBlock);
+            return dataBlock;
         } catch (InterruptedException | ExecutionException e) {
             logger.error("Error while reading a data block.", e);
         }
@@ -165,10 +163,10 @@ public class DataStorageImpl implements DataStorage {
 
     @Override
     public int getNextBlock(int blockIndex) {
-        int next = nextBlockCache.getOrDefault(blockIndex, -1);
+        Integer next = blockChainCache.get(blockIndex);
 
-        if (next == -1) {
-            return next;
+        if (next == null) {
+            return -1;
         }
 
         PooledByteBuffer byteBuffer = ByteBufferAllocator.allocate(4);
@@ -184,7 +182,7 @@ public class DataStorageImpl implements DataStorage {
 
             int nextBlock = byteBuffer.getInt();
 
-            nextBlockCache.addValue(blockIndex, nextBlock);
+            blockChainCache.put(blockIndex, nextBlock);
 
             return nextBlock;
         } catch (InterruptedException | ExecutionException e) {
@@ -200,9 +198,9 @@ public class DataStorageImpl implements DataStorage {
     public void setNextBlock(int blockIndex, int nextBlockIndex) {
         PooledByteBuffer byteBuffer = ByteBufferAllocator.allocate(4);
 
-        nextBlockCache.addValue(blockIndex, nextBlockIndex);
+        blockChainCache.put(blockIndex, nextBlockIndex);
 
-        DataBlock dataBlock = dataBlockCache.getIfPresent(blockIndex);
+        DataBlock dataBlock = dataBlockCache.get(blockIndex);
         if (dataBlock != null) {
             dataBlock.setNextPosition(nextBlockIndex);
         }
@@ -232,6 +230,8 @@ public class DataStorageImpl implements DataStorage {
         } catch (IOException e) {
             logger.error("Error while data resource closing.", e);
         }
+
+        dataBlockCache.clear();
     }
 
     @Override

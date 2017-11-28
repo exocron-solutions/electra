@@ -22,41 +22,23 @@
  * SOFTWARE.
  */
 
-package io.electra.server;
+package io.electra.server.cache;
 
-import net.openhft.koloboke.collect.map.ObjObjMap;
-import net.openhft.koloboke.collect.map.hash.HashObjObjMaps;
+import io.electra.server.data.DataBlock;
+import net.openhft.koloboke.collect.map.hash.HashIntObjMaps;
 
-import java.nio.file.Path;
+import java.util.concurrent.TimeUnit;
 
 /**
- * @author Felix Klauke <fklauke@itemis.de>
+ * @author Philip 'JackWhite20' <silencephil@gmail.com>
  */
-public class KolobokeCachedDatabaseImpl extends DefaultDatabaseImpl {
+public class BlockCache extends AbstractCache<Integer, DataBlock> {
 
-    private final ObjObjMap<String, byte[]> cache;
-
-    KolobokeCachedDatabaseImpl(Path dataFilePath, Path indexFilePath) {
-        super(dataFilePath, indexFilePath);
-
-        this.cache = HashObjObjMaps.newMutableMap();
+    public BlockCache(long expire, TimeUnit timeUnit, int expectedSize) {
+        super(HashIntObjMaps.newMutableMap(expectedSize), expire, timeUnit, expectedSize);
     }
 
-    @Override
-    public byte[] get(String key) {
-        byte[] value = cache.get(key);
-        return value == null ? super.get(key) : value;
-    }
-
-    @Override
-    public void save(String key, byte[] bytes) {
-        super.save(key, bytes);
-        cache.put(key, bytes);
-    }
-
-    @Override
-    public void remove(String key) {
-        super.remove(key);
-        cache.remove(key);
+    public BlockCache(int expectedSize) {
+        this(-1, null, expectedSize);
     }
 }

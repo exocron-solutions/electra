@@ -22,42 +22,27 @@
  * SOFTWARE.
  */
 
-package io.electra.server.pool;
-
-import java.nio.ByteBuffer;
+package io.electra.server.cache;
 
 /**
- * The implementation of the pool for {@link ByteBuffer}.
- *
- * @author Felix Klauke <fklauke@itemis.de>
  * @author Philip 'JackWhite20' <silencephil@gmail.com>
  */
-public class ByteBufferPool extends AbstractPool<PooledByteBuffer> {
+public class CacheEntry<Value> {
 
-    /**
-     * The size of the pooled buffers.
-     */
-    private final int byteBufferSize;
+    private long expireBy;
 
-    /**
-     * If we may use direct buffers.
-     */
-    private final boolean useDirectBuffers;
+    private Value value;
 
-    /**
-     * Create a new buffer pool by its underlying parameters.
-     *
-     * @param byteBufferSize   The byte buffer size.
-     * @param useDirectBuffers If we may use direct buffers.
-     */
-    public ByteBufferPool(int byteBufferSize, boolean useDirectBuffers) {
-        this.byteBufferSize = byteBufferSize;
-        this.useDirectBuffers = useDirectBuffers;
+    CacheEntry(long expireBy, Value value) {
+        this.expireBy = expireBy;
+        this.value = value;
     }
 
-    @Override
-    PooledByteBuffer createInstance() {
-        ByteBuffer byteBuffer = useDirectBuffers ? ByteBuffer.allocateDirect(byteBufferSize) : ByteBuffer.allocate(byteBufferSize);
-        return new PooledByteBuffer(byteBuffer, this);
+    long getExpireBy() {
+        return expireBy;
+    }
+
+    public Value getValue() {
+        return value;
     }
 }

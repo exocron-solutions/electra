@@ -22,42 +22,36 @@
  * SOFTWARE.
  */
 
-package io.electra.server.pool;
+package io.electra.server;
 
-import java.nio.ByteBuffer;
+import io.electra.server.rest.RestServer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
- * The implementation of the pool for {@link ByteBuffer}.
- *
- * @author Felix Klauke <fklauke@itemis.de>
  * @author Philip 'JackWhite20' <silencephil@gmail.com>
  */
-public class ByteBufferPool extends AbstractPool<PooledByteBuffer> {
+public class ElectraBootstrap {
 
-    /**
-     * The size of the pooled buffers.
-     */
-    private final int byteBufferSize;
+    private static Logger logger = LoggerFactory.getLogger(ElectraBootstrap.class);
 
-    /**
-     * If we may use direct buffers.
-     */
-    private final boolean useDirectBuffers;
+    private static final Path indexFilePath = Paths.get(DatabaseConstants.DEFAULT_INDEX_FILE_PATH);
 
-    /**
-     * Create a new buffer pool by its underlying parameters.
-     *
-     * @param byteBufferSize   The byte buffer size.
-     * @param useDirectBuffers If we may use direct buffers.
-     */
-    public ByteBufferPool(int byteBufferSize, boolean useDirectBuffers) {
-        this.byteBufferSize = byteBufferSize;
-        this.useDirectBuffers = useDirectBuffers;
-    }
+    private static final Path dataFilePath = Paths.get(DatabaseConstants.DEFAULT_DATA_FILE_PATH);
 
-    @Override
-    PooledByteBuffer createInstance() {
-        ByteBuffer byteBuffer = useDirectBuffers ? ByteBuffer.allocateDirect(byteBufferSize) : ByteBuffer.allocate(byteBufferSize);
-        return new PooledByteBuffer(byteBuffer, this);
+    private static RestServer restServer;
+
+    public static void main(String[] args) {
+        logger.info("Starting electra");
+
+        Database database = DatabaseFactory.createDatabase(dataFilePath, indexFilePath);
+
+        restServer = new RestServer(database);
+        restServer.start();
+
+        logger.info("Electra started");
     }
 }

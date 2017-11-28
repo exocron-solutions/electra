@@ -22,42 +22,22 @@
  * SOFTWARE.
  */
 
-package io.electra.server.pool;
+package io.electra.server.cache;
 
-import java.nio.ByteBuffer;
+import net.openhft.koloboke.collect.map.hash.HashIntObjMaps;
+
+import java.util.concurrent.TimeUnit;
 
 /**
- * The implementation of the pool for {@link ByteBuffer}.
- *
- * @author Felix Klauke <fklauke@itemis.de>
  * @author Philip 'JackWhite20' <silencephil@gmail.com>
  */
-public class ByteBufferPool extends AbstractPool<PooledByteBuffer> {
+public class DataCache extends AbstractCache<Integer, byte[]> {
 
-    /**
-     * The size of the pooled buffers.
-     */
-    private final int byteBufferSize;
-
-    /**
-     * If we may use direct buffers.
-     */
-    private final boolean useDirectBuffers;
-
-    /**
-     * Create a new buffer pool by its underlying parameters.
-     *
-     * @param byteBufferSize   The byte buffer size.
-     * @param useDirectBuffers If we may use direct buffers.
-     */
-    public ByteBufferPool(int byteBufferSize, boolean useDirectBuffers) {
-        this.byteBufferSize = byteBufferSize;
-        this.useDirectBuffers = useDirectBuffers;
+    public DataCache(long expire, TimeUnit timeUnit, int expectedSize) {
+        super(HashIntObjMaps.newMutableMap(expectedSize), expire, timeUnit, expectedSize);
     }
 
-    @Override
-    PooledByteBuffer createInstance() {
-        ByteBuffer byteBuffer = useDirectBuffers ? ByteBuffer.allocateDirect(byteBufferSize) : ByteBuffer.allocate(byteBufferSize);
-        return new PooledByteBuffer(byteBuffer, this);
+    public DataCache(int expectedSize) {
+        this(-1, null, expectedSize);
     }
 }
