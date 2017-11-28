@@ -170,6 +170,29 @@ will let all values expire one minute after they were written into the cache.
 In the following we will try to explain our central repositories needed to organize our data.
 
 ### Saving
+Imagine having the following data structure:
+```
++-------------+---+---+---+---+---+---+---+---+---+---+----+----+----+
+| Block Index | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 |
++-------------+---+---+---+---+---+---+---+---+---+---+----+----+----+
+| Data        | X | X | O | X | X | X | O | O | X | O | X  | X  | O  |
++-------------+---+---+---+---+---+---+---+---+---+---+----+----+----+
+```
+
+If you want to insert a new data record now you will have to:
+- Calculate how many blocks are needed for the data you want to save
+- Allocate the calculated amount of blocks
+- Split the data onto the blocks
+- Write the data into the blocks
+- Create and save a new index that is pointing to the first data block
+
+Lets assume we would want to save data that would need three blocks blocks. The next step is to allocate the amount of
+blocks. In this case these would result in the blocks 2, 6 and 7. Now we can split our data into pieces and write them
+in the blocks. At last we would create the new index that points to the data block 2.
+
+#### Free Block allocation
+
+#### Data splitting
 
 ### Updating
 
