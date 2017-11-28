@@ -152,7 +152,7 @@ recently accessed data blocks. It contains the content of a block keyed by its p
 
 ### BlockChainCache
 We want to build the block chains fast. Really fast. That is why we have an own cache for the next blocks. This cache
-contains all links between to data blocks. The key is the 'source' and the value is the 'target'.
+contains all links between two data blocks. The key is the 'source' and the value is the 'target'.
 
 ### IndexCache
 The index cache is maybe not even a cache. It holds all indices in memory because we can't risk to read it from disk.
