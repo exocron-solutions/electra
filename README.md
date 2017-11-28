@@ -70,6 +70,40 @@ will point to the next data block or to itself. That results in a linked list of
 
 
 ### Data
+Imagine that the data file would look the following, when X means the block is filled with data and O means the block
+is empty:
+```
++----------------+---+---+---+---+---+---+---+---+---+
+| Block Position | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
++----------------+---+---+---+---+---+---+---+---+---+
+| Data           | X | O | O | X | X | X | O | X | 0 |
++----------------+---+---+---+---+---+---+---+---+---+
+```
+
+When you would have the following data records:
+- [ key: key1, contentLength: 3,   content: <content> ]
+- [ key: key2, contentLength: 300, content: <content> ]
+- [ key: key3, contentLength: 56,  content: <content> ]
+
+Then the data could be organized this way:
+```
++----------------+------+---+---+------+---+----+---+------+---+
+|     Record     | key1 |   |   | key2 |   |    |   | key3 |   |
++----------------+------+---+---+------+---+----+---+------+---+
+| Block Position | 0    | 1 | 2 | 3    | 4 | 5  | 6 | 7    | 8 |
+| Data           | X    | O | O | X    | X | X  | O | X    | 0 |
++----------------+------+---+---+------+---+----+---+------+---+
+```
+
+Which means the next positions would be set to:
++----------------+------+---+---+------+---+----+---+------+---+
+|     Record     | key1 |   |   | key2 |   |    |   | key3 |   |
++----------------+------+---+---+------+---+----+---+------+---+
+| Block Position | 0    | 1 | 2 | 3    | 4 | 5  | 6 | 7    | 8 |
+| Data           | X    | O | O | X    | X | X  | O | X    | 0 |
++----------------+------+---+---+------+---+----+---+------+---+
+| Block pointer  | -1   |   |   | 4    | 5 | -1 |   | -1   |   |
++----------------+------+---+---+------+---+----+---+------+---+
 
 ## Caching Lifecycle
 Of course we try to minimize the I/O operations and only read from disk when it really has to be. The whole caching
