@@ -34,7 +34,7 @@ public class Index {
     private int dataFilePosition;
     private int indexFilePosition;
 
-    Index(int keyHash, boolean empty, int position) {
+    public Index(int keyHash, boolean empty, int position) {
         this.keyHash = keyHash;
         this.empty = empty;
         this.dataFilePosition = position;
@@ -48,15 +48,15 @@ public class Index {
         this.dataFilePosition = dataFilePosition;
     }
 
-    int getKeyHash() {
+    public int getKeyHash() {
         return keyHash;
     }
 
-    boolean isEmpty() {
+    public boolean isEmpty() {
         return empty;
     }
 
-    public void setEmpty(boolean empty) {
+    void setEmpty(boolean empty) {
         this.empty = empty;
     }
 
