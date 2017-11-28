@@ -28,6 +28,7 @@ import com.google.common.collect.Sets;
 import com.google.common.primitives.Bytes;
 import io.electra.server.data.DataBlock;
 import io.electra.server.data.DataStorage;
+import io.electra.server.exception.CorruptedDataException;
 import io.electra.server.index.Index;
 import io.electra.server.index.IndexStorage;
 import io.electra.server.iterator.DataBlockChainIndexIterator;
@@ -224,6 +225,11 @@ public class StorageManagerImpl implements StorageManager {
         }
 
         DataBlock dataBlock = dataStorage.getDataBlock(index.getDataFilePosition());
+
+        if (dataBlock == null) {
+            throw new CorruptedDataException("Found index for key hash " + keyHash + " but now data block.");
+        }
+
         return readBlockChainContent(dataBlock);
     }
 
