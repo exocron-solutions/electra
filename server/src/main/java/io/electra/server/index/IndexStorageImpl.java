@@ -44,6 +44,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 /**
+ * The default implementation of the {@link IndexStorage}.
+ *
  * @author Felix Klauke <fklauke@itemis.de>
  */
 public class IndexStorageImpl implements IndexStorage {
@@ -66,7 +68,7 @@ public class IndexStorageImpl implements IndexStorage {
     /**
      * All currently loaded indices.
      * <p>
-     * NOTE: Currently we use an enhanced koloboke map. Alternative would be the {@link TreeMap} or a B+ Tree
+     * NOTE: Currently we use an enhanced koloboke map powered cache. Alternative would be the {@link TreeMap} or a B+ Tree
      * like {@link BTree}.
      */
     private final Cache<Integer, Index> indexCache;
@@ -134,6 +136,9 @@ public class IndexStorageImpl implements IndexStorage {
         byteBuffer.release();
     }
 
+    /**
+     * Process the main index reading after the empty data block index.
+     */
     private void processReadIndices() {
         try {
             for (int i = 1; i < channel.size() / DatabaseConstants.INDEX_BLOCK_SIZE; i++) {
@@ -150,19 +155,7 @@ public class IndexStorageImpl implements IndexStorage {
                         continue;
                     }
 
-                    boolean empty = byteBuffer.get() == 1;
-                    int position = byteBuffer.getInt();
-
-                    Index index = new Index(keyHash, empty, position);
-                    index.setIndexFilePosition(i);
-
-                    if (index.isEmpty()) {
-                        emptyIndices.offer(index.getIndexFilePosition());
-                    } else {
-                        indexCache.put(keyHash, index);
-                    }
-
-                    byteBuffer.release();
+                    scanIndex(byteBuffer, keyHash, i);
                 } else if (result > 0 && result < DatabaseConstants.INDEX_BLOCK_SIZE) {
                     byteBuffer.release();
                     throw new MalformedIndexException("Got a malformed index.");
@@ -173,6 +166,32 @@ public class IndexStorageImpl implements IndexStorage {
         }
     }
 
+    /**
+     * Scan the index stored in the given buffer after we found out the key hash.
+     *
+     * @param byteBuffer    The byte buffer.
+     * @param keyHash       The key hash.
+     * @param indexPosition The position in the index file.
+     */
+    private void scanIndex(PooledByteBuffer byteBuffer, int keyHash, int indexPosition) {
+        boolean empty = byteBuffer.get() == 1;
+        int position = byteBuffer.getInt();
+
+        Index index = new Index(keyHash, empty, position);
+        index.setIndexFilePosition(indexPosition);
+
+        if (index.isEmpty()) {
+            emptyIndices.offer(index.getIndexFilePosition());
+        } else {
+            indexCache.put(keyHash, index);
+        }
+
+        byteBuffer.release();
+    }
+
+    /**
+     * Initialize the index file by writing the first empty data idex.
+     */
     private void initializeIndexFile() {
         Index index = new Index(-1, false, 0);
         index.setIndexFilePosition(0);
@@ -232,6 +251,12 @@ public class IndexStorageImpl implements IndexStorage {
         return index;
     }
 
+    /**
+     * Write the given index to the disk.
+     *
+     * @param position The index position.
+     * @param index The index to write.
+     */
     private void writeIndex(int position, Index index) {
         PooledByteBuffer byteBuffer = ByteBufferAllocator.allocate(DatabaseConstants.INDEX_BLOCK_SIZE);
 
@@ -240,7 +265,17 @@ public class IndexStorageImpl implements IndexStorage {
         byteBuffer.putInt(index.getDataFilePosition());
         byteBuffer.flip();
 
-        channel.write(byteBuffer.nio(), position * DatabaseConstants.INDEX_BLOCK_SIZE, byteBuffer, new CompletionHandler<Integer, PooledByteBuffer>() {
+        writeBuffer(byteBuffer, position);
+    }
+
+    /**
+     * Write the given buffer at the given position.
+     *
+     * @param byteBuffer The byte buffer.
+     * @param position   The position.
+     */
+    private void writeBuffer(PooledByteBuffer byteBuffer, int position) {
+        channel.write(byteBuffer.nio(), DatabaseConstants.INDEX_BLOCK_SIZE * position, byteBuffer, new CompletionHandler<Integer, PooledByteBuffer>() {
             @Override
             public void completed(Integer result, PooledByteBuffer attachment) {
                 byteBuffer.release();
@@ -254,6 +289,11 @@ public class IndexStorageImpl implements IndexStorage {
         });
     }
 
+    /**
+     * Allocate a free block for an index.
+     *
+     * @return The block id.
+     */
     private int allocateFreeBlock() {
         return emptyIndices.isEmpty() ? lastIndexPosition++ : emptyIndices.poll();
     }
