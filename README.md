@@ -26,19 +26,6 @@ Our database was planned to proof the concept of an indexed key value data stora
 maximize performance and speed while being as lightweight and easy to use as possible.
 
 ## File Formats
-We organized our files in block formats with a fixed size.
-
-### Index File
-
-### Data File
-
-## Data Record
-
-### Index
-
-### Data
-
-## Caching Lifecycle
 We organized our files in block formats with a fixed size. There is one file that will store the indices and one
 file that will store the corresponding data.
 
