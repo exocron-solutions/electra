@@ -27,18 +27,37 @@ package io.electra.server.pool;
 import java.nio.*;
 
 /**
+ * Delegate to fit our {@link ByteBuffer} into the {@link ByteBufferPool}.
+ *
  * @author Felix Klauke <fklauke@itemis.de>
+ * @author Philip 'JackWhite20' <silencephil@gmail.com>
  */
 public class PooledByteBuffer {
 
+    /**
+     * The underlying byte buffer.
+     */
     private final ByteBuffer byteBuffer;
+
+    /**
+     * The pool this buffer belongs to.
+     */
     private final AbstractPool<PooledByteBuffer> pool;
 
+    /**
+     * Create a buffer by its underlying structure.
+     *
+     * @param byteBuffer The byte buffer.
+     * @param pool       The pool.
+     */
     public PooledByteBuffer(ByteBuffer byteBuffer, AbstractPool<PooledByteBuffer> pool) {
         this.byteBuffer = byteBuffer;
         this.pool = pool;
     }
 
+    /**
+     * Release the byte buffer into the pool.
+     */
     public void release() {
         byteBuffer.clear();
 

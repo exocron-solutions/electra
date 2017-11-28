@@ -33,6 +33,7 @@ import java.nio.file.Path;
  * default implementation for this class can be found at {@link DefaultDatabaseImpl}.
  *
  * @author Felix Klauke <fklauke@itemis.de>
+ * @author Philip 'JackWhite20' <silencephil@gmail.com>
  */
 public interface Database {
 
