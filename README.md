@@ -70,7 +70,41 @@ will point to the next data block or to itself. That results in a linked list of
 ### Data
 
 ## Caching Lifecycle
+Of course we try to minimize the I/O operations and only read from disk when it really has to be. The whole caching
+consists of four caches:
+- BlockCache
+- BlockChainCache
+- IndexCache
+- DataCache
+
+### BlockCache
+To prevent data reading from disk all the time when we want to read the same data and also to have changes in memory
+while they are still in process to be written to the disk, this cache provides all currently loaded and all
+recently accessed data blocks. It contains the content of a block keyed by its position in the data file.
+
+### BlockChainCache
+We want to build the block chains fast. Really fast. That is why we have an own cache for the next blocks. This cache
+contains all links between to data blocks. The key is the 'source' and the value is the 'target'.
+
+### IndexCache
+The index cache is maybe not even a cache. It holds all indices in memory because we can't risk to read it from disk.
+The organization of the index cache can differ. We're doing experiments will B+ trees, koloboke's enhanced maps
+and other data structures. The main goal is to store the index keyed by its key hash.
+
+### DataCache
+The data cache is 'the highest cache'. It operates before any CRUD operation in the database. When you are saving a new
+value in the database, the cache will register this value. If you query for a value the data cache will be consulted
+first. If you try to delete data it will be invalidated in this cache. It's like a top level cache that operates mainly
+in runtime to make the data you save accessible in memory. But we can't hold all data you save in memory so this cache
+will let all values expire one minute after they were written into the cache.
 
 ## Algorithms
+In the following we try to explain our central repositories needed to organize our data.
 
+### Saving
 
+### Updating
+
+### Querying
+
+### Deleting
