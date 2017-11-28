@@ -191,12 +191,14 @@ blocks. In this case these would result in the blocks 2, 6 and 7. Now we can spl
 in the blocks. At last we would create the new index that points to the data block 2.
 
 If we look at the next block pointers our table should look like this:
+```
 +-------------+---+---+---+---+---+----+---+----+----+----+----+----+----+
 | Block Index | 0 | 1 | 2 | 3 | 4 | 5  | 6 | 7  | 8  | 9  | 10 | 11 | 12 |
 +-------------+---+---+---+---+---+----+---+----+----+----+----+----+----+
 | Data        | X | X | X | X | X | X  | X | X  | X  | O  | X  | X  | O  |
 | Next Block  | 0 | 1 | 6 | 4 | 5 | -1 | 7 | -1 | -1 | 12 | 11 | -1 | -1 |
 +-------------+---+---+---+---+---+----+---+----+----+----+----+----+----+
+```
 
 At this time the empty data index should point at 9.
 
