@@ -35,6 +35,15 @@
 
     <artifactId>electra-client</artifactId>
 
+    <dependencies>
+        <!-- HTTP Client -->
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.5.3</version>
+        </dependency>
+    </dependencies>
+
     <build>
         <plugins>
             <plugin>

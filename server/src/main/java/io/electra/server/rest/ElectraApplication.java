@@ -1,13 +1,13 @@
 package io.electra.server.rest;
 
 import com.google.common.collect.Sets;
-import io.electra.server.rest.service.DatabaseResource;
+import io.electra.server.rest.resource.DatabaseResource;
 
 import javax.ws.rs.core.Application;
 import java.util.Set;
 
 /**
- * Created by JackWhite20 on 27.11.2017.
+ * @author Philip 'JackWhite20' <silencephil@gmail.com>
  */
 public class ElectraApplication extends Application {
 
