@@ -71,4 +71,9 @@ public interface StorageManager {
      * @return The data.
      */
     byte[] get(int keyHash);
+
+    /**
+     * Initialize the free block scanning.
+     */
+    void initializeFreeBlocks();
 }

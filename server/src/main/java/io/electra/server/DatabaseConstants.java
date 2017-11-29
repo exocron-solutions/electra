@@ -32,6 +32,12 @@ package io.electra.server;
 public class DatabaseConstants {
 
     /**
+     * The size of the blocks our data is organized in. Remember that the pure content of the size will have a length of
+     * DATA_BLOCK_SIZE - {@link #CONTENT_LENGTH_OFFSET} - {@link #NEXT_POSITION_OFFSET}.
+     */
+    public static final int DATA_BLOCK_SIZE = 128;
+
+    /**
      * The port to access our rest ful web service.
      */
     public static final int REST_PORT = 8080;
@@ -45,37 +51,30 @@ public class DatabaseConstants {
      * Represents how many bytes are needed to store an integer.
      */
     public static final int INTEGER_BYTE_SIZE = 4;
-
-    /**
-     * The size of the blocks our data is organized in. Remember that the pure content of the size will have a length of
-     * DATA_BLOCK_SIZE - {@link #CONTENT_LENGTH_OFFSET} - {@link #NEXT_POSITION_OFFSET}.
-     */
-    public static int DATA_BLOCK_SIZE = 128;
-
     /**
      * The amount of bytes needed to store the content length.
      */
-    public static int CONTENT_LENGTH_OFFSET = 4;
-
+    public static final int CONTENT_LENGTH_OFFSET = 4;
     /**
      * The amount of bytes needed to store the next position pointer.
      */
-    public static int NEXT_POSITION_OFFSET = 4;
-
+    public static final int NEXT_POSITION_OFFSET = 4;
     /**
      * The size of one index block.
      */
-    public static int INDEX_BLOCK_SIZE = 9;
-
+    public static final int INDEX_BLOCK_SIZE = 9;
     /**
      * The default path for a basic data file.
      */
-    public static String DEFAULT_DATA_FILE_PATH = "data.lctr";
-
+    public static final String DEFAULT_DATA_FILE_PATH = "data.lctr";
     /**
      * The default path for a basic index file.
      */
-    public static String DEFAULT_INDEX_FILE_PATH = "index.lctr";
+    public static final String DEFAULT_INDEX_FILE_PATH = "index.lctr";
+
+    public DatabaseConstants() {
+        throw new AssertionError();
+    }
 
     /**
      * The prefix for all threads working on actual data.

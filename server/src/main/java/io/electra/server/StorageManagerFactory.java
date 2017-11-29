@@ -24,42 +24,34 @@
 
 package io.electra.server;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.nio.file.Path;
+import io.electra.server.data.DataStorage;
+import io.electra.server.index.IndexStorage;
+import io.electra.server.storage.StorageManager;
 
 /**
- * The central entry point to create database instances.
+ * The central entry point to create new instances of the {@link StorageManager}.
  *
  * @author Felix Klauke <fklauke@itemis.de>
  */
-public class DatabaseFactory {
+public class StorageManagerFactory {
 
-    public DatabaseFactory() {
+    /**
+     * Prohibit instantiation.
+     */
+    public StorageManagerFactory() {
         throw new AssertionError();
     }
 
     /**
-     * The logger to log database instance creation.
-     */
-    private static Logger logger = LoggerFactory.getLogger(DatabaseFactory.class);
-
-    /**
-     * Create a new database based on its underlying files.
+     * Create a new instance of the {@link StorageManager} by its underlying storages.
      *
-     * @param dataFilePath  The data file path.
-     * @param indexFilePath The index file path.
-     * @return The database instance.
+     * @param indexStorage The index storage.
+     * @param dataStorage  The data storage.
+     * @return The storage manager instance.
      */
-    public static Database createDatabase(Path dataFilePath, Path indexFilePath) {
-        if (dataFilePath.equals(indexFilePath)) {
-            throw new IllegalArgumentException("Someone tried to use the same file for indices and data.");
-        }
-
-        logger.info("Creating a new database based on {} and {}.", dataFilePath, indexFilePath);
-        Database database = new DefaultDatabaseImpl(dataFilePath, indexFilePath);
-        logger.info("Database creation successful.");
-        return database;
+    public static StorageManager createStorageManager(IndexStorage indexStorage, DataStorage dataStorage) {
+        StorageManager storageManager = new StorageManagerImpl(indexStorage, dataStorage);
+        storageManager.initializeFreeBlocks();
+        return storageManager;
     }
 }
