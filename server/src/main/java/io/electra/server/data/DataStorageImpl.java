@@ -107,18 +107,7 @@ public class DataStorageImpl implements DataStorage {
 
             byteBuffer.flip();
 
-            channel.write(byteBuffer.nio(), currentBlock * DatabaseConstants.DATA_BLOCK_SIZE, byteBuffer, new CompletionHandler<Integer, PooledByteBuffer>() {
-                @Override
-                public void completed(Integer result, PooledByteBuffer attachment) {
-                    byteBuffer.release();
-                }
-
-                @Override
-                public void failed(Throwable exc, PooledByteBuffer attachment) {
-                    logger.error("Error while writing data block to disk.", exc);
-                    byteBuffer.release();
-                }
-            });
+            writeBuffer(byteBuffer, currentBlock * DatabaseConstants.DATA_BLOCK_SIZE);
         }
     }
 
@@ -208,7 +197,17 @@ public class DataStorageImpl implements DataStorage {
         byteBuffer.putInt(nextBlockIndex);
         byteBuffer.flip();
 
-        channel.write(byteBuffer.nio(), blockIndex * DatabaseConstants.DATA_BLOCK_SIZE, byteBuffer, new CompletionHandler<Integer, PooledByteBuffer>() {
+        writeBuffer(byteBuffer, blockIndex * DatabaseConstants.DATA_BLOCK_SIZE);
+    }
+
+    /**
+     * Write the given byte buffer to disk.
+     *
+     * @param byteBuffer The byte buffer.
+     * @param position   The position in the channel.
+     */
+    private void writeBuffer(PooledByteBuffer byteBuffer, int position) {
+        channel.write(byteBuffer.nio(), position, byteBuffer, new CompletionHandler<Integer, PooledByteBuffer>() {
             @Override
             public void completed(Integer result, PooledByteBuffer attachment) {
                 byteBuffer.release();
@@ -216,7 +215,7 @@ public class DataStorageImpl implements DataStorage {
 
             @Override
             public void failed(Throwable exc, PooledByteBuffer attachment) {
-                logger.error("Error while writing part of a block chain.", exc);
+                logger.error("Error while writing buffer to disk.", exc);
                 byteBuffer.release();
             }
         });

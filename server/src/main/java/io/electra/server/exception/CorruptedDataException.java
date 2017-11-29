@@ -22,36 +22,29 @@
  * SOFTWARE.
  */
 
-package io.electra.server;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.nio.file.Path;
+package io.electra.server.exception;
 
 /**
- * The central entry point to create database instances.
- *
  * @author Felix Klauke <fklauke@itemis.de>
  */
-public class DatabaseFactory {
+public class CorruptedDataException extends RuntimeException {
 
-    /**
-     * The logger to log database instance creation.
-     */
-    private static Logger logger = LoggerFactory.getLogger(DatabaseFactory.class);
+    public CorruptedDataException() {
+    }
 
-    /**
-     * Create a new database based on its underlying files.
-     *
-     * @param dataFilePath  The data file path.
-     * @param indexFilePath The index file path.
-     * @return The database instance.
-     */
-    public static Database createDatabase(Path dataFilePath, Path indexFilePath) {
-        logger.info("Creating a new database based on {} and {}.", dataFilePath, indexFilePath);
-        Database database = new DefaultDatabaseImpl(dataFilePath, indexFilePath);
-        logger.info("Database creation successful.");
-        return database;
+    public CorruptedDataException(String message) {
+        super(message);
+    }
+
+    public CorruptedDataException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public CorruptedDataException(Throwable cause) {
+        super(cause);
+    }
+
+    public CorruptedDataException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
     }
 }
