@@ -76,4 +76,14 @@ public class DatabaseConstants {
      * The default path for a basic index file.
      */
     public static String DEFAULT_INDEX_FILE_PATH = "index.lctr";
+
+    /**
+     * The prefix for all threads working on actual data.
+     */
+    public static final String DATA_WORKER_PREFIX = "Electra Data Worker #";
+
+    /**
+     * The prefix for all threads working on indices.
+     */
+    public static final String INDEX_WORKER_PREFIX = "Electra Index Worker #";
 }
