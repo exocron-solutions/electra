@@ -22,36 +22,41 @@
  * SOFTWARE.
  */
 
-package io.electra.server.index;
+package io.electra.server.factory;
 
-import com.google.common.collect.Sets;
-import io.electra.server.DatabaseConstants;
-import io.electra.server.factory.ElectraThreadFactory;
-
-import java.io.IOException;
-import java.nio.channels.AsynchronousFileChannel;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
+ * A {@link ThreadFactory} that created new threads with a custom prefixed name.
+ *
  * @author Felix Klauke <fklauke@itemis.de>
  */
-public class IndexStorageFactory {
+public class ElectraThreadFactory implements ThreadFactory {
 
-    public static IndexStorage createIndexStorage(Path indexFilePath) {
-        try {
-            if (!Files.exists(indexFilePath)) {
-                Files.createFile(indexFilePath);
-            }
+    /**
+     * The counter to deliver ids for threads.
+     */
+    private final AtomicInteger atomicInteger = new AtomicInteger(0);
 
-            AsynchronousFileChannel channel = AsynchronousFileChannel.open(indexFilePath, Sets.newHashSet(StandardOpenOption.READ, StandardOpenOption.WRITE), Executors.newCachedThreadPool(new ElectraThreadFactory(DatabaseConstants.INDEX_WORKER_PREFIX)));
-            return new IndexStorageImpl(channel);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    /**
+     * The prefix of the thread name.
+     */
+    private final String namePrefix;
 
-        return null;
+    /**
+     * Create a new thread factory instance by its prefix.
+     *
+     * @param namePrefix The prefix that will be prepended before the thread id.
+     */
+    public ElectraThreadFactory(String namePrefix) {
+        this.namePrefix = namePrefix;
+    }
+
+    @Override
+    public Thread newThread(Runnable r) {
+        Thread thread = new Thread(r);
+        thread.setName(namePrefix + atomicInteger.incrementAndGet());
+        return thread;
     }
 }

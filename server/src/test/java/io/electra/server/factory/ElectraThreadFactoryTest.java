@@ -22,36 +22,48 @@
  * SOFTWARE.
  */
 
-package io.electra.server.index;
+package io.electra.server.factory;
 
-import com.google.common.collect.Sets;
-import io.electra.server.DatabaseConstants;
-import io.electra.server.factory.ElectraThreadFactory;
+import org.junit.Before;
+import org.junit.Test;
 
-import java.io.IOException;
-import java.nio.channels.AsynchronousFileChannel;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
+ * Test the behaviour of the {@link ElectraThreadFactory}.
+ *
  * @author Felix Klauke <fklauke@itemis.de>
  */
-public class IndexStorageFactory {
+public class ElectraThreadFactoryTest {
 
-    public static IndexStorage createIndexStorage(Path indexFilePath) {
-        try {
-            if (!Files.exists(indexFilePath)) {
-                Files.createFile(indexFilePath);
-            }
+    /**
+     * The test prefix. As we start counting the thread ids with '1', the result should be:
+     * <p>
+     * PREFIX + 1
+     */
+    private static final String PREFIX = "TestPrefix #";
 
-            AsynchronousFileChannel channel = AsynchronousFileChannel.open(indexFilePath, Sets.newHashSet(StandardOpenOption.READ, StandardOpenOption.WRITE), Executors.newCachedThreadPool(new ElectraThreadFactory(DatabaseConstants.INDEX_WORKER_PREFIX)));
-            return new IndexStorageImpl(channel);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    /**
+     * The tested thread factory.
+     */
+    private ThreadFactory threadFactory;
 
-        return null;
+    @Before
+    public void setUp() throws Exception {
+        threadFactory = new ElectraThreadFactory(PREFIX);
+    }
+
+    @Test
+    public void testNewThread() throws Exception {
+        Runnable runnable = () -> {
+        };
+
+        Thread thread = threadFactory.newThread(runnable);
+
+        assertNotNull(thread);
+        assertEquals(PREFIX + 1, thread.getName());
     }
 }
