@@ -56,6 +56,18 @@
             <artifactId>netty-all</artifactId>
             <version>4.1.7.Final</version>
         </dependency>
+
+        <!-- Koloboke -->
+        <dependency>
+            <groupId>net.openhft</groupId>
+            <artifactId>koloboke-api-jdk8</artifactId>
+            <version>0.6.8</version>
+        </dependency>
+        <dependency>
+            <groupId>net.openhft</groupId>
+            <artifactId>koloboke-impl-jdk8</artifactId>
+            <version>0.6.8</version>
+        </dependency>
     </dependencies>
 
     <build>
