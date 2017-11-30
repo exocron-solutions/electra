@@ -27,6 +27,8 @@ package io.electra.server.index;
 import com.google.common.collect.Sets;
 import io.electra.server.DatabaseConstants;
 import io.electra.server.factory.ElectraThreadFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.channels.AsynchronousFileChannel;
@@ -36,20 +38,38 @@ import java.nio.file.StandardOpenOption;
 import java.util.concurrent.Executors;
 
 /**
+ * The central entry point to create instances of the {@link IndexStorage}.
+ *
  * @author Felix Klauke <fklauke@itemis.de>
  */
 public class IndexStorageFactory {
 
+    /**
+     * The logger to log index storage instantiation.
+     */
+    private static Logger logger = LoggerFactory.getLogger(IndexStorageFactory.class);
+
+    /**
+     * Create a new {@link IndexStorage} by its underlying file.
+     *
+     * @param indexFilePath The path of the underlying file.
+     * @return The index storage instance.
+     */
     public static IndexStorage createIndexStorage(Path indexFilePath) {
         try {
             if (!Files.exists(indexFilePath)) {
+                logger.info("Index file could not be found. Creating new one...");
                 Files.createFile(indexFilePath);
+                logger.info("Created a new data file.");
             }
 
+            logger.info("Opening channel to index file and creating index storage.");
             AsynchronousFileChannel channel = AsynchronousFileChannel.open(indexFilePath, Sets.newHashSet(StandardOpenOption.READ, StandardOpenOption.WRITE), Executors.newCachedThreadPool(new ElectraThreadFactory(DatabaseConstants.INDEX_WORKER_PREFIX)));
-            return new IndexStorageImpl(channel);
+            IndexStorage indexStorage = new IndexStorageImpl(channel);
+            logger.info("Index storage created.");
+            return indexStorage;
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("An error occured while creating the index storage.", e);
         }
 
         return null;

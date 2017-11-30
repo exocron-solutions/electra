@@ -60,12 +60,12 @@ public class DataStorageFactory {
 
         try {
             if (!Files.exists(dataFilePath)) {
-                logger.info("Index file could not be found. Creating new one...");
+                logger.info("Data file could not be found. Creating new one...");
                 Files.createFile(dataFilePath);
-                logger.info("Created new index file.");
+                logger.info("Created new data file.");
             }
 
-            logger.info("Opening channel to index file and creating data storage.");
+            logger.info("Opening channel to data file and creating data storage.");
             AsynchronousFileChannel channel = AsynchronousFileChannel.open(dataFilePath, Sets.newHashSet(StandardOpenOption.READ, StandardOpenOption.WRITE), Executors.newCachedThreadPool(new ElectraThreadFactory(DatabaseConstants.DATA_WORKER_PREFIX)));
             dataStorage = new DataStorageImpl(channel);
             logger.info("Data storage created.");
