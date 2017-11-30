@@ -27,6 +27,8 @@ package io.electra.server;
 import io.electra.server.data.DataStorage;
 import io.electra.server.index.IndexStorage;
 import io.electra.server.storage.StorageManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The central entry point to create new instances of the {@link StorageManager}.
@@ -34,6 +36,11 @@ import io.electra.server.storage.StorageManager;
  * @author Felix Klauke <fklauke@itemis.de>
  */
 public class StorageManagerFactory {
+
+    /**
+     * The logger that will log the storage manager initialization process.
+     */
+    private static Logger logger = LoggerFactory.getLogger(StorageManagerFactory.class);
 
     /**
      * Prohibit instantiation.
@@ -50,8 +57,14 @@ public class StorageManagerFactory {
      * @return The storage manager instance.
      */
     public static StorageManager createStorageManager(IndexStorage indexStorage, DataStorage dataStorage) {
+        logger.info("Creating a new storage manager...");
         StorageManager storageManager = new StorageManagerImpl(indexStorage, dataStorage);
+
+        logger.info("Created a new storage manager. Initializing free blocks.");
+
         storageManager.initializeFreeBlocks();
+        logger.info("Initialized free blocks.");
+
         return storageManager;
     }
 }
