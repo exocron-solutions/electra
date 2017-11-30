@@ -62,15 +62,12 @@ public class DefaultDatabaseImpl implements Database {
      * @param indexFilePath The index file.
      */
     DefaultDatabaseImpl(Path dataFilePath, Path indexFilePath) {
-        if (dataFilePath.equals(indexFilePath)) {
-            throw new IllegalArgumentException("Someone tried to use the same file for indices and data.");
-        }
-
         IndexStorage indexStorage = IndexStorageFactory.createIndexStorage(indexFilePath);
         DataStorage dataStorage = DataStorageFactory.createDataStorage(dataFilePath);
 
         dataCache = new DataCache(1, TimeUnit.MINUTES, 10000);
-        storageManager = new StorageManagerImpl(indexStorage, dataStorage);
+
+        storageManager = StorageManagerFactory.createStorageManager(indexStorage, dataStorage);
     }
 
 

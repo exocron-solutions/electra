@@ -22,36 +22,36 @@
  * SOFTWARE.
  */
 
-package io.electra.server.index;
+package io.electra.server;
 
-import com.google.common.collect.Sets;
-import io.electra.server.DatabaseConstants;
-import io.electra.server.factory.ElectraThreadFactory;
-
-import java.io.IOException;
-import java.nio.channels.AsynchronousFileChannel;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-import java.util.concurrent.Executors;
+import io.electra.server.data.DataStorage;
+import io.electra.server.index.IndexStorage;
+import io.electra.server.storage.StorageManager;
 
 /**
+ * The central entry point to create new instances of the {@link StorageManager}.
+ *
  * @author Felix Klauke <fklauke@itemis.de>
  */
-public class IndexStorageFactory {
+public class StorageManagerFactory {
 
-    public static IndexStorage createIndexStorage(Path indexFilePath) {
-        try {
-            if (!Files.exists(indexFilePath)) {
-                Files.createFile(indexFilePath);
-            }
+    /**
+     * Prohibit instantiation.
+     */
+    public StorageManagerFactory() {
+        throw new AssertionError();
+    }
 
-            AsynchronousFileChannel channel = AsynchronousFileChannel.open(indexFilePath, Sets.newHashSet(StandardOpenOption.READ, StandardOpenOption.WRITE), Executors.newCachedThreadPool(new ElectraThreadFactory(DatabaseConstants.INDEX_WORKER_PREFIX)));
-            return new IndexStorageImpl(channel);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return null;
+    /**
+     * Create a new instance of the {@link StorageManager} by its underlying storages.
+     *
+     * @param indexStorage The index storage.
+     * @param dataStorage  The data storage.
+     * @return The storage manager instance.
+     */
+    public static StorageManager createStorageManager(IndexStorage indexStorage, DataStorage dataStorage) {
+        StorageManager storageManager = new StorageManagerImpl(indexStorage, dataStorage);
+        storageManager.initializeFreeBlocks();
+        return storageManager;
     }
 }

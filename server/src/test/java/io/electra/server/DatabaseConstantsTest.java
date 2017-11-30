@@ -22,36 +22,17 @@
  * SOFTWARE.
  */
 
-package io.electra.server.index;
+package io.electra.server;
 
-import com.google.common.collect.Sets;
-import io.electra.server.DatabaseConstants;
-import io.electra.server.factory.ElectraThreadFactory;
-
-import java.io.IOException;
-import java.nio.channels.AsynchronousFileChannel;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-import java.util.concurrent.Executors;
+import org.junit.Test;
 
 /**
  * @author Felix Klauke <fklauke@itemis.de>
  */
-public class IndexStorageFactory {
+public class DatabaseConstantsTest {
 
-    public static IndexStorage createIndexStorage(Path indexFilePath) {
-        try {
-            if (!Files.exists(indexFilePath)) {
-                Files.createFile(indexFilePath);
-            }
-
-            AsynchronousFileChannel channel = AsynchronousFileChannel.open(indexFilePath, Sets.newHashSet(StandardOpenOption.READ, StandardOpenOption.WRITE), Executors.newCachedThreadPool(new ElectraThreadFactory(DatabaseConstants.INDEX_WORKER_PREFIX)));
-            return new IndexStorageImpl(channel);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return null;
+    @Test(expected = AssertionError.class)
+    public void testCreation() {
+        new DatabaseConstants();
     }
 }

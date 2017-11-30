@@ -68,9 +68,6 @@ public class StorageManagerImpl implements StorageManager {
     StorageManagerImpl(IndexStorage indexStorage, DataStorage dataStorage) {
         this.indexStorage = indexStorage;
         this.dataStorage = dataStorage;
-
-        // Read all currently free indices.
-        freeBlocks = Sets.newTreeSet(() -> new DataBlockChainIndexIterator(dataStorage, indexStorage.getCurrentEmptyIndex().getDataFilePosition()));
     }
 
     /**
@@ -231,6 +228,12 @@ public class StorageManagerImpl implements StorageManager {
         }
 
         return readBlockChainContent(dataBlock);
+    }
+
+    @Override
+    public void initializeFreeBlocks() {
+        // Read all currently free indices.
+        freeBlocks = Sets.newTreeSet(() -> new DataBlockChainIndexIterator(dataStorage, indexStorage.getCurrentEmptyIndex().getDataFilePosition()));
     }
 
     /**

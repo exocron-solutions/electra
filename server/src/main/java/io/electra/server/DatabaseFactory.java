@@ -36,6 +36,10 @@ import java.nio.file.Path;
  */
 public class DatabaseFactory {
 
+    public DatabaseFactory() {
+        throw new AssertionError();
+    }
+
     /**
      * The logger to log database instance creation.
      */
@@ -49,6 +53,10 @@ public class DatabaseFactory {
      * @return The database instance.
      */
     public static Database createDatabase(Path dataFilePath, Path indexFilePath) {
+        if (dataFilePath.equals(indexFilePath)) {
+            throw new IllegalArgumentException("Someone tried to use the same file for indices and data.");
+        }
+
         logger.info("Creating a new database based on {} and {}.", dataFilePath, indexFilePath);
         Database database = new DefaultDatabaseImpl(dataFilePath, indexFilePath);
         logger.info("Database creation successful.");
