@@ -4,8 +4,14 @@ import io.electra.common.server.ElectraChannelInitializer;
 import io.electra.common.server.ElectraThreadFactory;
 import io.electra.common.server.PipelineUtils;
 import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import org.apache.commons.codec.Charsets;
+
+import java.util.Arrays;
+import java.util.function.Consumer;
 
 /**
  * @author Philip 'JackWhite20' <silencephil@gmail.com>
@@ -41,13 +47,25 @@ public class DefaultElectraClient implements ElectraClient {
     }
 
     @Override
-    public void get(String key) {
+    public void get(String key, Consumer<String> consumer) {
+        int keyHash = Arrays.hashCode(key.getBytes(Charsets.UTF_8));
 
+        int callbackId = ElectraBinaryHandler.callbackId.incrementAndGet();
+
+        ByteBuf byteBuf = Unpooled.buffer().writeByte(0).writeInt(callbackId).writeInt(keyHash);
+
+        electraBinaryHandler.send(byteBuf, bytes -> consumer.accept(new String(bytes, Charsets.UTF_8)), callbackId);
     }
 
     @Override
-    public void get(byte[] keyBytes) {
+    public void get(byte[] keyBytes, Consumer<byte[]> consumer) {
+        int keyHash = Arrays.hashCode(keyBytes);
 
+        int callbackId = ElectraBinaryHandler.callbackId.incrementAndGet();
+
+        ByteBuf byteBuf = Unpooled.buffer().writeByte(0).writeInt(callbackId).writeInt(keyHash);
+
+        electraBinaryHandler.send(byteBuf, consumer, callbackId);
     }
 
     @Override
