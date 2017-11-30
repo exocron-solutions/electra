@@ -87,13 +87,17 @@ public class DefaultDatabaseImpl implements Database {
         save(key, value.getBytes(Charsets.UTF_8));
     }
 
+    public byte[] get(int keyHash) {
+        byte[] bytes = dataCache.get(keyHash);
+
+        return bytes != null ? bytes : storageManager.get(keyHash);
+    }
+
     @Override
     public byte[] get(String key) {
         int keyHash = Arrays.hashCode(key.getBytes(Charsets.UTF_8));
 
-        byte[] bytes = dataCache.get(keyHash);
-
-        return bytes != null ? bytes : storageManager.get(keyHash);
+        return get(keyHash);
     }
 
     @Override

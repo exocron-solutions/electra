@@ -104,6 +104,20 @@
             <version>4.12</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- Netty -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>4.1.7.Final</version>
+        </dependency>
+
+        <!-- Common -->
+        <dependency>
+            <groupId>io.electra</groupId>
+            <artifactId>electra-common</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
     <build>
