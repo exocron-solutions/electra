@@ -93,6 +93,10 @@ public class ByteBufferAllocator {
      * @return The byte buffer.
      */
     public static PooledByteBuffer allocate(int size, boolean allowPooling) {
+        if (size < 0) {
+            throw new IllegalArgumentException("Someone tried to allocate a byte buffer with a size lower than zero.");
+        }
+
         times++;
         capacity += size;
 

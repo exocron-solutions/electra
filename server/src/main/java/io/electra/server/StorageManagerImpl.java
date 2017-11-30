@@ -28,6 +28,7 @@ import com.google.common.collect.Sets;
 import com.google.common.primitives.Bytes;
 import io.electra.server.data.DataBlock;
 import io.electra.server.data.DataStorage;
+import io.electra.server.exception.CorruptedDataException;
 import io.electra.server.index.Index;
 import io.electra.server.index.IndexStorage;
 import io.electra.server.iterator.DataBlockChainIndexIterator;
@@ -67,9 +68,6 @@ public class StorageManagerImpl implements StorageManager {
     StorageManagerImpl(IndexStorage indexStorage, DataStorage dataStorage) {
         this.indexStorage = indexStorage;
         this.dataStorage = dataStorage;
-
-        // Read all currently free indices.
-        freeBlocks = Sets.newTreeSet(() -> new DataBlockChainIndexIterator(dataStorage, indexStorage.getCurrentEmptyIndex().getDataFilePosition()));
     }
 
     /**
@@ -87,6 +85,23 @@ public class StorageManagerImpl implements StorageManager {
     public void save(int keyHash, byte[] bytes) {
         int blocksNeeded = calculateNeededBlocks(bytes.length);
 
+        int[] allocatedBlocks = allocateFreeBlocks(blocksNeeded);
+
+        indexStorage.getCurrentEmptyIndex().setDataFilePosition(freeBlocks.first());
+
+        int firstBlock = allocatedBlocks[0];
+
+        indexStorage.createIndex(keyHash, false, firstBlock);
+        dataStorage.save(allocatedBlocks, bytes);
+    }
+
+    /**
+     * Allocate the given amount of free blocks.
+     *
+     * @param blocksNeeded The amount of needed blocks.
+     * @return The allocated block indices.
+     */
+    private int[] allocateFreeBlocks(int blocksNeeded) {
         int[] allocatedBlocks = new int[blocksNeeded];
 
         for (int i = 0; i < allocatedBlocks.length; i++) {
@@ -98,12 +113,8 @@ public class StorageManagerImpl implements StorageManager {
 
             allocatedBlocks[i] = nextFreeBlock;
         }
-        indexStorage.getCurrentEmptyIndex().setDataFilePosition(freeBlocks.first());
 
-        int firstBlock = allocatedBlocks[0];
-
-        indexStorage.createIndex(keyHash, false, firstBlock);
-        dataStorage.save(allocatedBlocks, bytes);
+        return allocatedBlocks;
     }
 
     @Override
@@ -115,13 +126,25 @@ public class StorageManagerImpl implements StorageManager {
     @Override
     public void remove(int keyHash) {
         Index index = indexStorage.getIndex(keyHash);
-        Index currentEmptyIndex = indexStorage.getCurrentEmptyIndex();
 
         if (index == null) {
             return;
         }
 
         int[] affectedBlocks = dataStorage.getBlockChain(index.getDataFilePosition());
+
+        releaseBlocks(affectedBlocks);
+
+        indexStorage.removeIndex(index);
+    }
+
+    /**
+     * Release the given blocks and mark thm as free.
+     *
+     * @param affectedBlocks The affected blocks.
+     */
+    private void releaseBlocks(int[] affectedBlocks) {
+        Index currentEmptyIndex = indexStorage.getCurrentEmptyIndex();
 
         for (int i = affectedBlocks.length - 1; i >= 0; i--) {
             int currentAffectedBlockIndex = affectedBlocks[i];
@@ -136,8 +159,6 @@ public class StorageManagerImpl implements StorageManager {
 
             freeBlocks.add(currentAffectedBlockIndex);
         }
-
-        indexStorage.removeIndex(index);
     }
 
     /**
@@ -202,6 +223,26 @@ public class StorageManagerImpl implements StorageManager {
 
         DataBlock dataBlock = dataStorage.getDataBlock(index.getDataFilePosition());
 
+        if (dataBlock == null) {
+            throw new CorruptedDataException("Found index for key hash " + keyHash + " but now data block.");
+        }
+
+        return readBlockChainContent(dataBlock);
+    }
+
+    @Override
+    public void initializeFreeBlocks() {
+        // Read all currently free indices.
+        freeBlocks = Sets.newTreeSet(() -> new DataBlockChainIndexIterator(dataStorage, indexStorage.getCurrentEmptyIndex().getDataFilePosition()));
+    }
+
+    /**
+     * Read the block chains content beginning at the given data block.
+     *
+     * @param dataBlock The first data block.
+     * @return The content of the block chain.
+     */
+    private byte[] readBlockChainContent(DataBlock dataBlock) {
         byte[] result = dataBlock.getContent();
 
         while (dataBlock.getNextPosition() != -1) {

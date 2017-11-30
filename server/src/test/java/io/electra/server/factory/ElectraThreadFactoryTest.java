@@ -22,44 +22,48 @@
  * SOFTWARE.
  */
 
-package io.electra.server;
+package io.electra.server.factory;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.junit.Before;
+import org.junit.Test;
 
-import java.nio.file.Path;
+import java.util.concurrent.ThreadFactory;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
- * The central entry point to create database instances.
+ * Test the behaviour of the {@link ElectraThreadFactory}.
  *
  * @author Felix Klauke <fklauke@itemis.de>
  */
-public class DatabaseFactory {
+public class ElectraThreadFactoryTest {
 
-    public DatabaseFactory() {
-        throw new AssertionError();
+    /**
+     * The test prefix. As we start counting the thread ids with '1', the result should be:
+     * <p>
+     * PREFIX + 1
+     */
+    private static final String PREFIX = "TestPrefix #";
+
+    /**
+     * The tested thread factory.
+     */
+    private ThreadFactory threadFactory;
+
+    @Before
+    public void setUp() throws Exception {
+        threadFactory = new ElectraThreadFactory(PREFIX);
     }
 
-    /**
-     * The logger to log database instance creation.
-     */
-    private static Logger logger = LoggerFactory.getLogger(DatabaseFactory.class);
+    @Test
+    public void testNewThread() throws Exception {
+        Runnable runnable = () -> {
+        };
 
-    /**
-     * Create a new database based on its underlying files.
-     *
-     * @param dataFilePath  The data file path.
-     * @param indexFilePath The index file path.
-     * @return The database instance.
-     */
-    public static Database createDatabase(Path dataFilePath, Path indexFilePath) {
-        if (dataFilePath.equals(indexFilePath)) {
-            throw new IllegalArgumentException("Someone tried to use the same file for indices and data.");
-        }
+        Thread thread = threadFactory.newThread(runnable);
 
-        logger.info("Creating a new database based on {} and {}.", dataFilePath, indexFilePath);
-        Database database = new DefaultDatabaseImpl(dataFilePath, indexFilePath);
-        logger.info("Database creation successful.");
-        return database;
+        assertNotNull(thread);
+        assertEquals(PREFIX + 1, thread.getName());
     }
 }

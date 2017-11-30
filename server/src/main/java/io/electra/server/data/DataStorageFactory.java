@@ -24,6 +24,9 @@
 
 package io.electra.server.data;
 
+import com.google.common.collect.Sets;
+import io.electra.server.DatabaseConstants;
+import io.electra.server.factory.ElectraThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +35,7 @@ import java.nio.channels.AsynchronousFileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.concurrent.Executors;
 
 /**
  * The factory to create data storage instances.
@@ -56,13 +60,13 @@ public class DataStorageFactory {
 
         try {
             if (!Files.exists(dataFilePath)) {
-                logger.info("Index file could not be found. Creating new one...");
+                logger.info("Data file could not be found. Creating new one...");
                 Files.createFile(dataFilePath);
-                logger.info("Created new index file.");
+                logger.info("Created new data file.");
             }
 
-            logger.info("Opening channel to index file and creating data storage.");
-            AsynchronousFileChannel channel = AsynchronousFileChannel.open(dataFilePath, StandardOpenOption.READ, StandardOpenOption.WRITE);
+            logger.info("Opening channel to data file and creating data storage.");
+            AsynchronousFileChannel channel = AsynchronousFileChannel.open(dataFilePath, Sets.newHashSet(StandardOpenOption.READ, StandardOpenOption.WRITE), Executors.newCachedThreadPool(new ElectraThreadFactory(DatabaseConstants.DATA_WORKER_PREFIX)));
             dataStorage = new DataStorageImpl(channel);
             logger.info("Data storage created.");
         } catch (IOException e) {

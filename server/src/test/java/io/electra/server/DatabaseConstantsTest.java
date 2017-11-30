@@ -24,42 +24,15 @@
 
 package io.electra.server;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.nio.file.Path;
+import org.junit.Test;
 
 /**
- * The central entry point to create database instances.
- *
  * @author Felix Klauke <fklauke@itemis.de>
  */
-public class DatabaseFactory {
+public class DatabaseConstantsTest {
 
-    public DatabaseFactory() {
-        throw new AssertionError();
-    }
-
-    /**
-     * The logger to log database instance creation.
-     */
-    private static Logger logger = LoggerFactory.getLogger(DatabaseFactory.class);
-
-    /**
-     * Create a new database based on its underlying files.
-     *
-     * @param dataFilePath  The data file path.
-     * @param indexFilePath The index file path.
-     * @return The database instance.
-     */
-    public static Database createDatabase(Path dataFilePath, Path indexFilePath) {
-        if (dataFilePath.equals(indexFilePath)) {
-            throw new IllegalArgumentException("Someone tried to use the same file for indices and data.");
-        }
-
-        logger.info("Creating a new database based on {} and {}.", dataFilePath, indexFilePath);
-        Database database = new DefaultDatabaseImpl(dataFilePath, indexFilePath);
-        logger.info("Database creation successful.");
-        return database;
+    @Test(expected = AssertionError.class)
+    public void testCreation() {
+        new DatabaseConstants();
     }
 }

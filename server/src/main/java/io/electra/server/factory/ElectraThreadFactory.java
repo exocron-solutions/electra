@@ -22,44 +22,41 @@
  * SOFTWARE.
  */
 
-package io.electra.server;
+package io.electra.server.factory;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.nio.file.Path;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * The central entry point to create database instances.
+ * A {@link ThreadFactory} that created new threads with a custom prefixed name.
  *
  * @author Felix Klauke <fklauke@itemis.de>
  */
-public class DatabaseFactory {
+public class ElectraThreadFactory implements ThreadFactory {
 
-    public DatabaseFactory() {
-        throw new AssertionError();
+    /**
+     * The counter to deliver ids for threads.
+     */
+    private final AtomicInteger atomicInteger = new AtomicInteger(0);
+
+    /**
+     * The prefix of the thread name.
+     */
+    private final String namePrefix;
+
+    /**
+     * Create a new thread factory instance by its prefix.
+     *
+     * @param namePrefix The prefix that will be prepended before the thread id.
+     */
+    public ElectraThreadFactory(String namePrefix) {
+        this.namePrefix = namePrefix;
     }
 
-    /**
-     * The logger to log database instance creation.
-     */
-    private static Logger logger = LoggerFactory.getLogger(DatabaseFactory.class);
-
-    /**
-     * Create a new database based on its underlying files.
-     *
-     * @param dataFilePath  The data file path.
-     * @param indexFilePath The index file path.
-     * @return The database instance.
-     */
-    public static Database createDatabase(Path dataFilePath, Path indexFilePath) {
-        if (dataFilePath.equals(indexFilePath)) {
-            throw new IllegalArgumentException("Someone tried to use the same file for indices and data.");
-        }
-
-        logger.info("Creating a new database based on {} and {}.", dataFilePath, indexFilePath);
-        Database database = new DefaultDatabaseImpl(dataFilePath, indexFilePath);
-        logger.info("Database creation successful.");
-        return database;
+    @Override
+    public Thread newThread(Runnable r) {
+        Thread thread = new Thread(r);
+        thread.setName(namePrefix + atomicInteger.incrementAndGet());
+        return thread;
     }
 }

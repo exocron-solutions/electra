@@ -25,32 +25,72 @@
 package io.electra.server.data;
 
 /**
+ * Contains the data read from disk.
+ *
  * @author Felix Klauke <fklauke@itemis.de>
  */
 public class DataBlock {
 
+    /**
+     * The current position of the block.
+     */
     private final int currentPosition;
+
+    /**
+     * The content of the block.
+     */
     private final byte[] content;
+
+    /**
+     * THe position of the next block in the block chain.
+     */
     private int nextPosition;
 
+    /**
+     * Create a new data block instance by its underlying data.
+     *
+     * @param currentPosition The position of the data block.
+     * @param content         The content.
+     * @param nextPosition    The position of the next block.
+     */
     public DataBlock(int currentPosition, byte[] content, int nextPosition) {
         this.currentPosition = currentPosition;
         this.content = content;
         this.nextPosition = nextPosition;
     }
 
+    /**
+     * Get the current position of the block.
+     *
+     * @return The current position.
+     */
     public int getCurrentPosition() {
         return currentPosition;
     }
 
+    /**
+     * Get the content of the block.
+     *
+     * @return The content.
+     */
     public byte[] getContent() {
         return content;
     }
 
+    /**
+     * Get the position of the next block.
+     *
+     * @return The position of the next block.
+     */
     public int getNextPosition() {
         return nextPosition;
     }
 
+    /**
+     * Set the position of the next block.
+     *
+     * @param nextPosition The position of the next block.
+     */
     public void setNextPosition(int nextPosition) {
         this.nextPosition = nextPosition;
     }
