@@ -38,35 +38,30 @@ public class DatabaseConstants {
     public static final int DATA_BLOCK_SIZE = 128;
 
     /**
-     * The port to access our rest ful web service.
-     */
-    public static final int REST_PORT = 8080;
-
-    /**
-     * The host to access our rest ful web service.
-     */
-    public static final String REST_HOST = "0.0.0.0";
-
-    /**
      * Represents how many bytes are needed to store an integer.
      */
     public static final int INTEGER_BYTE_SIZE = 4;
+
     /**
      * The amount of bytes needed to store the content length.
      */
     public static final int CONTENT_LENGTH_OFFSET = 4;
+
     /**
      * The amount of bytes needed to store the next position pointer.
      */
     public static final int NEXT_POSITION_OFFSET = 4;
+
     /**
      * The size of one index block.
      */
     public static final int INDEX_BLOCK_SIZE = 9;
+
     /**
      * The default path for a basic data file.
      */
     public static final String DEFAULT_DATA_FILE_PATH = "data.lctr";
+
     /**
      * The default path for a basic index file.
      */
