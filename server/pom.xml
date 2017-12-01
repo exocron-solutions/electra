@@ -51,18 +51,6 @@
             <version>20171018</version>
         </dependency>
 
-        <!-- Koloboke -->
-        <dependency>
-            <groupId>net.openhft</groupId>
-            <artifactId>koloboke-api-jdk8</artifactId>
-            <version>0.6.8</version>
-        </dependency>
-        <dependency>
-            <groupId>net.openhft</groupId>
-            <artifactId>koloboke-impl-jdk8</artifactId>
-            <version>0.6.8</version>
-        </dependency>
-
         <!-- Logging -->
         <dependency>
             <groupId>ch.qos.logback</groupId>
@@ -127,7 +115,6 @@
             <version>2.0.0-beta.5</version>
             <scope>test</scope>
         </dependency>
-
 
         <!-- Common -->
         <dependency>
