@@ -24,11 +24,14 @@
 
 package io.electra.server;
 
-import io.electra.server.data.DataStorage;
-import io.electra.server.data.DataStorageFactory;
-import io.electra.server.index.IndexStorage;
-import io.electra.server.index.IndexStorageFactory;
-import io.electra.server.storage.StorageManager;
+import io.electra.core.Database;
+import io.electra.core.DatabaseFactory;
+import io.electra.core.StorageManagerFactory;
+import io.electra.core.data.DataStorage;
+import io.electra.core.data.DataStorageFactory;
+import io.electra.core.index.IndexStorage;
+import io.electra.core.index.IndexStorageFactory;
+import io.electra.core.storage.StorageManager;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

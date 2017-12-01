@@ -24,10 +24,10 @@
 
 package io.electra.benchmark;
 
-import io.electra.server.Database;
-import io.electra.server.DatabaseConstants;
-import io.electra.server.DatabaseFactory;
-import io.electra.server.alloc.ByteBufferAllocator;
+import io.electra.core.Database;
+import io.electra.core.DatabaseConstants;
+import io.electra.core.DatabaseFactory;
+import io.electra.core.alloc.ByteBufferAllocator;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;

@@ -24,6 +24,7 @@
 
 package io.electra.server;
 
+import io.electra.core.DatabaseConstants;
 import org.junit.Test;
 
 /**
