@@ -134,6 +134,11 @@
             <version>2.0.0-beta.5</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.electra</groupId>
+            <artifactId>electra-core</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
     <build>

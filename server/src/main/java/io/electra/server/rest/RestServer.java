@@ -24,9 +24,8 @@
 
 package io.electra.server.rest;
 
-import io.electra.server.Database;
-import io.electra.server.DatabaseConstants;
-
+import io.electra.core.Database;
+import io.electra.core.DatabaseConstants;
 import io.undertow.Undertow;
 import io.undertow.servlet.api.DeploymentInfo;
 import org.jboss.resteasy.plugins.server.undertow.UndertowJaxrsServer;

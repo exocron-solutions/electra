@@ -24,6 +24,9 @@
 
 package io.electra.server;
 
+import io.electra.core.Database;
+import io.electra.core.DatabaseConstants;
+import io.electra.core.DatabaseFactory;
 import io.electra.server.rest.RestServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
