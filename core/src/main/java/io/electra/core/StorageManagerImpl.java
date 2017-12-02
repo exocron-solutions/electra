@@ -26,6 +26,7 @@ package io.electra.core;
 
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Bytes;
+import com.google.common.primitives.Ints;
 import io.electra.core.data.DataBlock;
 import io.electra.core.data.DataStorage;
 import io.electra.core.exception.CorruptedDataException;
@@ -34,6 +35,8 @@ import io.electra.core.index.IndexStorage;
 import io.electra.core.iterator.DataBlockChainIndexIterator;
 import io.electra.core.storage.StorageManager;
 
+import java.util.Arrays;
+import java.util.Set;
 import java.util.TreeSet;
 
 /**
@@ -74,7 +77,6 @@ public class StorageManagerImpl implements StorageManager {
      * Calculate the amount of data blocks that will be necessary for data with the given length.
      *
      * @param contentLength The length.
-     *
      * @return The amount of blocks.
      */
     private int calculateNeededBlocks(int contentLength) {
@@ -85,14 +87,39 @@ public class StorageManagerImpl implements StorageManager {
     public void save(int keyHash, byte[] bytes) {
         int blocksNeeded = calculateNeededBlocks(bytes.length);
 
-        int[] allocatedBlocks = allocateFreeBlocks(blocksNeeded);
+        Index index = indexStorage.getIndex(keyHash);
 
-        indexStorage.getCurrentEmptyIndex().setDataFilePosition(freeBlocks.first());
+        if (index == null) {
+            int[] allocatedBlocks = allocateFreeBlocks(blocksNeeded);
+            indexStorage.getCurrentEmptyIndex().setDataFilePosition(freeBlocks.first());
+            int firstBlock = allocatedBlocks[0];
+            indexStorage.createIndex(keyHash, false, firstBlock);
+            dataStorage.save(allocatedBlocks, bytes);
+            return;
+        }
 
-        int firstBlock = allocatedBlocks[0];
+        DataBlock dataBlock = dataStorage.getDataBlock(index.getDataFilePosition());
 
-        indexStorage.createIndex(keyHash, false, firstBlock);
-        dataStorage.save(allocatedBlocks, bytes);
+        if (dataBlock == null) {
+            throw new CorruptedDataException("Found index for key hash " + keyHash + " but now data block.");
+        }
+
+        BlockChainContent chainContent = readBlockChainContent(dataBlock);
+
+        int chainContentSize = chainContent.getBlocks().size();
+        int[] currentBlocks = Ints.toArray(chainContent.getBlocks());
+
+        if (blocksNeeded > chainContentSize) {
+            int[] newBlocks = allocateFreeBlocks(blocksNeeded - chainContentSize);
+            currentBlocks = Ints.concat(currentBlocks, newBlocks);
+        } else if (blocksNeeded < chainContentSize) {
+            int[] newBlocks = Arrays.copyOfRange(currentBlocks, 0, blocksNeeded);
+            int[] release = Arrays.copyOfRange(currentBlocks, blocksNeeded + 1, currentBlocks.length);
+            releaseBlocks(release);
+            currentBlocks = newBlocks;
+        }
+
+        dataStorage.save(currentBlocks, bytes);
     }
 
     /**
@@ -227,7 +254,7 @@ public class StorageManagerImpl implements StorageManager {
             throw new CorruptedDataException("Found index for key hash " + keyHash + " but now data block.");
         }
 
-        return readBlockChainContent(dataBlock);
+        return readBlockChainContent(dataBlock).getResult();
     }
 
     @Override
@@ -242,14 +269,16 @@ public class StorageManagerImpl implements StorageManager {
      * @param dataBlock The first data block.
      * @return The content of the block chain.
      */
-    private byte[] readBlockChainContent(DataBlock dataBlock) {
+    private BlockChainContent readBlockChainContent(DataBlock dataBlock) {
         byte[] result = dataBlock.getContent();
+        Set<Integer> blocks = Sets.newLinkedHashSet();
 
         while (dataBlock.getNextPosition() != -1) {
             dataBlock = dataStorage.getDataBlock(dataBlock.getNextPosition());
             result = Bytes.concat(result, dataBlock.getContent());
+            blocks.add(dataBlock.getNextPosition());
         }
 
-        return result;
+        return new BlockChainContent(result, blocks);
     }
 }
