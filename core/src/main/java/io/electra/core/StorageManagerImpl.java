@@ -105,8 +105,12 @@ public class StorageManagerImpl implements StorageManager {
         }
 
         BlockChainContent chainContent = readBlockChainContent(dataBlock);
-
         int chainContentSize = chainContent.getBlocks().size();
+
+        if (chainContentSize == blocksNeeded && Arrays.equals(chainContent.getResult(), bytes)) {
+            return;
+        }
+
         int[] currentBlocks = Ints.toArray(chainContent.getBlocks());
 
         if (blocksNeeded > chainContentSize) {
