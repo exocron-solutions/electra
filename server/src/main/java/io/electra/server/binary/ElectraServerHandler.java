@@ -50,7 +50,6 @@ public class ElectraServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
         if (length > 0) {
             byte action = byteBuf.readByte();
 
-            // GET
             switch (action) {
                 case 0:
                     int callbackId = byteBuf.readInt();
