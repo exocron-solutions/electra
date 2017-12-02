@@ -24,6 +24,9 @@
 
 package io.electra.server;
 
+import io.electra.core.Database;
+import io.electra.core.DatabaseFactory;
+import io.electra.core.DefaultDatabaseImpl;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

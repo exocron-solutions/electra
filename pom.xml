@@ -37,5 +37,6 @@
         <module>common</module>
         <module>client</module>
         <module>benchmark</module>
+        <module>core</module>
     </modules>
 </project>
