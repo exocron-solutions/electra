@@ -27,6 +27,7 @@ package io.electra.server;
 import io.electra.core.Database;
 import io.electra.core.DatabaseConstants;
 import io.electra.core.DatabaseFactory;
+import io.electra.server.binary.ElectraBinaryServer;
 import io.electra.server.rest.RestServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,6 +48,8 @@ public class ElectraBootstrap {
 
     private static RestServer restServer;
 
+    private static ElectraBinaryServer electraBinaryServer;
+
     public static void main(String[] args) {
         logger.info("Starting electra");
 
@@ -55,6 +58,9 @@ public class ElectraBootstrap {
         restServer = new RestServer(database);
         restServer.start();
 
-        logger.info("Electra started");
+        electraBinaryServer = new ElectraBinaryServer(database);
+        electraBinaryServer.start();
+
+        //logger.info("Electra started");
     }
 }
