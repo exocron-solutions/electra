@@ -47,21 +47,23 @@ public class ElectraServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf byteBuf) throws Exception {
         int length = byteBuf.readInt();
 
-        byte action = byteBuf.readByte();
+        if (length > 0) {
+            byte action = byteBuf.readByte();
 
-        // GET
-        if (action == 0) {
-            int callbackId = byteBuf.readInt();
-            int keyHash = byteBuf.readInt();
+            // GET
+            if (action == 0) {
+                int callbackId = byteBuf.readInt();
+                int keyHash = byteBuf.readInt();
 
-            byte[] bytes = ((DefaultDatabaseImpl) ElectraBinaryServer.getInstance().getDatabase()).get(keyHash);
+                byte[] bytes = ((DefaultDatabaseImpl) ElectraBinaryServer.getInstance().getDatabase()).get(keyHash);
 
-            ByteBuf buffer = ctx.alloc().buffer();
-            buffer.writeByte(0);
-            buffer.writeInt(callbackId);
-            buffer.writeBytes(bytes);
+                ByteBuf buffer = ctx.alloc().buffer();
+                buffer.writeByte(0);
+                buffer.writeInt(callbackId);
+                buffer.writeBytes(bytes);
 
-            ctx.writeAndFlush(buffer).addListener(future -> buffer.release());
+                ctx.writeAndFlush(buffer).addListener(future -> buffer.release());
+            }
         }
     }
 
