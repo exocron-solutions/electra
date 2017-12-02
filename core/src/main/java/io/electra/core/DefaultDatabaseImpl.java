@@ -101,13 +101,17 @@ public class DefaultDatabaseImpl implements Database {
         return get(keyHash);
     }
 
+    public void remove(int keyHash) {
+        storageManager.remove(keyHash);
+
+        dataCache.invalidate(keyHash);
+    }
+
     @Override
     public void remove(String key) {
         int keyHash = Arrays.hashCode(key.getBytes(Charsets.UTF_8));
 
-        storageManager.remove(keyHash);
-
-        dataCache.invalidate(keyHash);
+        remove(keyHash);
     }
 
     @Override

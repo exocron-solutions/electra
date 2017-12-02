@@ -72,6 +72,11 @@ public class ElectraServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
                     ((DefaultDatabaseImpl) ElectraBinaryServer.getInstance().getDatabase()).save(putKeyHash, putBytes);
                     break;
+                case 2:
+                    int removeKeyHash = byteBuf.readInt();
+
+                    ((DefaultDatabaseImpl) ElectraBinaryServer.getInstance().getDatabase()).remove(removeKeyHash);
+                    break;
             }
         }
     }

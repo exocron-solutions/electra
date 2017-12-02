@@ -83,6 +83,23 @@ public class DefaultElectraClient implements ElectraClient {
     }
 
     @Override
+    public void remove(String key) {
+        remove(key.getBytes(Charsets.UTF_8));
+    }
+
+    @Override
+    public void remove(byte[] key) {
+        remove(Arrays.hashCode(key));
+    }
+
+    @Override
+    public void remove(int keyHash) {
+        ByteBuf byteBuf = Unpooled.buffer().writeByte(2).writeInt(keyHash);
+
+        electraBinaryHandler.send(byteBuf, null, -1);
+    }
+
+    @Override
     public void disconnect() {
         channel.close();
     }
