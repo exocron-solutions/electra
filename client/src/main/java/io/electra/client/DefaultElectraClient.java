@@ -70,12 +70,16 @@ public class DefaultElectraClient implements ElectraClient {
 
     @Override
     public void put(String key, String value) {
-
+        put(key.getBytes(Charsets.UTF_8), value.getBytes(Charsets.UTF_8));
     }
 
     @Override
     public void put(byte[] key, byte[] value) {
+        int keyHash = Arrays.hashCode(key);
 
+        ByteBuf byteBuf = Unpooled.buffer().writeByte(1).writeInt(keyHash).writeBytes(value);
+
+        electraBinaryHandler.send(byteBuf, null, -1);
     }
 
     @Override

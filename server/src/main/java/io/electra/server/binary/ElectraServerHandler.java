@@ -51,18 +51,27 @@ public class ElectraServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
             byte action = byteBuf.readByte();
 
             // GET
-            if (action == 0) {
-                int callbackId = byteBuf.readInt();
-                int keyHash = byteBuf.readInt();
+            switch (action) {
+                case 0:
+                    int callbackId = byteBuf.readInt();
+                    int keyHash = byteBuf.readInt();
 
-                byte[] bytes = ((DefaultDatabaseImpl) ElectraBinaryServer.getInstance().getDatabase()).get(keyHash);
+                    byte[] bytes = ((DefaultDatabaseImpl) ElectraBinaryServer.getInstance().getDatabase()).get(keyHash);
 
-                ByteBuf buffer = ctx.alloc().buffer();
-                buffer.writeByte(0);
-                buffer.writeInt(callbackId);
-                buffer.writeBytes(bytes);
+                    ByteBuf buffer = ctx.alloc().buffer();
+                    buffer.writeByte(0);
+                    buffer.writeInt(callbackId);
+                    buffer.writeBytes(bytes);
 
-                ctx.writeAndFlush(buffer).addListener(future -> buffer.release());
+                    ctx.writeAndFlush(buffer).addListener(future -> buffer.release());
+                    break;
+                case 1:
+                    int putKeyHash = byteBuf.readInt();
+                    byte[] putBytes = new byte[length - 5];
+                    byteBuf.readBytes(putBytes);
+
+                    ((DefaultDatabaseImpl) ElectraBinaryServer.getInstance().getDatabase()).save(putKeyHash, putBytes);
+                    break;
             }
         }
     }

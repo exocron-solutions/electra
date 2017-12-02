@@ -70,13 +70,17 @@ public class DefaultDatabaseImpl implements Database {
         storageManager = StorageManagerFactory.createStorageManager(indexStorage, dataStorage);
     }
 
+    public void save(int keyHash, byte[] bytes) {
+        storageManager.save(keyHash, bytes);
+
+        dataCache.put(keyHash, bytes);
+    }
 
     @Override
     public void save(String key, byte[] bytes) {
         int keyHash = Arrays.hashCode(key.getBytes(Charsets.UTF_8));
-        storageManager.save(keyHash, bytes);
 
-        dataCache.put(keyHash, bytes);
+        save(keyHash, bytes);
     }
 
     @Override
