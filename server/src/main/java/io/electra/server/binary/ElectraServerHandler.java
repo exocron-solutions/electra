@@ -61,7 +61,8 @@ public class ElectraServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
                     ByteBuf buffer = ctx.alloc().buffer();
                     buffer.writeByte(0);
                     buffer.writeInt(callbackId);
-                    buffer.writeBytes(bytes);
+                    // TODO: 03.12.2017 Cleaner
+                    buffer.writeBytes((bytes != null) ? bytes : new byte[] {});
 
                     ctx.writeAndFlush(buffer).addListener(future -> buffer.release());
                     break;
