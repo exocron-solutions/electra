@@ -32,8 +32,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 /**
  * @author Felix Klauke <fklauke@itemis.de>
@@ -59,15 +58,32 @@ public class DatabaseTest {
     }
 
     @Test
-    public void save1() throws Exception {
-    }
+    public void saveUpdate() throws Exception {
+        String testKey = "iagphawgagfa";
+        String testValue = "üioaofhnwa";
+        String testValue2 = "pgaojeg+pawnf+iawge";
 
-    @Test
-    public void get() throws Exception {
+        database.save(testKey, testValue);
+
+        assertNotNull(database.get(testKey));
+        assertEquals(testValue, new String(database.get(testKey)));
+
+        database.save(testKey, testValue2);
+
+        assertNotNull(database.get(testKey));
+        assertEquals(testValue2, new String(database.get(testKey)));
     }
 
     @Test
     public void remove() throws Exception {
+        String testKey = "iagphawgagfa";
+        String testValue = "üioaofhnwa";
+
+        database.save(testKey, testValue);
+
+        database.remove(testKey);
+
+        assertTrue(database.get(testKey) == null);
     }
 
     @After
