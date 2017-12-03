@@ -32,7 +32,6 @@ import io.electra.core.data.DataStorage;
 import io.electra.core.exception.CorruptedDataException;
 import io.electra.core.index.Index;
 import io.electra.core.index.IndexStorage;
-import io.electra.core.iterator.DataBlockChainIndexIterator;
 import io.electra.core.storage.StorageManager;
 
 import java.util.Arrays;
@@ -264,7 +263,7 @@ public class StorageManagerImpl implements StorageManager {
     @Override
     public void initializeFreeBlocks() {
         // Read all currently free indices.
-        freeBlocks = Sets.newTreeSet(() -> new DataBlockChainIndexIterator(dataStorage, indexStorage.getCurrentEmptyIndex().getDataFilePosition()));
+        freeBlocks = dataStorage.readNextBlockChain(indexStorage.getCurrentEmptyIndex().getDataFilePosition());
     }
 
     /**
