@@ -252,6 +252,11 @@ public class IndexStorageImpl implements IndexStorage {
         return index;
     }
 
+    @Override
+    public int getFirstEmptyDataBlock() {
+        return getCurrentEmptyIndex().getDataFilePosition();
+    }
+
     /**
      * Write the given index to the disk.
      *

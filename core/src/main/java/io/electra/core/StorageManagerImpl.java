@@ -263,7 +263,7 @@ public class StorageManagerImpl implements StorageManager {
     @Override
     public void initializeFreeBlocks() {
         // Read all currently free indices.
-        freeBlocks = dataStorage.readNextBlockChain(indexStorage.getCurrentEmptyIndex().getDataFilePosition());
+        freeBlocks = dataStorage.readNextBlockChain(indexStorage.getFirstEmptyDataBlock());
     }
 
     /**
