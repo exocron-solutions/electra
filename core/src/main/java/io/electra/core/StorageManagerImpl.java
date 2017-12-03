@@ -84,11 +84,11 @@ public class StorageManagerImpl implements StorageManager {
 
     @Override
     public void save(int keyHash, byte[] bytes) {
-        int blocksNeeded = calculateNeededBlocks(bytes.length);
 
         Index index = indexStorage.getIndex(keyHash);
 
         if (index == null) {
+            int blocksNeeded = calculateNeededBlocks(bytes.length);
             int[] allocatedBlocks = allocateFreeBlocks(blocksNeeded);
             indexStorage.setFirstEmptyDataBlock(freeBlocks.first());
             int firstBlock = allocatedBlocks[0];
@@ -97,10 +97,21 @@ public class StorageManagerImpl implements StorageManager {
             return;
         }
 
+        update(index, bytes);
+    }
+
+    /**
+     * Try updating the given indexed data.
+     *
+     * @param index The index.
+     * @param bytes The new data.
+     */
+    private void update(Index index, byte[] bytes) {
+        int blocksNeeded = calculateNeededBlocks(bytes.length);
         DataBlock dataBlock = dataStorage.getDataBlock(index.getDataFilePosition());
 
         if (dataBlock == null) {
-            throw new CorruptedDataException("Found index for key hash " + keyHash + " but now data block.");
+            throw new CorruptedDataException("Found index for key hash " + index.getKeyHash() + " but now data block.");
         }
 
         BlockChainContent chainContent = readBlockChainContent(dataBlock);
