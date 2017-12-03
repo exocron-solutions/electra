@@ -22,12 +22,10 @@
  * SOFTWARE.
  */
 
-package io.electra.server.test.pool;
+package io.electra.core.pool;
 
-import io.electra.core.pool.ByteBufferPool;
-import io.electra.core.pool.PooledByteBuffer;
-import io.electra.server.test.ElectraTest;
-import io.electra.server.test.Order;
+import io.electra.core.ElectraTest;
+import io.electra.core.Order;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

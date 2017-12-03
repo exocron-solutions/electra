@@ -22,18 +22,19 @@
  * SOFTWARE.
  */
 
-package io.electra.server;
+package io.electra.core;
 
-import io.electra.core.DatabaseConstants;
-import org.junit.Test;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * @author Felix Klauke <fklauke@itemis.de>
+ * @author Philip 'JackWhite20' <silencephil@gmail.com>
  */
-public class DatabaseConstantsTest {
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface Order {
 
-    @Test(expected = AssertionError.class)
-    public void testCreation() {
-        new DatabaseConstants();
-    }
+    int value();
 }

@@ -24,6 +24,7 @@
 
 package io.electra.core.data;
 
+import com.google.common.collect.Sets;
 import com.google.common.collect.Streams;
 import io.electra.core.DatabaseConstants;
 import io.electra.core.alloc.ByteBufferAllocator;
@@ -39,6 +40,7 @@ import java.io.IOException;
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.CompletionHandler;
 import java.util.Arrays;
+import java.util.TreeSet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -243,7 +245,7 @@ public class DataStorageImpl implements DataStorage {
     @Override
     public void close() {
         try {
-            channel.force(true);
+            channel.force(false);
             channel.close();
         } catch (IOException e) {
             logger.error("Error while data resource closing.", e);
@@ -255,5 +257,10 @@ public class DataStorageImpl implements DataStorage {
     @Override
     public int[] getBlockChain(int dataFilePosition) {
         return Streams.stream(new DataBlockChainIndexIterator(this, dataFilePosition)).mapToInt(Integer::intValue).toArray();
+    }
+
+    @Override
+    public TreeSet<Integer> readNextBlockChain(int dataFilePosition) {
+        return Sets.newTreeSet(() -> new DataBlockChainIndexIterator(this, dataFilePosition));
     }
 }

@@ -236,6 +236,7 @@ public class IndexStorageImpl implements IndexStorage {
         logger.info("Important data was written to disk.");
 
         try {
+            channel.force(false);
             channel.close();
         } catch (IOException e) {
             logger.error("Couldn't close index resources properly. ", e);
@@ -249,6 +250,16 @@ public class IndexStorageImpl implements IndexStorage {
         Index index = new Index(keyHash, false, firstBlock);
         saveIndex(index);
         return index;
+    }
+
+    @Override
+    public int getFirstEmptyDataBlock() {
+        return getCurrentEmptyIndex().getDataFilePosition();
+    }
+
+    @Override
+    public void setFirstEmptyDataBlock(int first) {
+        getCurrentEmptyIndex().setDataFilePosition(first);
     }
 
     /**

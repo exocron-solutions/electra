@@ -24,35 +24,15 @@
 
 package io.electra.core;
 
-import java.util.Arrays;
-import java.util.Set;
+import org.junit.Test;
 
 /**
  * @author Felix Klauke <fklauke@itemis.de>
  */
-class BlockChainContent {
+public class DatabaseConstantsTest {
 
-    private final byte[] result;
-    private final Set<Integer> blocks;
-
-    BlockChainContent(byte[] result, Set<Integer> blocks) {
-        this.result = result;
-        this.blocks = blocks;
-    }
-
-    byte[] getResult() {
-        return result;
-    }
-
-    Set<Integer> getBlocks() {
-        return blocks;
-    }
-
-    @Override
-    public String toString() {
-        return "BlockChainContent{" +
-                "result=" + Arrays.toString(result) +
-                ", blocks=" + blocks +
-                '}';
+    @Test(expected = AssertionError.class)
+    public void testCreation() {
+        new DatabaseConstants();
     }
 }
