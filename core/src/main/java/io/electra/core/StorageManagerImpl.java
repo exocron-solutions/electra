@@ -90,7 +90,7 @@ public class StorageManagerImpl implements StorageManager {
 
         if (index == null) {
             int[] allocatedBlocks = allocateFreeBlocks(blocksNeeded);
-            indexStorage.getCurrentEmptyIndex().setDataFilePosition(freeBlocks.first());
+            indexStorage.setFirstEmptyDataBlock(freeBlocks.first());
             int firstBlock = allocatedBlocks[0];
             indexStorage.createIndex(keyHash, false, firstBlock);
             dataStorage.save(allocatedBlocks, bytes);

@@ -42,4 +42,6 @@ public interface IndexStorage {
     Index createIndex(int keyHash, boolean empty, int firstBlock);
 
     int getFirstEmptyDataBlock();
+
+    void setFirstEmptyDataBlock(int first);
 }
