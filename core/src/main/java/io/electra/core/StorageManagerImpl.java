@@ -276,6 +276,7 @@ public class StorageManagerImpl implements StorageManager {
         byte[] result = dataBlock.getContent();
         Set<Integer> blocks = Sets.newLinkedHashSet();
 
+        blocks.add(dataBlock.getCurrentPosition());
         while (dataBlock.getNextPosition() != -1) {
             dataBlock = dataStorage.getDataBlock(dataBlock.getNextPosition());
             result = Bytes.concat(result, dataBlock.getContent());

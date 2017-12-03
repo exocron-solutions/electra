@@ -25,9 +25,13 @@
 package io.electra.core;
 
 import com.google.common.collect.Sets;
+import io.electra.core.data.DataBlock;
 import io.electra.core.data.DataStorage;
+import io.electra.core.exception.CorruptedDataException;
+import io.electra.core.index.Index;
 import io.electra.core.index.IndexStorage;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Matchers;
@@ -68,5 +72,38 @@ public class StorageManagerImplTest {
 
         Mockito.verify(indexStorage).getIndex(keyHash);
         Mockito.verify(indexStorage).createIndex(Matchers.eq(keyHash), Mockito.anyBoolean(), Mockito.anyInt());
+    }
+
+    @Test(expected = CorruptedDataException.class)
+    public void saveWithCorruptedData() throws Exception {
+        // Given
+        int keyHash = 456456;
+        Index index = new Index(keyHash, false, 0);
+
+        // When
+        Mockito.when(indexStorage.getIndex(keyHash)).thenReturn(index);
+
+        storageManager.save(keyHash, "Felix".getBytes());
+
+        // Then
+        Assert.fail();
+    }
+
+    @Test
+    public void saveUpdate() throws Exception {
+        // Given
+        int keyHash = 456456;
+        Index index = new Index(keyHash, false, 0);
+        DataBlock dataBlock = new DataBlock(0, new byte[3], -1);
+
+        // When
+        Mockito.when(indexStorage.getIndex(keyHash)).thenReturn(index);
+        Mockito.when(dataStorage.getDataBlock(0)).thenReturn(dataBlock);
+
+        storageManager.save(keyHash, "Felix".getBytes());
+
+        // Then
+        int[] alloc = new int[]{0};
+        Mockito.verify(dataStorage).save(alloc, "Felix".getBytes());
     }
 }
