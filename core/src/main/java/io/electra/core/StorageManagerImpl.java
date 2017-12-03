@@ -84,20 +84,29 @@ public class StorageManagerImpl implements StorageManager {
 
     @Override
     public void save(int keyHash, byte[] bytes) {
-
         Index index = indexStorage.getIndex(keyHash);
 
         if (index == null) {
-            int blocksNeeded = calculateNeededBlocks(bytes.length);
-            int[] allocatedBlocks = allocateFreeBlocks(blocksNeeded);
-            indexStorage.setFirstEmptyDataBlock(freeBlocks.first());
-            int firstBlock = allocatedBlocks[0];
-            indexStorage.createIndex(keyHash, false, firstBlock);
-            dataStorage.save(allocatedBlocks, bytes);
+            create(bytes, keyHash);
             return;
         }
 
         update(index, bytes);
+    }
+
+    /**
+     * Create a new data record with the given data.
+     *
+     * @param bytes   The data.
+     * @param keyHash The hash of the key.
+     */
+    private void create(byte[] bytes, int keyHash) {
+        int blocksNeeded = calculateNeededBlocks(bytes.length);
+        int[] allocatedBlocks = allocateFreeBlocks(blocksNeeded);
+        indexStorage.setFirstEmptyDataBlock(freeBlocks.first());
+        int firstBlock = allocatedBlocks[0];
+        indexStorage.createIndex(keyHash, false, firstBlock);
+        dataStorage.save(allocatedBlocks, bytes);
     }
 
     /**
