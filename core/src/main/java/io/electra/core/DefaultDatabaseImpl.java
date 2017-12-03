@@ -70,13 +70,17 @@ public class DefaultDatabaseImpl implements Database {
         storageManager = StorageManagerFactory.createStorageManager(indexStorage, dataStorage);
     }
 
+    public void save(int keyHash, byte[] bytes) {
+        storageManager.save(keyHash, bytes);
+
+        dataCache.put(keyHash, bytes);
+    }
 
     @Override
     public void save(String key, byte[] bytes) {
         int keyHash = Arrays.hashCode(key.getBytes(Charsets.UTF_8));
-        storageManager.save(keyHash, bytes);
 
-        dataCache.put(keyHash, bytes);
+        save(keyHash, bytes);
     }
 
     @Override
@@ -97,13 +101,17 @@ public class DefaultDatabaseImpl implements Database {
         return get(keyHash);
     }
 
+    public void remove(int keyHash) {
+        storageManager.remove(keyHash);
+
+        dataCache.invalidate(keyHash);
+    }
+
     @Override
     public void remove(String key) {
         int keyHash = Arrays.hashCode(key.getBytes(Charsets.UTF_8));
 
-        storageManager.remove(keyHash);
-
-        dataCache.invalidate(keyHash);
+        remove(keyHash);
     }
 
     @Override

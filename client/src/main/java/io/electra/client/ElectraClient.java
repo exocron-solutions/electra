@@ -15,5 +15,11 @@ public interface ElectraClient {
 
     void put(byte[] key, byte[] value);
 
+    void remove(String key);
+
+    void remove(byte[] key);
+
+    void remove(int keyHash);
+
     void disconnect();
 }

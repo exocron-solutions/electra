@@ -92,6 +92,17 @@ public class DefaultDatabaseImplTest {
     }
 
     @Test
+    public void saveValues() {
+        database = DatabaseFactory.createDatabase(dataFilePath, indexFilePath);
+
+        String testKey = "auügoäwaüiw+a0g8hwa0+tfghwa0+ghwa9gh8a";
+        String testValue = "äipghwa#gho+wag9poawg";
+
+        database.save(testKey, testValue);
+        Assert.assertEquals(testValue, new String(database.get(testKey)));
+    }
+
+    @Test
     public void get() throws Exception {
         // Given
         String testKey = "auügoäwaüiw+a0g8hwa0+tfghwa0+ghwa9gh8a";
