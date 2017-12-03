@@ -236,6 +236,7 @@ public class IndexStorageImpl implements IndexStorage {
         logger.info("Important data was written to disk.");
 
         try {
+            channel.force(false);
             channel.close();
         } catch (IOException e) {
             logger.error("Couldn't close index resources properly. ", e);

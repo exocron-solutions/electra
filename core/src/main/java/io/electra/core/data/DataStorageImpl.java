@@ -243,7 +243,7 @@ public class DataStorageImpl implements DataStorage {
     @Override
     public void close() {
         try {
-            channel.force(true);
+            channel.force(false);
             channel.close();
         } catch (IOException e) {
             logger.error("Error while data resource closing.", e);
