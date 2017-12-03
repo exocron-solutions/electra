@@ -22,11 +22,8 @@
  * SOFTWARE.
  */
 
-package io.electra.server;
+package io.electra.core;
 
-import io.electra.core.Database;
-import io.electra.core.DatabaseFactory;
-import io.electra.core.StorageManagerFactory;
 import io.electra.core.data.DataStorage;
 import io.electra.core.data.DataStorageFactory;
 import io.electra.core.index.IndexStorage;
@@ -92,17 +89,6 @@ public class DefaultDatabaseImplTest {
 
         // Then
         Mockito.verify(storageManager).save(Arrays.hashCode(testKey.getBytes()), testValue.getBytes());
-    }
-
-    @Test
-    public void saveValues() {
-        database = DatabaseFactory.createDatabase(dataFilePath, indexFilePath);
-
-        String testKey = "auügoäwaüiw+a0g8hwa0+tfghwa0+ghwa9gh8a";
-        String testValue = "äipghwa#gho+wag9poawg";
-
-        database.save(testKey, testValue);
-        Assert.assertEquals(testValue, new String(database.get(testKey)));
     }
 
     @Test
