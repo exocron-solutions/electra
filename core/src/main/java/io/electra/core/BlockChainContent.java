@@ -24,6 +24,7 @@
 
 package io.electra.core;
 
+import java.util.Arrays;
 import java.util.Set;
 
 /**
@@ -45,5 +46,13 @@ class BlockChainContent {
 
     Set<Integer> getBlocks() {
         return blocks;
+    }
+
+    @Override
+    public String toString() {
+        return "BlockChainContent{" +
+                "result=" + Arrays.toString(result) +
+                ", blocks=" + blocks +
+                '}';
     }
 }
