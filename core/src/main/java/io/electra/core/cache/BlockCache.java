@@ -22,45 +22,23 @@
  * SOFTWARE.
  */
 
-package io.electra.server;
+package io.electra.core.cache;
 
-import io.electra.core.Database;
-import io.electra.core.DatabaseConstants;
-import io.electra.core.DatabaseFactory;
-import io.electra.server.binary.ElectraBinaryServer;
-import io.electra.server.rest.RestServer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.electra.core.data.DataBlock;
+import net.openhft.koloboke.collect.map.hash.HashIntObjMaps;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Philip 'JackWhite20' <silencephil@gmail.com>
  */
-public class ElectraBootstrap {
+public class BlockCache extends AbstractCache<Integer, DataBlock> {
 
-    private static Logger logger = LoggerFactory.getLogger(ElectraBootstrap.class);
+    public BlockCache(long expire, TimeUnit timeUnit, int expectedSize) {
+        super(HashIntObjMaps.newMutableMap(expectedSize), expire, timeUnit, expectedSize);
+    }
 
-    private static final Path indexFilePath = Paths.get(DatabaseConstants.DEFAULT_INDEX_FILE_PATH);
-
-    private static final Path dataFilePath = Paths.get(DatabaseConstants.DEFAULT_DATA_FILE_PATH);
-
-    private static RestServer restServer;
-
-    private static ElectraBinaryServer electraBinaryServer;
-
-    public static void main(String[] args) {
-        logger.info("Starting electra");
-
-        Database database = DatabaseFactory.createDatabase(dataFilePath, indexFilePath);
-
-        restServer = new RestServer(database);
-        restServer.start();
-
-        electraBinaryServer = new ElectraBinaryServer(database);
-        electraBinaryServer.start();
-
-        //logger.info("Electra started");
+    public BlockCache(int expectedSize) {
+        this(-1, null, expectedSize);
     }
 }

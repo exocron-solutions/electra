@@ -22,45 +22,52 @@
  * SOFTWARE.
  */
 
-package io.electra.server;
+package io.electra.core;
 
-import io.electra.core.Database;
-import io.electra.core.DatabaseConstants;
-import io.electra.core.DatabaseFactory;
-import io.electra.server.binary.ElectraBinaryServer;
-import io.electra.server.rest.RestServer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.google.common.collect.Lists;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.List;
 
 /**
  * @author Philip 'JackWhite20' <silencephil@gmail.com>
  */
-public class ElectraBootstrap {
+public class ElectraTest {
 
-    private static Logger logger = LoggerFactory.getLogger(ElectraBootstrap.class);
+    private List<Method> methods = Lists.newArrayList();
 
-    private static final Path indexFilePath = Paths.get(DatabaseConstants.DEFAULT_INDEX_FILE_PATH);
+    public ElectraTest() {
+        findTests();
+    }
 
-    private static final Path dataFilePath = Paths.get(DatabaseConstants.DEFAULT_DATA_FILE_PATH);
+    private void findTests() {
+        for (Method method : getClass().getMethods()) {
+            if (method.isAnnotationPresent(Order.class)) {
+                methods.add(method);
+            }
+        }
 
-    private static RestServer restServer;
+        methods.sort((m1, m2) -> {
+            Order o1 = m1.getAnnotation(Order.class);
+            Order o2 = m2.getAnnotation(Order.class);
 
-    private static ElectraBinaryServer electraBinaryServer;
+            if (o1 == null || o2 == null) {
+                return -1;
+            }
 
-    public static void main(String[] args) {
-        logger.info("Starting electra");
+            return o1.value() - o2.value();
+        });
+    }
 
-        Database database = DatabaseFactory.createDatabase(dataFilePath, indexFilePath);
-
-        restServer = new RestServer(database);
-        restServer.start();
-
-        electraBinaryServer = new ElectraBinaryServer(database);
-        electraBinaryServer.start();
-
-        //logger.info("Electra started");
+    protected void execute() {
+        for (Method method : methods) {
+            try {
+                method.invoke(this);
+                System.out.println("Test " + method.getName() + " passed");
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

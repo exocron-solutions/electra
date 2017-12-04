@@ -22,37 +22,41 @@
  * SOFTWARE.
  */
 
-package io.electra.benchmark;
+package io.electra.core.factory;
 
-import io.electra.core.Database;
-import io.electra.core.DatabaseConstants;
-import io.electra.core.DatabaseFactory;
-import io.electra.core.alloc.ByteBufferAllocator;
-
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
+ * A {@link ThreadFactory} that created new threads with a custom prefixed name.
+ *
  * @author Felix Klauke <fklauke@itemis.de>
  */
-public class ElectraBenchmarkWrite {
+public class ElectraThreadFactory implements ThreadFactory {
 
-    private static final Path indexFilePath = Paths.get(DatabaseConstants.DEFAULT_INDEX_FILE_PATH);
-    private static final Path dataFilePath = Paths.get(DatabaseConstants.DEFAULT_DATA_FILE_PATH);
+    /**
+     * The counter to deliver ids for threads.
+     */
+    private final AtomicInteger atomicInteger = new AtomicInteger(0);
 
-    public static void main(String[] args) {
-        Database database = DatabaseFactory.createDatabase(dataFilePath, indexFilePath);
+    /**
+     * The prefix of the thread name.
+     */
+    private final String namePrefix;
 
-        int n = 100000;
+    /**
+     * Create a new thread factory instance by its prefix.
+     *
+     * @param namePrefix The prefix that will be prepended before the thread id.
+     */
+    public ElectraThreadFactory(String namePrefix) {
+        this.namePrefix = namePrefix;
+    }
 
-        long start = System.currentTimeMillis();
-        for (int i = 0; i < n; i++) {
-            database.save("Key" + i, "Value" + i);
-        }
-        System.out.println("Saving " + n + " entries took " + (System.currentTimeMillis() - start) + "ms. ");
-
-        System.out.println("Total allocated: " + ByteBufferAllocator.getCapacity() + " Average: " + ByteBufferAllocator.getCapacity() / ByteBufferAllocator.getTimes());
-
+    @Override
+    public Thread newThread(Runnable r) {
+        Thread thread = new Thread(r);
+        thread.setName(namePrefix + atomicInteger.incrementAndGet());
+        return thread;
     }
 }
-

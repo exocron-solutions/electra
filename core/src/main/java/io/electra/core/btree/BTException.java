@@ -22,37 +22,28 @@
  * SOFTWARE.
  */
 
-package io.electra.benchmark;
+package io.electra.core.btree;
 
-import io.electra.core.Database;
-import io.electra.core.DatabaseConstants;
-import io.electra.core.DatabaseFactory;
-import io.electra.core.alloc.ByteBufferAllocator;
-
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 /**
- * @author Felix Klauke <fklauke@itemis.de>
+ * Class BTException
+ *
+ * @author tnguyen
  */
-public class ElectraBenchmarkWrite {
+public class BTException extends Exception {
+    public BTException() {
+        super();
+    }
 
-    private static final Path indexFilePath = Paths.get(DatabaseConstants.DEFAULT_INDEX_FILE_PATH);
-    private static final Path dataFilePath = Paths.get(DatabaseConstants.DEFAULT_DATA_FILE_PATH);
+    public BTException(String message) {
+        super(message);
+    }
 
-    public static void main(String[] args) {
-        Database database = DatabaseFactory.createDatabase(dataFilePath, indexFilePath);
+    public BTException(String message, Throwable cause) {
+        super(message, cause);
+    }
 
-        int n = 100000;
-
-        long start = System.currentTimeMillis();
-        for (int i = 0; i < n; i++) {
-            database.save("Key" + i, "Value" + i);
-        }
-        System.out.println("Saving " + n + " entries took " + (System.currentTimeMillis() - start) + "ms. ");
-
-        System.out.println("Total allocated: " + ByteBufferAllocator.getCapacity() + " Average: " + ByteBufferAllocator.getCapacity() / ByteBufferAllocator.getTimes());
-
+    public BTException(Throwable cause) {
+        super(cause);
     }
 }
-

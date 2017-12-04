@@ -22,45 +22,19 @@
  * SOFTWARE.
  */
 
-package io.electra.server;
+package io.electra.core;
 
-import io.electra.core.Database;
-import io.electra.core.DatabaseConstants;
-import io.electra.core.DatabaseFactory;
-import io.electra.server.binary.ElectraBinaryServer;
-import io.electra.server.rest.RestServer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * @author Philip 'JackWhite20' <silencephil@gmail.com>
  */
-public class ElectraBootstrap {
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface Order {
 
-    private static Logger logger = LoggerFactory.getLogger(ElectraBootstrap.class);
-
-    private static final Path indexFilePath = Paths.get(DatabaseConstants.DEFAULT_INDEX_FILE_PATH);
-
-    private static final Path dataFilePath = Paths.get(DatabaseConstants.DEFAULT_DATA_FILE_PATH);
-
-    private static RestServer restServer;
-
-    private static ElectraBinaryServer electraBinaryServer;
-
-    public static void main(String[] args) {
-        logger.info("Starting electra");
-
-        Database database = DatabaseFactory.createDatabase(dataFilePath, indexFilePath);
-
-        restServer = new RestServer(database);
-        restServer.start();
-
-        electraBinaryServer = new ElectraBinaryServer(database);
-        electraBinaryServer.start();
-
-        //logger.info("Electra started");
-    }
+    int value();
 }

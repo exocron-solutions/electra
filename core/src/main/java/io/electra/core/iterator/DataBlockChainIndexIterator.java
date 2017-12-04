@@ -22,37 +22,48 @@
  * SOFTWARE.
  */
 
-package io.electra.benchmark;
+package io.electra.core.iterator;
 
-import io.electra.core.Database;
-import io.electra.core.DatabaseConstants;
-import io.electra.core.DatabaseFactory;
-import io.electra.core.alloc.ByteBufferAllocator;
+import io.electra.core.data.DataStorage;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.Iterator;
 
 /**
  * @author Felix Klauke <fklauke@itemis.de>
  */
-public class ElectraBenchmarkWrite {
+public class DataBlockChainIndexIterator implements Iterator<Integer> {
 
-    private static final Path indexFilePath = Paths.get(DatabaseConstants.DEFAULT_INDEX_FILE_PATH);
-    private static final Path dataFilePath = Paths.get(DatabaseConstants.DEFAULT_DATA_FILE_PATH);
+    private final DataStorage dataStorage;
+    private int blockIndex;
+    private int nextBlockIndex = -1;
+    private boolean firstRun = true;
 
-    public static void main(String[] args) {
-        Database database = DatabaseFactory.createDatabase(dataFilePath, indexFilePath);
+    public DataBlockChainIndexIterator(DataStorage dataStorage, int blockIndex) {
+        this.dataStorage = dataStorage;
+        this.blockIndex = blockIndex;
+    }
 
-        int n = 100000;
-
-        long start = System.currentTimeMillis();
-        for (int i = 0; i < n; i++) {
-            database.save("Key" + i, "Value" + i);
-        }
-        System.out.println("Saving " + n + " entries took " + (System.currentTimeMillis() - start) + "ms. ");
-
-        System.out.println("Total allocated: " + ByteBufferAllocator.getCapacity() + " Average: " + ByteBufferAllocator.getCapacity() / ByteBufferAllocator.getTimes());
+    @Override
+    public boolean hasNext() {
+        return firstRun || (nextBlockIndex = dataStorage.getNextBlock(blockIndex)) != -1;
 
     }
-}
 
+    @Override
+    public Integer next() {
+        if (firstRun) {
+            firstRun = false;
+            return blockIndex;
+        }
+
+        if (nextBlockIndex == -1) {
+            nextBlockIndex = dataStorage.getNextBlock(blockIndex);
+        }
+
+        blockIndex = nextBlockIndex;
+
+        nextBlockIndex = -1;
+
+        return blockIndex;
+    }
+}

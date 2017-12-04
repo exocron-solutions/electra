@@ -22,37 +22,20 @@
  * SOFTWARE.
  */
 
-package io.electra.benchmark;
-
-import io.electra.core.Database;
-import io.electra.core.DatabaseConstants;
-import io.electra.core.DatabaseFactory;
-import io.electra.core.alloc.ByteBufferAllocator;
-
-import java.nio.file.Path;
-import java.nio.file.Paths;
+package io.electra.server;
 
 /**
  * @author Felix Klauke <fklauke@itemis.de>
  */
-public class ElectraBenchmarkWrite {
+public class ElectraServerConstants {
 
-    private static final Path indexFilePath = Paths.get(DatabaseConstants.DEFAULT_INDEX_FILE_PATH);
-    private static final Path dataFilePath = Paths.get(DatabaseConstants.DEFAULT_DATA_FILE_PATH);
+    /**
+     * The port to access our rest ful web service.
+     */
+    public static final int REST_PORT = 8080;
 
-    public static void main(String[] args) {
-        Database database = DatabaseFactory.createDatabase(dataFilePath, indexFilePath);
-
-        int n = 100000;
-
-        long start = System.currentTimeMillis();
-        for (int i = 0; i < n; i++) {
-            database.save("Key" + i, "Value" + i);
-        }
-        System.out.println("Saving " + n + " entries took " + (System.currentTimeMillis() - start) + "ms. ");
-
-        System.out.println("Total allocated: " + ByteBufferAllocator.getCapacity() + " Average: " + ByteBufferAllocator.getCapacity() / ByteBufferAllocator.getTimes());
-
-    }
+    /**
+     * The host to access our rest ful web service.
+     */
+    public static final String REST_HOST = "0.0.0.0";
 }
-

@@ -22,37 +22,26 @@
  * SOFTWARE.
  */
 
-package io.electra.benchmark;
-
-import io.electra.core.Database;
-import io.electra.core.DatabaseConstants;
-import io.electra.core.DatabaseFactory;
-import io.electra.core.alloc.ByteBufferAllocator;
-
-import java.nio.file.Path;
-import java.nio.file.Paths;
+package io.electra.core.index;
 
 /**
  * @author Felix Klauke <fklauke@itemis.de>
  */
-public class ElectraBenchmarkWrite {
+public interface IndexStorage {
 
-    private static final Path indexFilePath = Paths.get(DatabaseConstants.DEFAULT_INDEX_FILE_PATH);
-    private static final Path dataFilePath = Paths.get(DatabaseConstants.DEFAULT_DATA_FILE_PATH);
+    Index getCurrentEmptyIndex();
 
-    public static void main(String[] args) {
-        Database database = DatabaseFactory.createDatabase(dataFilePath, indexFilePath);
+    void saveIndex(Index index);
 
-        int n = 100000;
+    Index getIndex(int keyHash);
 
-        long start = System.currentTimeMillis();
-        for (int i = 0; i < n; i++) {
-            database.save("Key" + i, "Value" + i);
-        }
-        System.out.println("Saving " + n + " entries took " + (System.currentTimeMillis() - start) + "ms. ");
+    void removeIndex(Index index);
 
-        System.out.println("Total allocated: " + ByteBufferAllocator.getCapacity() + " Average: " + ByteBufferAllocator.getCapacity() / ByteBufferAllocator.getTimes());
+    void close();
 
-    }
+    Index createIndex(int keyHash, boolean empty, int firstBlock);
+
+    int getFirstEmptyDataBlock();
+
+    void setFirstEmptyDataBlock(int first);
 }
-

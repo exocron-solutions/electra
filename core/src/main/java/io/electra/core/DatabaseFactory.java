@@ -22,45 +22,44 @@
  * SOFTWARE.
  */
 
-package io.electra.server;
+package io.electra.core;
 
-import io.electra.core.Database;
-import io.electra.core.DatabaseConstants;
-import io.electra.core.DatabaseFactory;
-import io.electra.server.binary.ElectraBinaryServer;
-import io.electra.server.rest.RestServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 /**
- * @author Philip 'JackWhite20' <silencephil@gmail.com>
+ * The central entry point to create database instances.
+ *
+ * @author Felix Klauke <fklauke@itemis.de>
  */
-public class ElectraBootstrap {
+public class DatabaseFactory {
 
-    private static Logger logger = LoggerFactory.getLogger(ElectraBootstrap.class);
+    public DatabaseFactory() {
+        throw new AssertionError();
+    }
 
-    private static final Path indexFilePath = Paths.get(DatabaseConstants.DEFAULT_INDEX_FILE_PATH);
+    /**
+     * The logger to log database instance creation.
+     */
+    private static Logger logger = LoggerFactory.getLogger(DatabaseFactory.class);
 
-    private static final Path dataFilePath = Paths.get(DatabaseConstants.DEFAULT_DATA_FILE_PATH);
+    /**
+     * Create a new database based on its underlying files.
+     *
+     * @param dataFilePath  The data file path.
+     * @param indexFilePath The index file path.
+     * @return The database instance.
+     */
+    public static Database createDatabase(Path dataFilePath, Path indexFilePath) {
+        if (dataFilePath.equals(indexFilePath)) {
+            throw new IllegalArgumentException("Someone tried to use the same file for indices and data.");
+        }
 
-    private static RestServer restServer;
-
-    private static ElectraBinaryServer electraBinaryServer;
-
-    public static void main(String[] args) {
-        logger.info("Starting electra");
-
-        Database database = DatabaseFactory.createDatabase(dataFilePath, indexFilePath);
-
-        restServer = new RestServer(database);
-        restServer.start();
-
-        electraBinaryServer = new ElectraBinaryServer(database);
-        electraBinaryServer.start();
-
-        //logger.info("Electra started");
+        logger.info("Creating a new database based on {} and {}.", dataFilePath, indexFilePath);
+        Database database = new DefaultDatabaseImpl(dataFilePath, indexFilePath);
+        logger.info("Database creation successful.");
+        return database;
     }
 }

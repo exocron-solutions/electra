@@ -22,37 +22,48 @@
  * SOFTWARE.
  */
 
-package io.electra.benchmark;
+package io.electra.core.factory;
 
-import io.electra.core.Database;
-import io.electra.core.DatabaseConstants;
-import io.electra.core.DatabaseFactory;
-import io.electra.core.alloc.ByteBufferAllocator;
+import org.junit.Before;
+import org.junit.Test;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.concurrent.ThreadFactory;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
+ * Test the behaviour of the {@link ElectraThreadFactory}.
+ *
  * @author Felix Klauke <fklauke@itemis.de>
  */
-public class ElectraBenchmarkWrite {
+public class ElectraThreadFactoryTest {
 
-    private static final Path indexFilePath = Paths.get(DatabaseConstants.DEFAULT_INDEX_FILE_PATH);
-    private static final Path dataFilePath = Paths.get(DatabaseConstants.DEFAULT_DATA_FILE_PATH);
+    /**
+     * The test prefix. As we start counting the thread ids with '1', the result should be:
+     * <p>
+     * PREFIX + 1
+     */
+    private static final String PREFIX = "TestPrefix #";
 
-    public static void main(String[] args) {
-        Database database = DatabaseFactory.createDatabase(dataFilePath, indexFilePath);
+    /**
+     * The tested thread factory.
+     */
+    private ThreadFactory threadFactory;
 
-        int n = 100000;
+    @Before
+    public void setUp() throws Exception {
+        threadFactory = new ElectraThreadFactory(PREFIX);
+    }
 
-        long start = System.currentTimeMillis();
-        for (int i = 0; i < n; i++) {
-            database.save("Key" + i, "Value" + i);
-        }
-        System.out.println("Saving " + n + " entries took " + (System.currentTimeMillis() - start) + "ms. ");
+    @Test
+    public void testNewThread() throws Exception {
+        Runnable runnable = () -> {
+        };
 
-        System.out.println("Total allocated: " + ByteBufferAllocator.getCapacity() + " Average: " + ByteBufferAllocator.getCapacity() / ByteBufferAllocator.getTimes());
+        Thread thread = threadFactory.newThread(runnable);
 
+        assertNotNull(thread);
+        assertEquals(PREFIX + 1, thread.getName());
     }
 }
-

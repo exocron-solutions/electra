@@ -22,45 +22,56 @@
  * SOFTWARE.
  */
 
-package io.electra.server;
-
-import io.electra.core.Database;
-import io.electra.core.DatabaseConstants;
-import io.electra.core.DatabaseFactory;
-import io.electra.server.binary.ElectraBinaryServer;
-import io.electra.server.rest.RestServer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+package io.electra.core;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 /**
+ * The basic interface showing what our database will be capable of.
+ *
+ * To create instances of this class you should take a look at {@link DatabaseFactory#createDatabase(Path, Path)}. The
+ * default implementation for this class can be found at {@link DefaultDatabaseImpl}.
+ *
+ * @author Felix Klauke <fklauke@itemis.de>
  * @author Philip 'JackWhite20' <silencephil@gmail.com>
  */
-public class ElectraBootstrap {
+public interface Database {
 
-    private static Logger logger = LoggerFactory.getLogger(ElectraBootstrap.class);
+    /**
+     * Save the given byte array as data for the given key.
+     *
+     * @param key   The key.
+     * @param bytes The value.
+     */
+    void save(String key, byte[] bytes);
 
-    private static final Path indexFilePath = Paths.get(DatabaseConstants.DEFAULT_INDEX_FILE_PATH);
+    /**
+     * Save the given value for the given key. Will implicitly convert the value to a byte array and store it
+     * via {@link #save(String, byte[])}.
+     *
+     * @param key The key.
+     * @param value The value.
+     */
+    void save(String key, String value);
 
-    private static final Path dataFilePath = Paths.get(DatabaseConstants.DEFAULT_DATA_FILE_PATH);
+    /**
+     * Query for the given key.
+     *
+     * @param key The key.
+     *
+     * @return The value or null.
+     */
+    byte[] get(String key);
 
-    private static RestServer restServer;
+    /**
+     * Delete the value for the given key.
+     *
+     * @param key The key.
+     */
+    void remove(String key);
 
-    private static ElectraBinaryServer electraBinaryServer;
-
-    public static void main(String[] args) {
-        logger.info("Starting electra");
-
-        Database database = DatabaseFactory.createDatabase(dataFilePath, indexFilePath);
-
-        restServer = new RestServer(database);
-        restServer.start();
-
-        electraBinaryServer = new ElectraBinaryServer(database);
-        electraBinaryServer.start();
-
-        //logger.info("Electra started");
-    }
+    /**
+     * Close all resources.
+     */
+    void close();
 }

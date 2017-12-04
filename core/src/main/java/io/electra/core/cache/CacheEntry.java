@@ -22,45 +22,27 @@
  * SOFTWARE.
  */
 
-package io.electra.server;
-
-import io.electra.core.Database;
-import io.electra.core.DatabaseConstants;
-import io.electra.core.DatabaseFactory;
-import io.electra.server.binary.ElectraBinaryServer;
-import io.electra.server.rest.RestServer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.nio.file.Path;
-import java.nio.file.Paths;
+package io.electra.core.cache;
 
 /**
  * @author Philip 'JackWhite20' <silencephil@gmail.com>
  */
-public class ElectraBootstrap {
+public class CacheEntry<Value> {
 
-    private static Logger logger = LoggerFactory.getLogger(ElectraBootstrap.class);
+    private long expireBy;
 
-    private static final Path indexFilePath = Paths.get(DatabaseConstants.DEFAULT_INDEX_FILE_PATH);
+    private Value value;
 
-    private static final Path dataFilePath = Paths.get(DatabaseConstants.DEFAULT_DATA_FILE_PATH);
+    CacheEntry(long expireBy, Value value) {
+        this.expireBy = expireBy;
+        this.value = value;
+    }
 
-    private static RestServer restServer;
+    long getExpireBy() {
+        return expireBy;
+    }
 
-    private static ElectraBinaryServer electraBinaryServer;
-
-    public static void main(String[] args) {
-        logger.info("Starting electra");
-
-        Database database = DatabaseFactory.createDatabase(dataFilePath, indexFilePath);
-
-        restServer = new RestServer(database);
-        restServer.start();
-
-        electraBinaryServer = new ElectraBinaryServer(database);
-        electraBinaryServer.start();
-
-        //logger.info("Electra started");
+    public Value getValue() {
+        return value;
     }
 }

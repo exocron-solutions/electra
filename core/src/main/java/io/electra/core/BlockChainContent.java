@@ -22,37 +22,37 @@
  * SOFTWARE.
  */
 
-package io.electra.benchmark;
+package io.electra.core;
 
-import io.electra.core.Database;
-import io.electra.core.DatabaseConstants;
-import io.electra.core.DatabaseFactory;
-import io.electra.core.alloc.ByteBufferAllocator;
-
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Set;
 
 /**
  * @author Felix Klauke <fklauke@itemis.de>
  */
-public class ElectraBenchmarkWrite {
+class BlockChainContent {
 
-    private static final Path indexFilePath = Paths.get(DatabaseConstants.DEFAULT_INDEX_FILE_PATH);
-    private static final Path dataFilePath = Paths.get(DatabaseConstants.DEFAULT_DATA_FILE_PATH);
+    private final byte[] result;
+    private final Set<Integer> blocks;
 
-    public static void main(String[] args) {
-        Database database = DatabaseFactory.createDatabase(dataFilePath, indexFilePath);
+    BlockChainContent(byte[] result, Set<Integer> blocks) {
+        this.result = result;
+        this.blocks = blocks;
+    }
 
-        int n = 100000;
+    byte[] getResult() {
+        return result;
+    }
 
-        long start = System.currentTimeMillis();
-        for (int i = 0; i < n; i++) {
-            database.save("Key" + i, "Value" + i);
-        }
-        System.out.println("Saving " + n + " entries took " + (System.currentTimeMillis() - start) + "ms. ");
+    Set<Integer> getBlocks() {
+        return blocks;
+    }
 
-        System.out.println("Total allocated: " + ByteBufferAllocator.getCapacity() + " Average: " + ByteBufferAllocator.getCapacity() / ByteBufferAllocator.getTimes());
-
+    @Override
+    public String toString() {
+        return "BlockChainContent{" +
+                "result=" + Arrays.toString(result) +
+                ", blocks=" + blocks +
+                '}';
     }
 }
-
