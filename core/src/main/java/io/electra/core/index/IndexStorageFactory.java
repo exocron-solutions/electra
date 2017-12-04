@@ -30,10 +30,6 @@ import io.electra.core.factory.ElectraThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.Sets;
-import io.electra.server.DatabaseConstants;
-import io.electra.server.factory.ElectraThreadFactory;
-
 import java.io.IOException;
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.file.Files;
