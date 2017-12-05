@@ -105,7 +105,7 @@ public class StorageManagerImpl implements StorageManager {
 
         update(index, bytes);
     }
-
+  
     /**
      * Create a new data record with the given data.
      *

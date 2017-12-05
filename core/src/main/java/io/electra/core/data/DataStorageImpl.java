@@ -140,7 +140,7 @@ public class DataStorageImpl implements DataStorage {
             return dataBlock;
         }
 
-        int position = (index * DatabaseConstants.DATA_BLOCK_SIZE);
+        int position = index * DatabaseConstants.DATA_BLOCK_SIZE;
         PooledByteBuffer byteBuffer = ByteBufferAllocator.allocate(4, false);
 
         try {
