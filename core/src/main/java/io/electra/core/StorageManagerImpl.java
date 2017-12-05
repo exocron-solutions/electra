@@ -30,6 +30,7 @@ import com.google.common.primitives.Ints;
 import io.electra.core.data.DataBlock;
 import io.electra.core.data.DataStorage;
 import io.electra.core.exception.CorruptedDataException;
+import io.electra.core.exception.NoSuchKeyException;
 import io.electra.core.index.Index;
 import io.electra.core.index.IndexStorage;
 import io.electra.core.storage.StorageManager;
@@ -94,6 +95,17 @@ public class StorageManagerImpl implements StorageManager {
         update(index, bytes);
     }
 
+    @Override
+    public void update(int keyHash, byte[] bytes) {
+        Index index = indexStorage.getIndex(keyHash);
+
+        if (index == null) {
+            throw new NoSuchKeyException("There is no key for key hash: " + keyHash);
+        }
+
+        update(index, bytes);
+    }
+  
     /**
      * Create a new data record with the given data.
      *

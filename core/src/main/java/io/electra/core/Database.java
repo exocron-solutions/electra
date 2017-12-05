@@ -54,6 +54,8 @@ public interface Database {
      */
     void save(String key, String value);
 
+    void update(String key, byte[] value);
+
     /**
      * Query for the given key.
      *
