@@ -40,7 +40,7 @@ public class ElectraServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        logger.info("New binary protocol connection from {0}", ctx.channel().remoteAddress());
+        logger.info("New binary protocol connection from {}", ctx.channel().remoteAddress());
     }
 
     @Override
