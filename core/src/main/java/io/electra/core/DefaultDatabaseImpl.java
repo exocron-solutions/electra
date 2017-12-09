@@ -94,7 +94,7 @@ public class DefaultDatabaseImpl implements Database {
         update(keyHash, value);
     }
 
-    private void update(int keyHash, byte[] value) {
+    public void update(int keyHash, byte[] value) {
         if (dataCache.get(keyHash) != null) {
             dataCache.put(keyHash, value);
         }
