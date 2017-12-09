@@ -95,6 +95,23 @@ public class DefaultElectraClient implements ElectraClient {
     @Override
     public void remove(int keyHash) {
         ByteBuf byteBuf = Unpooled.buffer().writeByte(2).writeInt(keyHash);
+      
+        electraBinaryHandler.send(byteBuf, null, -1);
+    }
+
+    @Override
+    public void update(String key, byte[] newValue) {
+        update(key.getBytes(Charsets.UTF_8), newValue);
+    }
+
+    @Override
+    public void update(byte[] key, byte[] newValue) {
+        update(Arrays.hashCode(key), newValue);
+    }
+
+    @Override
+    public void update(int keyHash, byte[] newValue) {
+        ByteBuf byteBuf = Unpooled.buffer().writeByte(2).writeInt(keyHash);
 
         electraBinaryHandler.send(byteBuf, null, -1);
     }
