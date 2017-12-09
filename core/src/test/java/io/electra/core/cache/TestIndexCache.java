@@ -22,12 +22,11 @@
  * SOFTWARE.
  */
 
-package io.electra.server.test.cache;
+package io.electra.core.cache;
 
-import io.electra.core.cache.Cache;
-import io.electra.core.cache.DataCache;
-import io.electra.server.test.ElectraTest;
-import io.electra.server.test.Order;
+import io.electra.core.ElectraTest;
+import io.electra.core.Order;
+import io.electra.core.index.Index;
 import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
@@ -37,10 +36,10 @@ import static org.junit.Assert.*;
 /**
  * @author Philip 'JackWhite20' <silencephil@gmail.com>
  */
-public class TestDataCache extends ElectraTest {
+public class TestIndexCache extends ElectraTest {
 
-    private Cache<Integer, byte[]> cache = new DataCache(-1, null, 1);
-    private Cache<Integer, byte[]> cacheWithExpire = new DataCache(5, TimeUnit.MILLISECONDS, 1);
+    private Cache<Integer, Index> cache = new IndexCache(-1, null, 1);
+    private Cache<Integer, Index> cacheWithExpire = new IndexCache(1, TimeUnit.MILLISECONDS, 1);
 
     @Test
     public void test() {
@@ -49,20 +48,19 @@ public class TestDataCache extends ElectraTest {
 
     @Order(1)
     public void testPut() {
-        cache.put(0, new byte[] {2, 1, 3});
+        cache.put(0, new Index(0, true, 1646));
 
         assertEquals(1, cache.size());
     }
 
     @Order(2)
     public void testGet() {
-        byte[] bytes = cache.get(0);
+        Index index = cache.get(0);
 
-        assertNotNull(bytes);
-        assertEquals(3, bytes.length);
-        assertEquals(2, bytes[0]);
-        assertEquals(1, bytes[1]);
-        assertEquals(3, bytes[2]);
+        assertNotNull(index);
+        assertEquals(0, index.getKeyHash());
+        assertTrue(index.isEmpty());
+        assertEquals(1646, index.getDataFilePosition());
     }
 
     @Order(3)
@@ -79,7 +77,7 @@ public class TestDataCache extends ElectraTest {
 
     @Order(5)
     public void testExpire() throws InterruptedException {
-        cacheWithExpire.put(0, new byte[] {9});
+        cacheWithExpire.put(0, new Index(0, true, 1646));
 
         assertNotNull(cacheWithExpire.get(0));
 
@@ -90,7 +88,7 @@ public class TestDataCache extends ElectraTest {
 
     @Order(6)
     public void testInvalidate() {
-        cache.put(0, new byte[] {2, 1, 3});
+        cache.put(0, new Index(0, true, 1646));
 
         assertNotNull(cache.get(0));
 

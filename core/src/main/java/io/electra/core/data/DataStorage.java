@@ -24,6 +24,8 @@
 
 package io.electra.core.data;
 
+import java.util.TreeSet;
+
 /**
  * The central entrypoint to access the data file. No
  *
@@ -77,4 +79,12 @@ public interface DataStorage {
      * @return The chain of blocks linked by their next block value.
      */
     int[] getBlockChain(int dataFilePosition);
+
+    /**
+     * Read the next block chain beginning with the given index.
+     *
+     * @param dataFilePosition The position.
+     * @return The block chain.
+     */
+    TreeSet<Integer> readNextBlockChain(int dataFilePosition);
 }

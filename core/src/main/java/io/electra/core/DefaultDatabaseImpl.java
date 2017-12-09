@@ -88,6 +88,20 @@ public class DefaultDatabaseImpl implements Database {
         save(key, value.getBytes(Charsets.UTF_8));
     }
 
+    @Override
+    public void update(String key, byte[] value) {
+        int keyHash = Arrays.hashCode(key.getBytes(Charsets.UTF_8));
+        update(keyHash, value);
+    }
+
+    private void update(int keyHash, byte[] value) {
+        if (dataCache.get(keyHash) != null) {
+            dataCache.put(keyHash, value);
+        }
+
+        storageManager.update(keyHash, value);
+    }
+
     public byte[] get(int keyHash) {
         byte[] bytes = dataCache.get(keyHash);
 

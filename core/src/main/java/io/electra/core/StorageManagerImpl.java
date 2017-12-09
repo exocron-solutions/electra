@@ -30,9 +30,9 @@ import com.google.common.primitives.Ints;
 import io.electra.core.data.DataBlock;
 import io.electra.core.data.DataStorage;
 import io.electra.core.exception.CorruptedDataException;
+import io.electra.core.exception.NoSuchKeyException;
 import io.electra.core.index.Index;
 import io.electra.core.index.IndexStorage;
-import io.electra.core.iterator.DataBlockChainIndexIterator;
 import io.electra.core.storage.StorageManager;
 
 import java.util.Arrays;
@@ -85,23 +85,54 @@ public class StorageManagerImpl implements StorageManager {
 
     @Override
     public void save(int keyHash, byte[] bytes) {
-        int blocksNeeded = calculateNeededBlocks(bytes.length);
-
         Index index = indexStorage.getIndex(keyHash);
 
         if (index == null) {
-            int[] allocatedBlocks = allocateFreeBlocks(blocksNeeded);
-            indexStorage.getCurrentEmptyIndex().setDataFilePosition(freeBlocks.first());
-            int firstBlock = allocatedBlocks[0];
-            indexStorage.createIndex(keyHash, false, firstBlock);
-            dataStorage.save(allocatedBlocks, bytes);
+            create(bytes, keyHash);
             return;
         }
 
+        update(index, bytes);
+    }
+
+    @Override
+    public void update(int keyHash, byte[] bytes) {
+        Index index = indexStorage.getIndex(keyHash);
+
+        if (index == null) {
+            throw new NoSuchKeyException("There is no key for key hash: " + keyHash);
+        }
+
+        update(index, bytes);
+    }
+  
+    /**
+     * Create a new data record with the given data.
+     *
+     * @param bytes   The data.
+     * @param keyHash The hash of the key.
+     */
+    private void create(byte[] bytes, int keyHash) {
+        int blocksNeeded = calculateNeededBlocks(bytes.length);
+        int[] allocatedBlocks = allocateFreeBlocks(blocksNeeded);
+        indexStorage.setFirstEmptyDataBlock(freeBlocks.first());
+        int firstBlock = allocatedBlocks[0];
+        indexStorage.createIndex(keyHash, false, firstBlock);
+        dataStorage.save(allocatedBlocks, bytes);
+    }
+
+    /**
+     * Try updating the given indexed data.
+     *
+     * @param index The index.
+     * @param bytes The new data.
+     */
+    private void update(Index index, byte[] bytes) {
+        int blocksNeeded = calculateNeededBlocks(bytes.length);
         DataBlock dataBlock = dataStorage.getDataBlock(index.getDataFilePosition());
 
         if (dataBlock == null) {
-            throw new CorruptedDataException("Found index for key hash " + keyHash + " but now data block.");
+            throw new CorruptedDataException("Found index for key hash " + index.getKeyHash() + " but now data block.");
         }
 
         BlockChainContent chainContent = readBlockChainContent(dataBlock);
@@ -264,7 +295,7 @@ public class StorageManagerImpl implements StorageManager {
     @Override
     public void initializeFreeBlocks() {
         // Read all currently free indices.
-        freeBlocks = Sets.newTreeSet(() -> new DataBlockChainIndexIterator(dataStorage, indexStorage.getCurrentEmptyIndex().getDataFilePosition()));
+        freeBlocks = dataStorage.readNextBlockChain(indexStorage.getFirstEmptyDataBlock());
     }
 
     /**
@@ -277,6 +308,7 @@ public class StorageManagerImpl implements StorageManager {
         byte[] result = dataBlock.getContent();
         Set<Integer> blocks = Sets.newLinkedHashSet();
 
+        blocks.add(dataBlock.getCurrentPosition());
         while (dataBlock.getNextPosition() != -1) {
             dataBlock = dataStorage.getDataBlock(dataBlock.getNextPosition());
             result = Bytes.concat(result, dataBlock.getContent());

@@ -22,13 +22,11 @@
  * SOFTWARE.
  */
 
-package io.electra.server.test.cache;
+package io.electra.core.cache;
 
-import io.electra.core.cache.BlockCache;
-import io.electra.core.cache.Cache;
+import io.electra.core.ElectraTest;
+import io.electra.core.Order;
 import io.electra.core.data.DataBlock;
-import io.electra.server.test.ElectraTest;
-import io.electra.server.test.Order;
 import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;

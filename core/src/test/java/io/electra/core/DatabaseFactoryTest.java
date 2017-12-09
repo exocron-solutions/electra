@@ -22,11 +22,8 @@
  * SOFTWARE.
  */
 
-package io.electra.server;
+package io.electra.core;
 
-import io.electra.core.Database;
-import io.electra.core.DatabaseFactory;
-import io.electra.core.DefaultDatabaseImpl;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

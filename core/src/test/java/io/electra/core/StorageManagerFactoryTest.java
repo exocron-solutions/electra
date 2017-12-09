@@ -22,10 +22,8 @@
  * SOFTWARE.
  */
 
-package io.electra.server;
+package io.electra.core;
 
-import io.electra.core.StorageManagerFactory;
-import io.electra.core.StorageManagerImpl;
 import io.electra.core.data.DataStorage;
 import io.electra.core.index.IndexStorage;
 import io.electra.core.storage.StorageManager;

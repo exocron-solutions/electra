@@ -51,6 +51,8 @@ public interface StorageManager {
      */
     void save(int keyHash, byte[] bytes);
 
+    void update(int keyHash, byte[] bytes);
+
     /**
      * Close the storages and clean all resources up.
      */

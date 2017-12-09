@@ -22,37 +22,29 @@
  * SOFTWARE.
  */
 
-package io.electra.core;
-
-import java.util.Arrays;
-import java.util.Set;
+package io.electra.core.exception;
 
 /**
  * @author Felix Klauke <fklauke@itemis.de>
  */
-class BlockChainContent {
+public class NoSuchKeyException extends RuntimeException {
 
-    private final byte[] result;
-    private final Set<Integer> blocks;
-
-    BlockChainContent(byte[] result, Set<Integer> blocks) {
-        this.result = result;
-        this.blocks = blocks;
+    public NoSuchKeyException() {
     }
 
-    byte[] getResult() {
-        return result;
+    public NoSuchKeyException(String message) {
+        super(message);
     }
 
-    Set<Integer> getBlocks() {
-        return blocks;
+    public NoSuchKeyException(String message, Throwable cause) {
+        super(message, cause);
     }
 
-    @Override
-    public String toString() {
-        return "BlockChainContent{" +
-                "result=" + Arrays.toString(result) +
-                ", blocks=" + blocks +
-                '}';
+    public NoSuchKeyException(Throwable cause) {
+        super(cause);
+    }
+
+    public NoSuchKeyException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
     }
 }
