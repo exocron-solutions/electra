@@ -24,6 +24,7 @@
 
 package io.electra.server.binary;
 
+import io.electra.common.server.Action;
 import io.electra.core.DefaultDatabaseImpl;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -48,11 +49,12 @@ public class ElectraServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
         int length = byteBuf.readInt();
 
         if (length > 0) {
-            byte action = byteBuf.readByte();
+            byte actionValue = byteBuf.readByte();
+
+            Action action = Action.of(actionValue);
 
             switch (action) {
-                // GET
-                case 0:
+                case GET:
                     int callbackId = byteBuf.readInt();
                     int keyHash = byteBuf.readInt();
 
@@ -66,8 +68,7 @@ public class ElectraServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
                     ctx.writeAndFlush(buffer).addListener(future -> buffer.release());
                     break;
-                // PUT
-                case 1:
+                case PUT:
                     int putKeyHash = byteBuf.readInt();
                     byte[] putBytes = new byte[length - 5];
                     byteBuf.readBytes(putBytes);
@@ -75,13 +76,13 @@ public class ElectraServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
                     ((DefaultDatabaseImpl) ElectraBinaryServer.getInstance().getDatabase()).save(putKeyHash, putBytes);
                     break;
                 // REMOVE
-                case 2:
+                case REMOVE:
                     int removeKeyHash = byteBuf.readInt();
 
                     ((DefaultDatabaseImpl) ElectraBinaryServer.getInstance().getDatabase()).remove(removeKeyHash);
                     break;
                 // UPDATE
-                case 3:
+                case UPDATE:
                     int updateKeyHash = byteBuf.readInt();
                     byte[] updateBytes = new byte[length - 5];
                     byteBuf.readBytes(updateBytes);
