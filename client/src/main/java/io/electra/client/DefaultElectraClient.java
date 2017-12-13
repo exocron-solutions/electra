@@ -8,7 +8,6 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
-import io.netty.channel.socket.nio.NioSocketChannel;
 import org.apache.commons.codec.Charsets;
 
 import java.util.Arrays;
@@ -38,7 +37,7 @@ public class DefaultElectraClient implements ElectraClient {
         try {
             Bootstrap bootstrap = new Bootstrap()
                     .group(PipelineUtils.newEventLoopGroup(2, new ElectraThreadFactory("Electra Client Thread")))
-                    .channel(NioSocketChannel.class)
+                    .channel(PipelineUtils.getChannel())
                     .handler(new ElectraChannelInitializer(electraBinaryHandler = new ElectraBinaryHandler()));
 
             channel = bootstrap.connect(host, port).sync().channel();
