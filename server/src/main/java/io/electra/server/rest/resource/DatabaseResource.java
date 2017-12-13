@@ -26,6 +26,7 @@ package io.electra.server.rest.resource;
 
 import io.electra.core.DefaultDatabaseImpl;
 import io.electra.server.rest.RestServer;
+import org.apache.commons.codec.Charsets;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
@@ -74,6 +75,20 @@ public class DatabaseResource {
     @Path("/remove")
     public Response remove(byte[] key) {
         ((DefaultDatabaseImpl) RestServer.getRestServer().getDatabase()).remove(Arrays.hashCode(key));
+        return Response.ok().entity("Ok").build();
+    }
+
+    @PUT
+    @Path("/update/{key}/{newValue}")
+    public Response update(@PathParam("key") String key, @PathParam("newValue") String newValue) {
+        RestServer.getRestServer().getDatabase().update(key, newValue.getBytes(Charsets.UTF_8));
+        return Response.ok().entity("Ok").build();
+    }
+
+    @POST
+    @Path("/update")
+    public Response update(byte[] key, byte[] newValue) {
+        ((DefaultDatabaseImpl) RestServer.getRestServer().getDatabase()).update(Arrays.hashCode(key), newValue);
         return Response.ok().entity("Ok").build();
     }
 }
