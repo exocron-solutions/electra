@@ -46,9 +46,4 @@ public class ElectraApplication extends Application {
     public Set<Object> getSingletons() {
         return Sets.newHashSet(new DatabaseResource(database), new RawBodyReader());
     }
-
-    @Override
-    public Set<Class<?>> getClasses() {
-        return Sets.newHashSet(DatabaseResource.class);
-    }
 }
