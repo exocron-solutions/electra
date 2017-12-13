@@ -24,8 +24,8 @@
 
 package io.electra.server.rest.resource;
 
+import io.electra.core.Database;
 import io.electra.core.DefaultDatabaseImpl;
-import io.electra.server.rest.RestServer;
 import org.apache.commons.codec.Charsets;
 
 import javax.ws.rs.*;
@@ -38,57 +38,63 @@ import java.util.Arrays;
 @Path("/database")
 public class DatabaseResource {
 
+    private Database database;
+
+    public DatabaseResource(Database database) {
+        this.database = database;
+    }
+
     @GET
     @Path("/get/{key}")
     public Response get(@PathParam("key") String key) {
-        return Response.ok().entity(RestServer.getRestServer().getDatabase().get(key)).build();
+        return Response.ok().entity(database.get(key)).build();
     }
 
     @POST
     @Path("/get")
     public Response get(byte[] key) {
-        return Response.ok().entity(((DefaultDatabaseImpl) RestServer.getRestServer().getDatabase()).get(Arrays.hashCode(key))).build();
+        return Response.ok().entity(((DefaultDatabaseImpl) database).get(Arrays.hashCode(key))).build();
     }
 
     @GET
     @Path("/put/{key}/{value}")
     public Response put(@PathParam("key") String key, @PathParam("value") String value) {
-        RestServer.getRestServer().getDatabase().save(key, value);
+        database.save(key, value);
         return Response.ok().entity("Ok").build();
     }
 
     @POST
     @Path("/put")
     public Response put(byte[] key, byte[] value) {
-        ((DefaultDatabaseImpl) RestServer.getRestServer().getDatabase()).save(Arrays.hashCode(key), value);
+        ((DefaultDatabaseImpl) database).save(Arrays.hashCode(key), value);
         return Response.ok().entity("Ok").build();
     }
 
     @DELETE
     @Path("/remove/{key}")
     public Response remove(@PathParam("key") String key) {
-        RestServer.getRestServer().getDatabase().remove(key);
+        database.remove(key);
         return Response.ok().entity("Ok").build();
     }
 
     @DELETE
     @Path("/remove")
     public Response remove(byte[] key) {
-        ((DefaultDatabaseImpl) RestServer.getRestServer().getDatabase()).remove(Arrays.hashCode(key));
+        ((DefaultDatabaseImpl) database).remove(Arrays.hashCode(key));
         return Response.ok().entity("Ok").build();
     }
 
     @PUT
     @Path("/update/{key}/{newValue}")
     public Response update(@PathParam("key") String key, @PathParam("newValue") String newValue) {
-        RestServer.getRestServer().getDatabase().update(key, newValue.getBytes(Charsets.UTF_8));
+        database.update(key, newValue.getBytes(Charsets.UTF_8));
         return Response.ok().entity("Ok").build();
     }
 
     @POST
     @Path("/update")
     public Response update(byte[] key, byte[] newValue) {
-        ((DefaultDatabaseImpl) RestServer.getRestServer().getDatabase()).update(Arrays.hashCode(key), newValue);
+        ((DefaultDatabaseImpl) database).update(Arrays.hashCode(key), newValue);
         return Response.ok().entity("Ok").build();
     }
 }
