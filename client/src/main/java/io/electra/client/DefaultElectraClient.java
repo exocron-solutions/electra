@@ -37,7 +37,7 @@ public class DefaultElectraClient implements ElectraClient {
         try {
             Bootstrap bootstrap = new Bootstrap()
                     .group(PipelineUtils.newEventLoopGroup(2, new ElectraThreadFactory("Electra Client Thread")))
-                    .channel(PipelineUtils.getServerChannel())
+                    .channel(PipelineUtils.getChannel())
                     .handler(new ElectraChannelInitializer(electraBinaryHandler = new ElectraBinaryHandler()));
 
             channel = bootstrap.connect(host, port).sync().channel();
