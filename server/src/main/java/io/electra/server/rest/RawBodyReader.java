@@ -24,24 +24,31 @@
 
 package io.electra.server.rest;
 
-import com.google.common.collect.Sets;
-import io.electra.server.rest.resource.DatabaseResource;
+import org.apache.commons.io.IOUtils;
 
-import javax.ws.rs.core.Application;
-import java.util.Set;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.ext.MessageBodyReader;
+import javax.ws.rs.ext.Provider;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
 
 /**
  * @author Philip 'JackWhite20' <silencephil@gmail.com>
  */
-public class ElectraApplication extends Application {
+@Provider
+public class RawBodyReader implements MessageBodyReader<byte[]> {
 
     @Override
-    public Set<Object> getSingletons() {
-        return Sets.newHashSet(new RawBodyReader());
+    public boolean isReadable(Class<?> aClass, Type type, Annotation[] annotations, MediaType mediaType) {
+        return true;
     }
 
     @Override
-    public Set<Class<?>> getClasses() {
-        return Sets.newHashSet(DatabaseResource.class);
+    public byte[] readFrom(Class<byte[]> aClass, Type type, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, String> multivaluedMap, InputStream inputStream) throws IOException, WebApplicationException {
+        return IOUtils.toByteArray(inputStream);
     }
 }
