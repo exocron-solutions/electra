@@ -24,9 +24,8 @@
 
 package io.electra.server.rest;
 
-import io.electra.server.Database;
-import io.electra.server.DatabaseConstants;
-
+import io.electra.core.Database;
+import io.electra.server.ElectraServerConstants;
 import io.undertow.Undertow;
 import io.undertow.servlet.api.DeploymentInfo;
 import org.jboss.resteasy.plugins.server.undertow.UndertowJaxrsServer;
@@ -59,7 +58,7 @@ public class RestServer {
         server = new UndertowJaxrsServer();
 
         ResteasyDeployment deployment = new ResteasyDeployment();
-        deployment.setApplicationClass(ElectraApplication.class.getName());
+        deployment.setApplication(new ElectraApplication(database));
 
         DeploymentInfo deploymentInfo = server.undertowDeployment(deployment, "/");
         deploymentInfo.setClassLoader(RestServer.class.getClassLoader());
@@ -70,7 +69,7 @@ public class RestServer {
 
         server.deploy(deploymentInfo);
 
-        Undertow.Builder builder = Undertow.builder().addHttpListener(DatabaseConstants.REST_PORT, DatabaseConstants.REST_HOST);
+        Undertow.Builder builder = Undertow.builder().addHttpListener(ElectraServerConstants.REST_PORT, ElectraServerConstants.REST_HOST);
 
         server.start(builder);
 

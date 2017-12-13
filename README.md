@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/FelixKlauke/electra.svg?token=v7R4FVyUfBVWw8zFwc5F&branch=master)](https://travis-ci.com/FelixKlauke/electra)
+[![Build Status](https://travis-ci.org/ExocronSolutions/electra.svg?branch=dev)](https://travis-ci.org/ExocronSolutions/electra)
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/FelixKlauke/electra)
 
 # electra
@@ -21,11 +21,31 @@ _Electra Client:_
 
 # Benchmarks & Performance
 
+# Roadmap & TODO
+- Server side Authentication for databases
+- Multiple DB handling
+- Add more concept stuff
+- Multiple node support including sharding and replicas
+- Administration tool (web or Desktop) for administrating databases
+
 # Concept
 Our database was planned to proof the concept of an indexed key value data storage. It was planned to
 maximize performance and speed while being as lightweight and easy to use as possible.
 
 ## File Formats
+We organized our files in block formats with a fixed size.
+
+### Index File
+
+### Data File
+
+## Data Record
+
+### Index
+
+### Data
+
+## Caching Lifecycle
 We organized our files in block formats with a fixed size. There is one file that will store the indices and one
 file that will store the corresponding data.
 
@@ -152,7 +172,7 @@ recently accessed data blocks. It contains the content of a block keyed by its p
 
 ### BlockChainCache
 We want to build the block chains fast. Really fast. That is why we have an own cache for the next blocks. This cache
-contains all links between to data blocks. The key is the 'source' and the value is the 'target'.
+contains all links between two data blocks. The key is the 'source' and the value is the 'target'.
 
 ### IndexCache
 The index cache is maybe not even a cache. It holds all indices in memory because we can't risk to read it from disk.
@@ -190,7 +210,20 @@ Lets assume we would want to save data that would need three blocks blocks. The 
 blocks. In this case these would result in the blocks 2, 6 and 7. Now we can split our data into pieces and write them
 in the blocks. At last we would create the new index that points to the data block 2.
 
+If we look at the next block pointers our table should look like this:
+```
++-------------+---+---+---+---+---+----+---+----+----+----+----+----+----+
+| Block Index | 0 | 1 | 2 | 3 | 4 | 5  | 6 | 7  | 8  | 9  | 10 | 11 | 12 |
++-------------+---+---+---+---+---+----+---+----+----+----+----+----+----+
+| Data        | X | X | X | X | X | X  | X | X  | X  | O  | X  | X  | O  |
+| Next Block  | 0 | 1 | 6 | 4 | 5 | -1 | 7 | -1 | -1 | 12 | 11 | -1 | -1 |
++-------------+---+---+---+---+---+----+---+----+----+----+----+----+----+
+```
+
+At this time the empty data index should point at 9.
+
 #### Free Block allocation
+
 
 #### Data splitting
 
