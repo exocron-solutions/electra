@@ -26,9 +26,9 @@ package io.electra.benchmark;
 
 import de.jackwhite20.orion.Orion;
 import de.jackwhite20.orion.annotations.*;
-import io.electra.server.Database;
-import io.electra.server.DatabaseConstants;
-import io.electra.server.DatabaseFactory;
+import io.electra.core.Database;
+import io.electra.core.DatabaseConstants;
+import io.electra.core.DatabaseFactory;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -62,7 +62,7 @@ public class ElectraBenchmark {
         //System.out.println(Arrays.toString(database.get("Felix" + (currentWrite - 1))));
     }
 
-    //@MeasureTime
+    @MeasureTime
     @Order(1)
     public void testRead() {
         byte[] bytes = database.get("Felix" + currentRead++);
@@ -71,8 +71,8 @@ public class ElectraBenchmark {
         }
     }
 
-    //@MeasureTime
-    //@Order(2)
+    @MeasureTime
+    @Order(2)
     public void testDelete() {
         database.remove("Felix" + currentDelete++);
     }
