@@ -58,7 +58,7 @@ public class RestServer {
         server = new UndertowJaxrsServer();
 
         ResteasyDeployment deployment = new ResteasyDeployment();
-        deployment.setApplicationClass(ElectraApplication.class.getName());
+        deployment.setApplication(new ElectraApplication(database));
 
         DeploymentInfo deploymentInfo = server.undertowDeployment(deployment, "/");
         deploymentInfo.setClassLoader(RestServer.class.getClassLoader());

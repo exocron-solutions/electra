@@ -21,5 +21,11 @@ public interface ElectraClient {
 
     void remove(int keyHash);
 
+    void update(String key, byte[] newValue);
+
+    void update(byte[] key, byte[] newValue);
+
+    void update(int keyHash, byte[] newValue);
+
     void disconnect();
 }

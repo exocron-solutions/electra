@@ -24,6 +24,7 @@
 
 package io.electra.server.binary;
 
+import io.electra.common.server.Action;
 import io.electra.core.DefaultDatabaseImpl;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -40,7 +41,7 @@ public class ElectraServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        logger.info("New connection");
+        logger.info("New binary protocol connection from {}", ctx.channel().remoteAddress());
     }
 
     @Override
@@ -48,10 +49,12 @@ public class ElectraServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
         int length = byteBuf.readInt();
 
         if (length > 0) {
-            byte action = byteBuf.readByte();
+            byte actionValue = byteBuf.readByte();
+
+            Action action = Action.of(actionValue);
 
             switch (action) {
-                case 0:
+                case GET:
                     int callbackId = byteBuf.readInt();
                     int keyHash = byteBuf.readInt();
 
@@ -65,17 +68,26 @@ public class ElectraServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
                     ctx.writeAndFlush(buffer).addListener(future -> buffer.release());
                     break;
-                case 1:
+                case PUT:
                     int putKeyHash = byteBuf.readInt();
                     byte[] putBytes = new byte[length - 5];
                     byteBuf.readBytes(putBytes);
 
                     ((DefaultDatabaseImpl) ElectraBinaryServer.getInstance().getDatabase()).save(putKeyHash, putBytes);
                     break;
-                case 2:
+                // REMOVE
+                case REMOVE:
                     int removeKeyHash = byteBuf.readInt();
 
                     ((DefaultDatabaseImpl) ElectraBinaryServer.getInstance().getDatabase()).remove(removeKeyHash);
+                    break;
+                // UPDATE
+                case UPDATE:
+                    int updateKeyHash = byteBuf.readInt();
+                    byte[] updateBytes = new byte[length - 5];
+                    byteBuf.readBytes(updateBytes);
+
+                    ((DefaultDatabaseImpl) ElectraBinaryServer.getInstance().getDatabase()).update(updateKeyHash, updateBytes);
                     break;
             }
         }

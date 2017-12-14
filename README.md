@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/FelixKlauke/electra.svg?token=v7R4FVyUfBVWw8zFwc5F&branch=master)](https://travis-ci.com/FelixKlauke/electra)
+[![Build Status](https://travis-ci.org/ExocronSolutions/electra.svg?branch=dev)](https://travis-ci.org/ExocronSolutions/electra)
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/FelixKlauke/electra)
 
 # electra
