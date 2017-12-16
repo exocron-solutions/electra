@@ -8,7 +8,6 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
-import io.netty.channel.socket.nio.NioSocketChannel;
 import org.apache.commons.codec.Charsets;
 
 import java.util.Arrays;
@@ -38,7 +37,7 @@ public class DefaultElectraClient implements ElectraClient {
         try {
             Bootstrap bootstrap = new Bootstrap()
                     .group(PipelineUtils.newEventLoopGroup(2, new ElectraThreadFactory("Electra Client Thread")))
-                    .channel(NioSocketChannel.class)
+                    .channel(PipelineUtils.getChannel())
                     .handler(new ElectraChannelInitializer(electraBinaryHandler = new ElectraBinaryHandler()));
 
             channel = bootstrap.connect(host, port).sync().channel();
@@ -113,6 +112,26 @@ public class DefaultElectraClient implements ElectraClient {
     @Override
     public void update(int keyHash, byte[] newValue) {
         ByteBuf byteBuf = Unpooled.buffer().writeByte(Action.UPDATE.getValue()).writeInt(keyHash);
+
+        electraBinaryHandler.send(byteBuf, null, -1);
+    }
+
+    @Override
+    public void createStorage(String name) {
+        // TODO: 16.12.2017 Limit size
+        byte[] nameBytes = name.getBytes(Charsets.UTF_8);
+
+        ByteBuf byteBuf = Unpooled.buffer().writeByte(Action.CREATE_STORAGE.getValue()).writeInt(nameBytes.length).writeBytes(nameBytes);
+
+        electraBinaryHandler.send(byteBuf, null, -1);
+    }
+
+    @Override
+    public void deleteStorage(String name) {
+        // TODO: 16.12.2017 Limit size
+        byte[] nameBytes = name.getBytes(Charsets.UTF_8);
+
+        ByteBuf byteBuf = Unpooled.buffer().writeByte(Action.DELETE_STORAGE.getValue()).writeInt(nameBytes.length).writeBytes(nameBytes);
 
         electraBinaryHandler.send(byteBuf, null, -1);
     }

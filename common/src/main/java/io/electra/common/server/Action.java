@@ -8,7 +8,9 @@ public enum Action {
     GET((byte) 0),
     PUT((byte) 1),
     REMOVE((byte) 2),
-    UPDATE((byte) 3);
+    UPDATE((byte) 3),
+    CREATE_STORAGE((byte) 4),
+    DELETE_STORAGE((byte) 5);
 
     private byte value;
 
