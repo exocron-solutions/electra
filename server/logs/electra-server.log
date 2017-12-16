@@ -1,0 +1,13 @@
+08:01:46 [main] INFO  StorageManagerFactory - Creating a new storage manager...
+08:01:46 [main] INFO  StorageManagerFactory - Created a new storage manager. Initializing free blocks.
+08:01:46 [main] INFO  StorageManagerFactory - Initialized free blocks.
+08:01:48 [main] INFO  DatabaseFactory - Creating a new database based on Mock for Path, hashCode: 1887991591 and Mock for Path, hashCode: 1457157255.
+08:01:48 [main] INFO  DatabaseFactory - Database creation successful.
+08:01:48 [main] INFO  DatabaseFactory - Creating a new database based on Mock for Path, hashCode: 119420356 and Mock for Path, hashCode: 580979398.
+08:01:48 [main] INFO  DatabaseFactory - Database creation successful.
+08:01:48 [main] INFO  DatabaseFactory - Creating a new database based on Mock for Path, hashCode: 1294361489 and Mock for Path, hashCode: 2017980204.
+08:01:48 [main] INFO  DatabaseFactory - Database creation successful.
+08:01:48 [main] INFO  DatabaseFactory - Creating a new database based on Mock for Path, hashCode: 266843824 and Mock for Path, hashCode: 2058661465.
+08:01:48 [main] INFO  DatabaseFactory - Database creation successful.
+08:01:49 [main] INFO  DatabaseFactory - Creating a new database based on Mock for Path, hashCode: 1215208733 and Mock for Path, hashCode: 1789237070.
+08:01:49 [main] INFO  DatabaseFactory - Database creation successful.
