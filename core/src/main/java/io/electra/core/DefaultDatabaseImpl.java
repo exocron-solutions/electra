@@ -70,6 +70,15 @@ public class DefaultDatabaseImpl implements Database {
         storageManager = StorageManagerFactory.createStorageManager(indexStorage, dataStorage);
     }
 
+    /**
+     * Caution: Internal method
+     * TODO: Refactor interface to hide internal.
+     * <p>
+     * Save the given data under the given key hash.
+     *
+     * @param keyHash The key hash.
+     * @param bytes   The data.
+     */
     public void save(int keyHash, byte[] bytes) {
         storageManager.save(keyHash, bytes);
 
@@ -94,6 +103,15 @@ public class DefaultDatabaseImpl implements Database {
         update(keyHash, value);
     }
 
+    /**
+     * Caution: Internal method
+     * TODO: Refactor interface to hide internal.
+     *
+     * Update the data record associated with the given key hash.
+     *
+     * @param keyHash The hash ok the key.
+     * @param value The new data.
+     */
     public void update(int keyHash, byte[] value) {
         if (dataCache.get(keyHash) != null) {
             dataCache.put(keyHash, value);
@@ -102,6 +120,15 @@ public class DefaultDatabaseImpl implements Database {
         storageManager.update(keyHash, value);
     }
 
+    /**
+     * Caution: Internal method
+     * TODO: Refactor interface to hide internal.
+     *
+     * Get the data associated with the given key hash.
+     *
+     * @param keyHash The key hash.
+     * @return The data.
+     */
     public byte[] get(int keyHash) {
         byte[] bytes = dataCache.get(keyHash);
 
@@ -115,6 +142,14 @@ public class DefaultDatabaseImpl implements Database {
         return get(keyHash);
     }
 
+    /**
+     * Caution: Internal method
+     * TODO: Refactor interface to hide internal.
+     *
+     * Delete the data associated with the given key hash.
+     *
+     * @param keyHash The key hash.
+     */
     public void remove(int keyHash) {
         storageManager.remove(keyHash);
 

@@ -75,19 +75,31 @@ public class ElectraServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
                     ((DefaultDatabaseImpl) ElectraBinaryServer.getInstance().getDatabase()).save(putKeyHash, putBytes);
                     break;
-                // REMOVE
                 case REMOVE:
                     int removeKeyHash = byteBuf.readInt();
 
                     ((DefaultDatabaseImpl) ElectraBinaryServer.getInstance().getDatabase()).remove(removeKeyHash);
                     break;
-                // UPDATE
                 case UPDATE:
                     int updateKeyHash = byteBuf.readInt();
                     byte[] updateBytes = new byte[length - 5];
                     byteBuf.readBytes(updateBytes);
 
                     ((DefaultDatabaseImpl) ElectraBinaryServer.getInstance().getDatabase()).update(updateKeyHash, updateBytes);
+                    break;
+                case CREATE_STORAGE:
+                    int createStorageNameLength = byteBuf.readInt();
+                    // TODO: 16.12.2017 Limit size
+                    byte[] createStorageNameBytes = new byte[createStorageNameLength];
+
+                    // TODO: 16.12.2017 Create the actual storage
+                    break;
+                case DELETE_STORAGE:
+                    int deleteStorageNameLength = byteBuf.readInt();
+                    // TODO: 16.12.2017 Limit size
+                    byte[] deleteStorageNameBytes = new byte[deleteStorageNameLength];
+
+                    // TODO: 16.12.2017 Delete the actual storage
                     break;
             }
         }
