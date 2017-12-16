@@ -117,6 +117,26 @@ public class DefaultElectraClient implements ElectraClient {
     }
 
     @Override
+    public void createStorage(String name) {
+        // TODO: 16.12.2017 Limit size
+        byte[] nameBytes = name.getBytes(Charsets.UTF_8);
+
+        ByteBuf byteBuf = Unpooled.buffer().writeByte(Action.CREATE_STORAGE.getValue()).writeInt(nameBytes.length).writeBytes(nameBytes);
+
+        electraBinaryHandler.send(byteBuf, null, -1);
+    }
+
+    @Override
+    public void deleteStorage(String name) {
+        // TODO: 16.12.2017 Limit size
+        byte[] nameBytes = name.getBytes(Charsets.UTF_8);
+
+        ByteBuf byteBuf = Unpooled.buffer().writeByte(Action.DELETE_STORAGE.getValue()).writeInt(nameBytes.length).writeBytes(nameBytes);
+
+        electraBinaryHandler.send(byteBuf, null, -1);
+    }
+
+    @Override
     public void disconnect() {
         channel.close();
     }

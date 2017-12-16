@@ -27,5 +27,9 @@ public interface ElectraClient {
 
     void update(int keyHash, byte[] newValue);
 
+    void createStorage(String name);
+
+    void deleteStorage(String name);
+
     void disconnect();
 }
