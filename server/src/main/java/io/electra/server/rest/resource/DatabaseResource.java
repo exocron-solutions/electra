@@ -97,4 +97,18 @@ public class DatabaseResource {
         ((DefaultDatabaseImpl) database).update(Arrays.hashCode(key), newValue);
         return Response.ok().entity("Ok").build();
     }
+
+    @PUT
+    @Path("/create/{storageName}")
+    public Response create(@PathParam("storageName") String storageName) {
+        // TODO: 16.12.2017 Create the actual storage
+        return Response.ok().build();
+    }
+
+    @DELETE
+    @Path("/delete/{storageName}")
+    public Response delete(@PathParam("storageName") String storageName) {
+        // TODO: 16.12.2017 Delete the actual storage
+        return Response.ok().build();
+    }
 }
