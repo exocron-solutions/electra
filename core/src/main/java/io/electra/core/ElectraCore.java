@@ -22,42 +22,17 @@
  * SOFTWARE.
  */
 
-package io.electra.server;
-
-import io.electra.core.*;
-import io.electra.core.config.ElectraCoreConfig;
-import io.electra.server.binary.ElectraBinaryServer;
-import io.electra.server.rest.RestServer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.nio.file.Path;
-import java.nio.file.Paths;
+package io.electra.core;
 
 /**
- * @author Philip 'JackWhite20' <silencephil@gmail.com>
+ * @author Felix Klauke <fklauke@itemis.de>
  */
-public class ElectraBootstrap {
+public interface ElectraCore {
+    Database getDatabase(String storageId);
 
-    private static Logger logger = LoggerFactory.getLogger(ElectraBootstrap.class);
+    void closeDatabase(Database database);
 
-    private static RestServer restServer;
+    void closeDatabase(String storageId);
 
-    private static ElectraBinaryServer electraBinaryServer;
-
-    public static void main(String[] args) {
-        logger.info("Starting electra");
-
-        //TODO: Core factory
-        ElectraCore electraCore = new ElectraCoreImpl(new ElectraCoreConfig(""));
-        Database database = electraCore.getDatabase("test");
-
-        restServer = new RestServer(database);
-        restServer.start();
-
-        electraBinaryServer = new ElectraBinaryServer(database);
-        electraBinaryServer.start();
-
-        //logger.info("Electra started");
-    }
+    void deleteDatabase(String storageId);
 }
