@@ -45,6 +45,11 @@ public class ElectraServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
     }
 
     @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        logger.info("{} disconnected", ctx.channel().remoteAddress());
+    }
+
+    @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf byteBuf) throws Exception {
         int length = byteBuf.readInt();
 
