@@ -22,48 +22,20 @@
  * SOFTWARE.
  */
 
-package io.electra.core.factory;
-
-import org.junit.Before;
-import org.junit.Test;
-
-import java.util.concurrent.ThreadFactory;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+package io.electra.core.config;
 
 /**
- * Test the behaviour of the {@link ElectraThreadFactory}.
- *
  * @author Felix Klauke <fklauke@itemis.de>
  */
-public class ElectraThreadFactoryTest {
+public class ElectraCoreConfig {
 
-    /**
-     * The test prefix. As we start counting the thread ids with '1', the result should be:
-     * <p>
-     * PREFIX + 1
-     */
-    private static final String PREFIX = "TestPrefix #";
+    private final String dbPath;
 
-    /**
-     * The tested thread factory.
-     */
-    private ThreadFactory threadFactory;
-
-    @Before
-    public void setUp() throws Exception {
-        threadFactory = new ElectraThreadFactory(PREFIX);
+    public ElectraCoreConfig(String dbPath) {
+        this.dbPath = dbPath;
     }
 
-    @Test
-    public void testNewThread() throws Exception {
-        Runnable runnable = () -> {
-        };
-
-        Thread thread = threadFactory.newThread(runnable);
-
-        assertNotNull(thread);
-        assertEquals(PREFIX + 1, thread.getName());
+    public String getDbPath() {
+        return dbPath;
     }
 }
