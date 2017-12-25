@@ -52,7 +52,7 @@ public class ElectraBootstrap {
         ElectraCore electraCore = new ElectraCoreImpl(new ElectraCoreConfig(""));
         Database database = electraCore.getDatabase("test");
 
-        restServer = new RestServer(database);
+        restServer = new RestServer(electraCore);
         restServer.start();
 
         electraBinaryServer = new ElectraBinaryServer(database);
