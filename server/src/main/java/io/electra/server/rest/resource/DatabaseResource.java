@@ -26,6 +26,9 @@ package io.electra.server.rest.resource;
 
 import io.electra.core.Database;
 import io.electra.core.DefaultDatabaseImpl;
+import io.electra.core.ElectraCore;
+import net.openhft.koloboke.collect.map.ObjObjMap;
+import net.openhft.koloboke.collect.map.hash.HashObjObjMaps;
 import org.apache.commons.codec.Charsets;
 
 import javax.ws.rs.*;
@@ -33,81 +36,109 @@ import javax.ws.rs.core.Response;
 import java.util.Arrays;
 
 /**
- * Created by JackWhite20 on 27.11.2017.
+ * @author Philip 'JackWhite20' <silencephil@gmail.com>
+ * @author Felix Klauke <fklauke@itemis.de>
  */
 @Path("/database")
 public class DatabaseResource {
 
-    private Database database;
+    /**
+     * The core module of the database engine.
+     */
+    private final ElectraCore electraCore;
 
-    public DatabaseResource(Database database) {
-        this.database = database;
+    /**
+     * Create a new instance of the database resource.
+     *
+     * @param electraCore The electra core.
+     */
+    public DatabaseResource(ElectraCore electraCore) {
+        this.electraCore = electraCore;
+    }
+
+    /**
+     * Get the database of the given storage id.
+     *
+     * @param storageId The storage id.
+     * @return The database.
+     */
+    private Database getDatabase(String storageId) {
+        return electraCore.getDatabase(storageId);
     }
 
     @GET
-    @Path("/get/{key}")
-    public Response get(@PathParam("key") String key) {
+    @Path("/{storageId}/get/{key}")
+    public Response get(@PathParam("storageId") String storageId, @PathParam("key") String key) {
+        Database database = getDatabase(storageId);
         return Response.ok().entity(database.get(key)).build();
     }
 
     @POST
-    @Path("/get")
-    public Response get(byte[] key) {
+    @Path("/{storageId}/get")
+    public Response get(@PathParam("storageId") String storageId, byte[] key) {
+        Database database = getDatabase(storageId);
         return Response.ok().entity(((DefaultDatabaseImpl) database).get(Arrays.hashCode(key))).build();
     }
 
     @GET
-    @Path("/put/{key}/{value}")
-    public Response put(@PathParam("key") String key, @PathParam("value") String value) {
+    @Path("/{storageId}/put/{key}/{value}")
+    public Response put(@PathParam("storageId") String storageId, @PathParam("key") String key, @PathParam("value") String value) {
+        Database database = getDatabase(storageId);
         database.save(key, value);
         return Response.ok().entity("Ok").build();
     }
 
     @POST
-    @Path("/put")
-    public Response put(byte[] key, byte[] value) {
+    @Path("/{storageId}/put")
+    public Response put(@PathParam("storageId") String storageId, byte[] key, byte[] value) {
+        Database database = getDatabase(storageId);
         ((DefaultDatabaseImpl) database).save(Arrays.hashCode(key), value);
         return Response.ok().entity("Ok").build();
     }
 
     @DELETE
-    @Path("/remove/{key}")
-    public Response remove(@PathParam("key") String key) {
+    @Path("/{storageId}/remove/{key}")
+    public Response remove(@PathParam("storageId") String storageId, @PathParam("key") String key) {
+        Database database = getDatabase(storageId);
         database.remove(key);
         return Response.ok().entity("Ok").build();
     }
 
     @DELETE
-    @Path("/remove")
-    public Response remove(byte[] key) {
+    @Path("/{storageId}/remove")
+    public Response remove(@PathParam("storageId") String storageId, byte[] key) {
+        Database database = getDatabase(storageId);
         ((DefaultDatabaseImpl) database).remove(Arrays.hashCode(key));
         return Response.ok().entity("Ok").build();
     }
 
     @PUT
-    @Path("/update/{key}/{newValue}")
-    public Response update(@PathParam("key") String key, @PathParam("newValue") String newValue) {
+    @Path("/{storageId}/update/{key}/{newValue}")
+    public Response update(@PathParam("storageId") String storageId, @PathParam("key") String key, @PathParam("newValue") String newValue) {
+        Database database = getDatabase(storageId);
         database.update(key, newValue.getBytes(Charsets.UTF_8));
         return Response.ok().entity("Ok").build();
     }
 
     @POST
-    @Path("/update")
-    public Response update(byte[] key, byte[] newValue) {
+    @Path("/{storageId}/update")
+    public Response update(@PathParam("storageId") String storageId, byte[] key, byte[] newValue) {
+        Database database = getDatabase(storageId);
         ((DefaultDatabaseImpl) database).update(Arrays.hashCode(key), newValue);
         return Response.ok().entity("Ok").build();
     }
 
     @PUT
-    @Path("/create/{storageName}")
-    public Response create(@PathParam("storageName") String storageName) {
+    @Path("/{storageId}/create/{storageName}")
+    public Response create(@PathParam("storageId") String storageId, @PathParam("storageName") String storageName) {
+        getDatabase(storageId);
         return Response.ok().build();
     }
 
     @DELETE
-    @Path("/delete/{storageName}")
-    public Response delete(@PathParam("storageName") String storageName) {
-        // TODO: 16.12.2017 Delete the actual storage
+    @Path("/{storageId}/delete/{storageName}")
+    public Response delete(@PathParam("storageId") String storageId, @PathParam("storageName") String storageName) {
+        electraCore.deleteDatabase(storageId);
         return Response.ok().build();
     }
 }

@@ -25,6 +25,7 @@
 package io.electra.server.rest;
 
 import io.electra.core.Database;
+import io.electra.core.ElectraCore;
 import io.electra.server.ElectraServerConstants;
 import io.undertow.Undertow;
 import io.undertow.servlet.api.DeploymentInfo;
@@ -40,16 +41,12 @@ public class RestServer {
 
     private static Logger logger = LoggerFactory.getLogger(RestServer.class);
 
-    private static RestServer restServer;
-
     private UndertowJaxrsServer server;
 
-    private Database database;
+    private final ElectraCore electraCore;
 
-    public RestServer(Database database) {
-        restServer = this;
-
-        this.database = database;
+    public RestServer(ElectraCore electraCore) {
+        this.electraCore = electraCore;
     }
 
     public void start() {
@@ -58,7 +55,7 @@ public class RestServer {
         server = new UndertowJaxrsServer();
 
         ResteasyDeployment deployment = new ResteasyDeployment();
-        deployment.setApplication(new ElectraApplication(database));
+        deployment.setApplication(new ElectraApplication(electraCore));
 
         DeploymentInfo deploymentInfo = server.undertowDeployment(deployment, "/");
         deploymentInfo.setClassLoader(RestServer.class.getClassLoader());
@@ -74,13 +71,5 @@ public class RestServer {
         server.start(builder);
 
         logger.info("REST server started");
-    }
-
-    public Database getDatabase() {
-        return database;
-    }
-
-    public static RestServer getRestServer() {
-        return restServer;
     }
 }
