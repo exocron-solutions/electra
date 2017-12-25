@@ -49,7 +49,7 @@ public class ElectraBootstrap {
         logger.info("Starting electra");
 
         //TODO: Core factory
-        ElectraCore electraCore = new ElectraCoreImpl(new ElectraCoreConfig(""));
+        ElectraCore electraCore = ElectraCoreFactory.createElectraCore();
         Database database = electraCore.getDatabase("test");
 
         restServer = new RestServer(electraCore);
