@@ -25,7 +25,7 @@
 package io.electra.server.rest;
 
 import com.google.common.collect.Sets;
-import io.electra.core.Database;
+import io.electra.core.ElectraCore;
 import io.electra.server.rest.resource.DatabaseResource;
 
 import javax.ws.rs.core.Application;
@@ -36,14 +36,14 @@ import java.util.Set;
  */
 public class ElectraApplication extends Application {
 
-    private Database database;
+    private final ElectraCore electraCore;
 
-    ElectraApplication(Database database) {
-        this.database = database;
+    public ElectraApplication(ElectraCore electraCore) {
+        this.electraCore = electraCore;
     }
 
     @Override
     public Set<Object> getSingletons() {
-        return Sets.newHashSet(new DatabaseResource(database), new RawBodyReader());
+        return Sets.newHashSet(new DatabaseResource(electraCore), new RawBodyReader());
     }
 }

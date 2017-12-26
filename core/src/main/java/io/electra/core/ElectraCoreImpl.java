@@ -41,7 +41,7 @@ public class ElectraCoreImpl implements ElectraCore {
     private final ObjObjMap<String, Database> currentLoadedDatabases;
     private final ElectraCoreConfig config;
 
-    public ElectraCoreImpl(ElectraCoreConfig config) {
+    ElectraCoreImpl(ElectraCoreConfig config) {
         this.config = config;
         currentLoadedDatabases = HashObjObjMaps.newMutableMap();
     }
