@@ -10,7 +10,8 @@ public enum Action {
     REMOVE((byte) 2),
     UPDATE((byte) 3),
     CREATE_STORAGE((byte) 4),
-    DELETE_STORAGE((byte) 5);
+    DELETE_STORAGE((byte) 5),
+    USE_STORAGE((byte) 6);
 
     private byte value;
 

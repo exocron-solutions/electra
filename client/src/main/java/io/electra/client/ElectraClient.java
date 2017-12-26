@@ -31,5 +31,7 @@ public interface ElectraClient {
 
     void deleteStorage(String name);
 
+    void useStorage(String name);
+
     void disconnect();
 }
