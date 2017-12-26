@@ -29,6 +29,7 @@ import io.electra.core.DefaultDatabaseImpl;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import org.apache.commons.codec.Charsets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +39,8 @@ import org.slf4j.LoggerFactory;
 public class ElectraServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     private static Logger logger = LoggerFactory.getLogger(ElectraServerHandler.class);
+
+    private String currentStorage = "default";
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
@@ -105,6 +108,11 @@ public class ElectraServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
                     byte[] deleteStorageNameBytes = new byte[deleteStorageNameLength];
 
                     // TODO: 16.12.2017 Delete the actual storage
+                case USE_STORAGE:
+                    int useStorageLength = byteBuf.readInt();
+                    byte[] useStorageBytes = new byte[useStorageLength];
+
+                    currentStorage = new String(useStorageBytes, Charsets.UTF_8);
                     break;
             }
         }
