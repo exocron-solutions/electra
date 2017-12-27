@@ -24,8 +24,10 @@
 
 package io.electra.core.cache;
 
+import io.electra.core.DataRecord;
 import io.electra.core.ElectraTest;
 import io.electra.core.Order;
+import io.electra.core.RawDataRecord;
 import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
@@ -37,8 +39,8 @@ import static org.junit.Assert.*;
  */
 public class TestDataCache extends ElectraTest {
 
-    private Cache<Integer, byte[]> cache = new DataCache(-1, null, 1);
-    private Cache<Integer, byte[]> cacheWithExpire = new DataCache(5, TimeUnit.MILLISECONDS, 1);
+    private Cache<Integer, DataRecord> cache = new DataCache(-1, null, 1);
+    private Cache<Integer, DataRecord> cacheWithExpire = new DataCache(5, TimeUnit.MILLISECONDS, 1);
 
     @Test
     public void test() {
@@ -47,20 +49,16 @@ public class TestDataCache extends ElectraTest {
 
     @Order(1)
     public void testPut() {
-        cache.put(0, new byte[] {2, 1, 3});
+        cache.put(0, new RawDataRecord(new byte[]{2, 1, 3}));
 
         assertEquals(1, cache.size());
     }
 
     @Order(2)
     public void testGet() {
-        byte[] bytes = cache.get(0);
+        DataRecord bytes = cache.get(0);
 
         assertNotNull(bytes);
-        assertEquals(3, bytes.length);
-        assertEquals(2, bytes[0]);
-        assertEquals(1, bytes[1]);
-        assertEquals(3, bytes[2]);
     }
 
     @Order(3)
@@ -77,7 +75,7 @@ public class TestDataCache extends ElectraTest {
 
     @Order(5)
     public void testExpire() throws InterruptedException {
-        cacheWithExpire.put(0, new byte[] {9});
+        cacheWithExpire.put(0, new RawDataRecord(new byte[]{2, 1, 3}));
 
         assertNotNull(cacheWithExpire.get(0));
 
@@ -88,7 +86,7 @@ public class TestDataCache extends ElectraTest {
 
     @Order(6)
     public void testInvalidate() {
-        cache.put(0, new byte[] {2, 1, 3});
+        cache.put(0, new RawDataRecord(new byte[]{2, 1, 3}));
 
         assertNotNull(cache.get(0));
 

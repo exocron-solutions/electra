@@ -31,7 +31,7 @@ public class RawDataRecord implements DataRecord<byte[]> {
 
     private byte[] bytes;
 
-    RawDataRecord(byte[] bytes) {
+    public RawDataRecord(byte[] bytes) {
         this.bytes = bytes;
     }
 
