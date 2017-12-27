@@ -24,6 +24,8 @@
 
 package io.electra.core;
 
+import org.json.JSONObject;
+
 import java.nio.file.Path;
 
 /**
@@ -46,6 +48,14 @@ public interface Database {
     void save(String key, byte[] bytes);
 
     /**
+     * Save the given json object under the given key.
+     *
+     * @param key        The key.
+     * @param jsonObject The value.
+     */
+    void save(String key, JSONObject jsonObject);
+
+    /**
      * Save the given value for the given key. Will implicitly convert the value to a byte array and store it
      * via {@link #save(String, byte[])}.
      *
@@ -54,7 +64,21 @@ public interface Database {
      */
     void save(String key, String value);
 
+    /**
+     * Update the data under the given key.
+     *
+     * @param key The key.
+     * @param value The value.
+     */
     void update(String key, byte[] value);
+
+    /**
+     * Update the data under given key with the given delta.
+     *
+     * @param key        The key.
+     * @param jsonObject The json object.
+     */
+    void update(String key, JSONObject jsonObject);
 
     /**
      * Query for the given key.
@@ -64,6 +88,14 @@ public interface Database {
      * @return The value or null.
      */
     byte[] get(String key);
+
+    /**
+     * Get the json object under the given key.
+     *
+     * @param key The key.
+     * @return The json object.
+     */
+    JSONObject getJson(String key);
 
     /**
      * Delete the value for the given key.

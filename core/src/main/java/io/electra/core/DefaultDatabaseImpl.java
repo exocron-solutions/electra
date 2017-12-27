@@ -32,9 +32,12 @@ import io.electra.core.data.DataStorageFactory;
 import io.electra.core.index.IndexStorage;
 import io.electra.core.index.IndexStorageFactory;
 import io.electra.core.storage.StorageManager;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -48,7 +51,7 @@ public class DefaultDatabaseImpl implements Database {
     /**
      * The top level cache that contains all data.
      */
-    private final Cache<Integer, byte[]> dataCache;
+    private final Cache<Integer, DataRecord> dataCache;
 
     /**
      * The storage manager to manager data.
@@ -70,26 +73,23 @@ public class DefaultDatabaseImpl implements Database {
         storageManager = StorageManagerFactory.createStorageManager(indexStorage, dataStorage);
     }
 
-    /**
-     * Caution: Internal method
-     * TODO: Refactor interface to hide internal.
-     * <p>
-     * Save the given data under the given key hash.
-     *
-     * @param keyHash The key hash.
-     * @param bytes   The data.
-     */
-    public void save(int keyHash, byte[] bytes) {
-        storageManager.save(keyHash, bytes);
-
-        dataCache.put(keyHash, bytes);
-    }
 
     @Override
     public void save(String key, byte[] bytes) {
-        int keyHash = Arrays.hashCode(key.getBytes(Charsets.UTF_8));
+        DataRecord<byte[]> dataRecord = new RawDataRecord(bytes);
+        saveDataRecord(key, dataRecord);
+    }
 
-        save(keyHash, bytes);
+    private void saveDataRecord(String key, DataRecord dataRecord) {
+        int keyHash = hashKey(key);
+        dataCache.put(keyHash, dataRecord);
+        storageManager.save(keyHash, dataRecord.getRawContent());
+    }
+
+    @Override
+    public void save(String key, JSONObject jsonObject) {
+        DataRecord<JSONObject> dataRecord = new JsonDataRecord(jsonObject);
+        saveDataRecord(key, dataRecord);
     }
 
     @Override
@@ -99,73 +99,93 @@ public class DefaultDatabaseImpl implements Database {
 
     @Override
     public void update(String key, byte[] value) {
-        int keyHash = Arrays.hashCode(key.getBytes(Charsets.UTF_8));
-        update(keyHash, value);
-    }
+        int keyHash = hashKey(key);
+        DataRecord dataRecord = dataCache.get(keyHash);
 
-    /**
-     * Caution: Internal method
-     * TODO: Refactor interface to hide internal.
-     *
-     * Update the data record associated with the given key hash.
-     *
-     * @param keyHash The hash ok the key.
-     * @param value The new data.
-     */
-    public void update(int keyHash, byte[] value) {
-        if (dataCache.get(keyHash) != null) {
-            dataCache.put(keyHash, value);
+        if (dataRecord != null) {
+            dataRecord.setRawData(value);
         }
 
         storageManager.update(keyHash, value);
     }
 
-    /**
-     * Caution: Internal method
-     * TODO: Refactor interface to hide internal.
-     *
-     * Get the data associated with the given key hash.
-     *
-     * @param keyHash The key hash.
-     * @return The data.
-     */
-    public byte[] get(int keyHash) {
-        byte[] bytes = dataCache.get(keyHash);
+    @Override
+    public void update(String key, JSONObject jsonObject) {
+        int keyHash = hashKey(key);
+        DataRecord dataRecord = dataCache.get(keyHash);
 
-        return bytes != null ? bytes : storageManager.get(keyHash);
+        if (dataRecord != null && dataRecord instanceof JsonDataRecord) {
+            JSONObject recordData = (JSONObject) dataRecord.getData();
+
+            Map<String, Object> objectMap = recordData.toMap();
+            objectMap.putAll(jsonObject.toMap());
+
+            ((JsonDataRecord) dataRecord).setData(new JSONObject(objectMap));
+            storageManager.update(keyHash, dataRecord.getRawContent());
+        }
     }
 
     @Override
     public byte[] get(String key) {
-        int keyHash = Arrays.hashCode(key.getBytes(Charsets.UTF_8));
+        int keyHash = hashKey(key);
+        DataRecord dataRecord = dataCache.get(keyHash);
 
-        return get(keyHash);
+        if (dataRecord != null) {
+            return dataRecord.getRawContent();
+        }
+
+        byte[] bytes = storageManager.get(keyHash);
+
+        if (bytes == null) {
+            return null;
+        }
+
+        dataRecord = new RawDataRecord(bytes);
+        dataCache.put(keyHash, dataRecord);
+
+        return dataRecord.getRawContent();
     }
 
-    /**
-     * Caution: Internal method
-     * TODO: Refactor interface to hide internal.
-     *
-     * Delete the data associated with the given key hash.
-     *
-     * @param keyHash The key hash.
-     */
-    public void remove(int keyHash) {
-        storageManager.remove(keyHash);
+    @Override
+    public JSONObject getJson(String key) {
+        int keyHash = hashKey(key);
+        DataRecord dataRecord = dataCache.get(keyHash);
 
-        dataCache.invalidate(keyHash);
+        if (dataRecord != null && dataRecord instanceof JsonDataRecord) {
+            return ((JsonDataRecord) dataRecord).getData();
+        }
+
+        byte[] bytes = storageManager.get(keyHash);
+
+        if (bytes == null) {
+            return null;
+        }
+
+        try {
+            dataRecord = new JsonDataRecord(new JSONObject(new String(bytes)));
+        } catch (JSONException e) {
+            return null;
+        }
+
+        dataCache.put(keyHash, dataRecord);
+
+        return ((JsonDataRecord) dataRecord).getData();
     }
 
     @Override
     public void remove(String key) {
-        int keyHash = Arrays.hashCode(key.getBytes(Charsets.UTF_8));
-
-        remove(keyHash);
+        int keyHash = hashKey(key);
+        dataCache.invalidate(keyHash);
+        storageManager.remove(keyHash);
     }
 
     @Override
     public void close() {
         storageManager.close();
         dataCache.clear();
+    }
+
+    private int hashKey(String key) {
+        return Arrays.hashCode(key.getBytes(Charsets.UTF_8));
     }
 }
