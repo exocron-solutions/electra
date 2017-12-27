@@ -25,15 +25,11 @@
 package io.electra.server.rest.resource;
 
 import io.electra.core.Database;
-import io.electra.core.DefaultDatabaseImpl;
 import io.electra.core.ElectraCore;
-import net.openhft.koloboke.collect.map.ObjObjMap;
-import net.openhft.koloboke.collect.map.hash.HashObjObjMaps;
 import org.apache.commons.codec.Charsets;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
-import java.util.Arrays;
 
 /**
  * @author Philip 'JackWhite20' <silencephil@gmail.com>
@@ -77,7 +73,7 @@ public class DatabaseResource {
     @Path("/{storageId}/get")
     public Response get(@PathParam("storageId") String storageId, byte[] key) {
         Database database = getDatabase(storageId);
-        return Response.ok().entity(((DefaultDatabaseImpl) database).get(Arrays.hashCode(key))).build();
+        return Response.ok().entity(database.get(new String(key))).build();
     }
 
     @GET
@@ -92,7 +88,7 @@ public class DatabaseResource {
     @Path("/{storageId}/put")
     public Response put(@PathParam("storageId") String storageId, byte[] key, byte[] value) {
         Database database = getDatabase(storageId);
-        ((DefaultDatabaseImpl) database).save(Arrays.hashCode(key), value);
+        database.save(new String(key), value);
         return Response.ok().entity("Ok").build();
     }
 
@@ -108,7 +104,7 @@ public class DatabaseResource {
     @Path("/{storageId}/remove")
     public Response remove(@PathParam("storageId") String storageId, byte[] key) {
         Database database = getDatabase(storageId);
-        ((DefaultDatabaseImpl) database).remove(Arrays.hashCode(key));
+        database.remove(new String(key));
         return Response.ok().entity("Ok").build();
     }
 
@@ -124,7 +120,7 @@ public class DatabaseResource {
     @Path("/{storageId}/update")
     public Response update(@PathParam("storageId") String storageId, byte[] key, byte[] newValue) {
         Database database = getDatabase(storageId);
-        ((DefaultDatabaseImpl) database).update(Arrays.hashCode(key), newValue);
+        database.update(new String(key), newValue);
         return Response.ok().entity("Ok").build();
     }
 
