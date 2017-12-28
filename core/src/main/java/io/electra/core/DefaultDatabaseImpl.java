@@ -76,30 +76,68 @@ public class DefaultDatabaseImpl implements Database {
 
     @Override
     public void save(String key, byte[] bytes) {
-        DataRecord<byte[]> dataRecord = new RawDataRecord(bytes);
-        saveDataRecord(key, dataRecord);
+        save(hashKey(key), bytes);
     }
 
-    private void saveDataRecord(String key, DataRecord dataRecord) {
-        int keyHash = hashKey(key);
+    @Override
+    public void save(String key, JSONObject jsonObject) {
+        save(hashKey(key), jsonObject);
+    }
+
+    @Override
+    public void save(String key, String value) {
+        save(hashKey(key), value);
+    }
+
+    @Override
+    public void update(String key, byte[] value) {
+        update(hashKey(key), value);
+    }
+
+    @Override
+    public void update(String key, JSONObject jsonObject) {
+        update(hashKey(key), jsonObject);
+    }
+
+    @Override
+    public byte[] get(String key) {
+        return get(hashKey(key));
+    }
+
+    @Override
+    public JSONObject getJson(String key) {
+        return getJson(hashKey(key));
+    }
+
+    @Override
+    public void remove(String key) {
+        remove(hashKey(key));
+    }
+
+    @Override
+    public void save(int keyHash, byte[] bytes) {
+        DataRecord<byte[]> dataRecord = new RawDataRecord(bytes);
+        saveDataRecord(keyHash, dataRecord);
+    }
+
+    private void saveDataRecord(int keyHash, DataRecord dataRecord) {
         dataCache.put(keyHash, dataRecord);
         storageManager.save(keyHash, dataRecord.getRawContent());
     }
 
     @Override
-    public void save(String key, JSONObject jsonObject) {
+    public void save(int keyHash, JSONObject jsonObject) {
         DataRecord<JSONObject> dataRecord = new JsonDataRecord(jsonObject);
-        saveDataRecord(key, dataRecord);
+        saveDataRecord(keyHash, dataRecord);
     }
 
     @Override
-    public void save(String key, String value) {
-        save(key, value.getBytes(Charsets.UTF_8));
+    public void save(int keyHash, String value) {
+        save(keyHash, value.getBytes(Charsets.UTF_8));
     }
 
     @Override
-    public void update(String key, byte[] value) {
-        int keyHash = hashKey(key);
+    public void update(int keyHash, byte[] value) {
         DataRecord dataRecord = dataCache.get(keyHash);
 
         if (dataRecord != null) {
@@ -110,8 +148,7 @@ public class DefaultDatabaseImpl implements Database {
     }
 
     @Override
-    public void update(String key, JSONObject jsonObject) {
-        int keyHash = hashKey(key);
+    public void update(int keyHash, JSONObject jsonObject) {
         DataRecord dataRecord = dataCache.get(keyHash);
 
         if (dataRecord != null && dataRecord instanceof JsonDataRecord) {
@@ -126,8 +163,7 @@ public class DefaultDatabaseImpl implements Database {
     }
 
     @Override
-    public byte[] get(String key) {
-        int keyHash = hashKey(key);
+    public byte[] get(int keyHash) {
         DataRecord dataRecord = dataCache.get(keyHash);
 
         if (dataRecord != null) {
@@ -147,8 +183,7 @@ public class DefaultDatabaseImpl implements Database {
     }
 
     @Override
-    public JSONObject getJson(String key) {
-        int keyHash = hashKey(key);
+    public JSONObject getJson(int keyHash) {
         DataRecord dataRecord = dataCache.get(keyHash);
 
         if (dataRecord != null && dataRecord instanceof JsonDataRecord) {
@@ -173,8 +208,7 @@ public class DefaultDatabaseImpl implements Database {
     }
 
     @Override
-    public void remove(String key) {
-        int keyHash = hashKey(key);
+    public void remove(int keyHash) {
         dataCache.invalidate(keyHash);
         storageManager.remove(keyHash);
     }
