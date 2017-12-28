@@ -22,23 +22,37 @@
  * SOFTWARE.
  */
 
-package io.electra.core.cache;
+package io.electra.core;
 
-import io.electra.core.DataRecord;
-import net.openhft.koloboke.collect.map.hash.HashIntObjMaps;
-
-import java.util.concurrent.TimeUnit;
+import org.json.JSONObject;
 
 /**
- * @author Philip 'JackWhite20' <silencephil@gmail.com>
+ * @author Felix Klauke <fklauke@itemis.de>
  */
-public class DataCache extends AbstractCache<Integer, DataRecord> {
+public class JsonDataRecord implements DataRecord<JSONObject> {
 
-    public DataCache(long expire, TimeUnit timeUnit, int expectedSize) {
-        super(HashIntObjMaps.newMutableMap(expectedSize), expire, timeUnit, expectedSize);
+    private JSONObject jsonObject;
+
+    public JsonDataRecord(JSONObject jsonObject) {
+        this.jsonObject = jsonObject;
     }
 
-    public DataCache(int expectedSize) {
-        this(-1, null, expectedSize);
+    @Override
+    public JSONObject getData() {
+        return new JSONObject();
+    }
+
+    public void setData(JSONObject jsonObject) {
+        this.jsonObject = jsonObject;
+    }
+
+    @Override
+    public void setRawData(byte[] jsonObject) {
+        this.jsonObject = new JSONObject(new String(jsonObject));
+    }
+
+    @Override
+    public byte[] getRawContent() {
+        return jsonObject.toString().getBytes();
     }
 }

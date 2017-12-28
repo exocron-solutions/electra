@@ -22,23 +22,31 @@
  * SOFTWARE.
  */
 
-package io.electra.core.cache;
-
-import io.electra.core.DataRecord;
-import net.openhft.koloboke.collect.map.hash.HashIntObjMaps;
-
-import java.util.concurrent.TimeUnit;
+package io.electra.core;
 
 /**
- * @author Philip 'JackWhite20' <silencephil@gmail.com>
+ * @author Felix Klauke <fklauke@itemis.de>
  */
-public class DataCache extends AbstractCache<Integer, DataRecord> {
+public interface DataRecord<OutputType> {
 
-    public DataCache(long expire, TimeUnit timeUnit, int expectedSize) {
-        super(HashIntObjMaps.newMutableMap(expectedSize), expire, timeUnit, expectedSize);
-    }
+    /**
+     * Get the data of the record.
+     *
+     * @return The data.
+     */
+    OutputType getData();
 
-    public DataCache(int expectedSize) {
-        this(-1, null, expectedSize);
-    }
+    /**
+     * Set the data of the record.
+     *
+     * @param inputType The input.
+     */
+    void setRawData(byte[] inputType);
+
+    /**
+     * Get the content on byte level.
+     *
+     * @return The raw content.
+     */
+    byte[] getRawContent();
 }

@@ -50,6 +50,8 @@
             <artifactId>koloboke-api-jdk8</artifactId>
             <version>0.6.8</version>
         </dependency>
+
+        <!-- Koloboke impl -->
         <dependency>
             <groupId>net.openhft</groupId>
             <artifactId>koloboke-impl-jdk8</artifactId>
@@ -70,6 +72,7 @@
             <version>4.12</version>
             <scope>test</scope>
         </dependency>
+
         <!-- Powermock -->
         <dependency>
             <groupId>org.powermock</groupId>
@@ -84,6 +87,14 @@
             <artifactId>powermock-api-mockito2</artifactId>
             <version>2.0.0-beta.5</version>
             <scope>test</scope>
+        </dependency>
+
+        <!-- Json -->
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20171018</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 
