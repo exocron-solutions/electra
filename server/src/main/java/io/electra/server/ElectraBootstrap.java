@@ -24,15 +24,12 @@
 
 package io.electra.server;
 
-import io.electra.core.*;
-import io.electra.core.config.ElectraCoreConfig;
+import io.electra.core.ElectraCore;
+import io.electra.core.ElectraCoreFactory;
 import io.electra.server.binary.ElectraBinaryServer;
 import io.electra.server.rest.RestServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 /**
  * @author Philip 'JackWhite20' <silencephil@gmail.com>
@@ -48,14 +45,12 @@ public class ElectraBootstrap {
     public static void main(String[] args) {
         logger.info("Starting electra");
 
-        //TODO: Core factory
         ElectraCore electraCore = ElectraCoreFactory.createElectraCore();
-        Database database = electraCore.getDatabase("test");
 
         restServer = new RestServer(electraCore);
         restServer.start();
 
-        electraBinaryServer = new ElectraBinaryServer(database);
+        electraBinaryServer = new ElectraBinaryServer(electraCore);
         electraBinaryServer.start();
 
         //logger.info("Electra started");
