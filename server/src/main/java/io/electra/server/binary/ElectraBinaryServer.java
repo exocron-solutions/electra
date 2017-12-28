@@ -25,7 +25,7 @@
 package io.electra.server.binary;
 
 import io.electra.common.server.ElectraChannelInitializer;
-import io.electra.core.Database;
+import io.electra.core.ElectraCore;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
@@ -39,14 +39,10 @@ import java.net.InetSocketAddress;
  */
 public class ElectraBinaryServer {
 
-    private static ElectraBinaryServer instance;
+    private ElectraCore electraCore;
 
-    private Database database;
-
-    public ElectraBinaryServer(Database database) {
-        ElectraBinaryServer.instance = this;
-
-        this.database = database;
+    public ElectraBinaryServer(ElectraCore electraCore) {
+        this.electraCore = electraCore;
     }
 
     public void start() {
@@ -58,7 +54,7 @@ public class ElectraBinaryServer {
                     .group(boss, group)
                     .channel(NioServerSocketChannel.class)
                     .localAddress(new InetSocketAddress("localhost", 9999))
-                    .childHandler(new ElectraChannelInitializer(new ElectraServerHandler()));
+                    .childHandler(new ElectraChannelInitializer(new ElectraServerHandler(electraCore)));
             ChannelFuture channelFuture = serverBootstrap.bind().sync();
             channelFuture.channel().closeFuture().sync();
         } catch(Exception e){
@@ -70,13 +66,5 @@ public class ElectraBinaryServer {
                 e.printStackTrace();
             }
         }
-    }
-
-    public Database getDatabase() {
-        return database;
-    }
-
-    public static ElectraBinaryServer getInstance() {
-        return instance;
     }
 }

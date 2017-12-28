@@ -25,6 +25,8 @@
 package io.electra.server.binary;
 
 import io.electra.common.server.Action;
+import io.electra.core.Database;
+import io.electra.core.ElectraCore;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -39,7 +41,13 @@ public class ElectraServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     private static Logger logger = LoggerFactory.getLogger(ElectraServerHandler.class);
 
-    private String currentStorage = "default";
+    private ElectraCore electraCore;
+
+    private Database currentDatabase;
+
+    ElectraServerHandler(ElectraCore electraCore) {
+        this.electraCore = electraCore;
+    }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
@@ -60,12 +68,13 @@ public class ElectraServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
             Action action = Action.of(actionValue);
 
+            // TODO: 28.12.2017 Database selection before first CRUD
             switch (action) {
                 case GET:
                     int callbackId = byteBuf.readInt();
                     int keyHash = byteBuf.readInt();
 
-                    byte[] bytes = ElectraBinaryServer.getInstance().getDatabase().get(keyHash);
+                    byte[] bytes = currentDatabase.get(keyHash);
 
                     ByteBuf buffer = ctx.alloc().buffer();
                     buffer.writeByte(0);
@@ -80,38 +89,42 @@ public class ElectraServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
                     byte[] putBytes = new byte[length - 5];
                     byteBuf.readBytes(putBytes);
 
-                    ElectraBinaryServer.getInstance().getDatabase().save(putKeyHash, putBytes);
+                    currentDatabase.save(putKeyHash, putBytes);
                     break;
                 case REMOVE:
                     int removeKeyHash = byteBuf.readInt();
 
-                    ElectraBinaryServer.getInstance().getDatabase().remove(removeKeyHash);
+                    currentDatabase.remove(removeKeyHash);
                     break;
                 case UPDATE:
                     int updateKeyHash = byteBuf.readInt();
                     byte[] updateBytes = new byte[length - 5];
                     byteBuf.readBytes(updateBytes);
 
-                    ElectraBinaryServer.getInstance().getDatabase().update(updateKeyHash, updateBytes);
+                    currentDatabase.update(updateKeyHash, updateBytes);
                     break;
                 case CREATE_STORAGE:
                     int createStorageNameLength = byteBuf.readInt();
                     // TODO: 16.12.2017 Limit size
                     byte[] createStorageNameBytes = new byte[createStorageNameLength];
 
-                    // TODO: 16.12.2017 Create the actual storage
+                    // This will create the database and use it for further actions
+                    currentDatabase = electraCore.getDatabase(new String(createStorageNameBytes, Charsets.UTF_8));
                     break;
                 case DELETE_STORAGE:
                     int deleteStorageNameLength = byteBuf.readInt();
                     // TODO: 16.12.2017 Limit size
                     byte[] deleteStorageNameBytes = new byte[deleteStorageNameLength];
 
-                    // TODO: 16.12.2017 Delete the actual storage
+                    electraCore.deleteDatabase(new String(deleteStorageNameBytes, Charsets.UTF_8));
                 case USE_STORAGE:
                     int useStorageLength = byteBuf.readInt();
                     byte[] useStorageBytes = new byte[useStorageLength];
 
-                    currentStorage = new String(useStorageBytes, Charsets.UTF_8);
+                    String currentStorage = new String(useStorageBytes, Charsets.UTF_8);
+
+                    // Get the actual database instance
+                    currentDatabase = electraCore.getDatabase(currentStorage);
                     break;
             }
         }
