@@ -32,9 +32,12 @@ import io.electra.core.data.DataStorageFactory;
 import io.electra.core.index.IndexStorage;
 import io.electra.core.index.IndexStorageFactory;
 import io.electra.core.storage.StorageManager;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -48,7 +51,7 @@ public class DefaultDatabaseImpl implements Database {
     /**
      * The top level cache that contains all data.
      */
-    private final Cache<Integer, byte[]> dataCache;
+    private final Cache<Integer, DataRecord> dataCache;
 
     /**
      * The storage manager to manager data.
@@ -70,102 +73,153 @@ public class DefaultDatabaseImpl implements Database {
         storageManager = StorageManagerFactory.createStorageManager(indexStorage, dataStorage);
     }
 
-    /**
-     * Caution: Internal method
-     * TODO: Refactor interface to hide internal.
-     * <p>
-     * Save the given data under the given key hash.
-     *
-     * @param keyHash The key hash.
-     * @param bytes   The data.
-     */
-    public void save(int keyHash, byte[] bytes) {
-        storageManager.save(keyHash, bytes);
-
-        dataCache.put(keyHash, bytes);
-    }
 
     @Override
     public void save(String key, byte[] bytes) {
-        int keyHash = Arrays.hashCode(key.getBytes(Charsets.UTF_8));
+        save(hashKey(key), bytes);
+    }
 
-        save(keyHash, bytes);
+    @Override
+    public void save(String key, JSONObject jsonObject) {
+        save(hashKey(key), jsonObject);
     }
 
     @Override
     public void save(String key, String value) {
-        save(key, value.getBytes(Charsets.UTF_8));
+        save(hashKey(key), value);
     }
 
     @Override
     public void update(String key, byte[] value) {
-        int keyHash = Arrays.hashCode(key.getBytes(Charsets.UTF_8));
-        update(keyHash, value);
+        update(hashKey(key), value);
     }
 
-    /**
-     * Caution: Internal method
-     * TODO: Refactor interface to hide internal.
-     *
-     * Update the data record associated with the given key hash.
-     *
-     * @param keyHash The hash ok the key.
-     * @param value The new data.
-     */
+    @Override
+    public void update(String key, JSONObject jsonObject) {
+        update(hashKey(key), jsonObject);
+    }
+
+    @Override
+    public byte[] get(String key) {
+        return get(hashKey(key));
+    }
+
+    @Override
+    public JSONObject getJson(String key) {
+        return getJson(hashKey(key));
+    }
+
+    @Override
+    public void remove(String key) {
+        remove(hashKey(key));
+    }
+
+    @Override
+    public void save(int keyHash, byte[] bytes) {
+        DataRecord<byte[]> dataRecord = new RawDataRecord(bytes);
+        saveDataRecord(keyHash, dataRecord);
+    }
+
+    private void saveDataRecord(int keyHash, DataRecord dataRecord) {
+        dataCache.put(keyHash, dataRecord);
+        storageManager.save(keyHash, dataRecord.getRawContent());
+    }
+
+    @Override
+    public void save(int keyHash, JSONObject jsonObject) {
+        DataRecord<JSONObject> dataRecord = new JsonDataRecord(jsonObject);
+        saveDataRecord(keyHash, dataRecord);
+    }
+
+    @Override
+    public void save(int keyHash, String value) {
+        save(keyHash, value.getBytes(Charsets.UTF_8));
+    }
+
+    @Override
     public void update(int keyHash, byte[] value) {
-        if (dataCache.get(keyHash) != null) {
-            dataCache.put(keyHash, value);
+        DataRecord dataRecord = dataCache.get(keyHash);
+
+        if (dataRecord != null) {
+            dataRecord.setRawData(value);
         }
 
         storageManager.update(keyHash, value);
     }
 
-    /**
-     * Caution: Internal method
-     * TODO: Refactor interface to hide internal.
-     *
-     * Get the data associated with the given key hash.
-     *
-     * @param keyHash The key hash.
-     * @return The data.
-     */
+    @Override
+    public void update(int keyHash, JSONObject jsonObject) {
+        DataRecord dataRecord = dataCache.get(keyHash);
+
+        if (dataRecord != null && dataRecord instanceof JsonDataRecord) {
+            JSONObject recordData = (JSONObject) dataRecord.getData();
+
+            Map<String, Object> objectMap = recordData.toMap();
+            objectMap.putAll(jsonObject.toMap());
+
+            ((JsonDataRecord) dataRecord).setData(new JSONObject(objectMap));
+            storageManager.update(keyHash, dataRecord.getRawContent());
+        }
+    }
+
+    @Override
     public byte[] get(int keyHash) {
-        byte[] bytes = dataCache.get(keyHash);
+        DataRecord dataRecord = dataCache.get(keyHash);
 
-        return bytes != null ? bytes : storageManager.get(keyHash);
+        if (dataRecord != null) {
+            return dataRecord.getRawContent();
+        }
+
+        byte[] bytes = storageManager.get(keyHash);
+
+        if (bytes == null) {
+            return null;
+        }
+
+        dataRecord = new RawDataRecord(bytes);
+        dataCache.put(keyHash, dataRecord);
+
+        return dataRecord.getRawContent();
     }
 
     @Override
-    public byte[] get(String key) {
-        int keyHash = Arrays.hashCode(key.getBytes(Charsets.UTF_8));
+    public JSONObject getJson(int keyHash) {
+        DataRecord dataRecord = dataCache.get(keyHash);
 
-        return get(keyHash);
+        if (dataRecord != null && dataRecord instanceof JsonDataRecord) {
+            return ((JsonDataRecord) dataRecord).getData();
+        }
+
+        byte[] bytes = storageManager.get(keyHash);
+
+        if (bytes == null) {
+            return null;
+        }
+
+        try {
+            dataRecord = new JsonDataRecord(new JSONObject(new String(bytes)));
+        } catch (JSONException e) {
+            return null;
+        }
+
+        dataCache.put(keyHash, dataRecord);
+
+        return ((JsonDataRecord) dataRecord).getData();
     }
 
-    /**
-     * Caution: Internal method
-     * TODO: Refactor interface to hide internal.
-     *
-     * Delete the data associated with the given key hash.
-     *
-     * @param keyHash The key hash.
-     */
+    @Override
     public void remove(int keyHash) {
-        storageManager.remove(keyHash);
-
         dataCache.invalidate(keyHash);
-    }
-
-    @Override
-    public void remove(String key) {
-        int keyHash = Arrays.hashCode(key.getBytes(Charsets.UTF_8));
-
-        remove(keyHash);
+        storageManager.remove(keyHash);
     }
 
     @Override
     public void close() {
         storageManager.close();
         dataCache.clear();
+    }
+
+    private int hashKey(String key) {
+        return Arrays.hashCode(key.getBytes(Charsets.UTF_8));
     }
 }

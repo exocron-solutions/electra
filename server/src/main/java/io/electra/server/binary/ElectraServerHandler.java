@@ -25,7 +25,6 @@
 package io.electra.server.binary;
 
 import io.electra.common.server.Action;
-import io.electra.core.DefaultDatabaseImpl;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -43,17 +42,17 @@ public class ElectraServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
     private String currentStorage = "default";
 
     @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+    public void channelActive(ChannelHandlerContext ctx) {
         logger.info("New binary protocol connection from {}", ctx.channel().remoteAddress());
     }
 
     @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+    public void channelInactive(ChannelHandlerContext ctx) {
         logger.info("{} disconnected", ctx.channel().remoteAddress());
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, ByteBuf byteBuf) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, ByteBuf byteBuf) {
         int length = byteBuf.readInt();
 
         if (length > 0) {
@@ -66,7 +65,7 @@ public class ElectraServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
                     int callbackId = byteBuf.readInt();
                     int keyHash = byteBuf.readInt();
 
-                    byte[] bytes = ((DefaultDatabaseImpl) ElectraBinaryServer.getInstance().getDatabase()).get(keyHash);
+                    byte[] bytes = ElectraBinaryServer.getInstance().getDatabase().get(keyHash);
 
                     ByteBuf buffer = ctx.alloc().buffer();
                     buffer.writeByte(0);
@@ -81,19 +80,19 @@ public class ElectraServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
                     byte[] putBytes = new byte[length - 5];
                     byteBuf.readBytes(putBytes);
 
-                    ((DefaultDatabaseImpl) ElectraBinaryServer.getInstance().getDatabase()).save(putKeyHash, putBytes);
+                    ElectraBinaryServer.getInstance().getDatabase().save(putKeyHash, putBytes);
                     break;
                 case REMOVE:
                     int removeKeyHash = byteBuf.readInt();
 
-                    ((DefaultDatabaseImpl) ElectraBinaryServer.getInstance().getDatabase()).remove(removeKeyHash);
+                    ElectraBinaryServer.getInstance().getDatabase().remove(removeKeyHash);
                     break;
                 case UPDATE:
                     int updateKeyHash = byteBuf.readInt();
                     byte[] updateBytes = new byte[length - 5];
                     byteBuf.readBytes(updateBytes);
 
-                    ((DefaultDatabaseImpl) ElectraBinaryServer.getInstance().getDatabase()).update(updateKeyHash, updateBytes);
+                    ElectraBinaryServer.getInstance().getDatabase().update(updateKeyHash, updateBytes);
                     break;
                 case CREATE_STORAGE:
                     int createStorageNameLength = byteBuf.readInt();
@@ -119,7 +118,7 @@ public class ElectraServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         cause.printStackTrace();
     }
 }
