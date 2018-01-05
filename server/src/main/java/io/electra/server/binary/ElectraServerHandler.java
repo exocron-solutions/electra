@@ -105,7 +105,11 @@ public class ElectraServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
                     break;
                 case CREATE_STORAGE:
                     int createStorageNameLength = byteBuf.readInt();
-                    // TODO: 16.12.2017 Limit size
+                    if (createStorageNameLength > 128) {
+                        // TODO: 05.01.2018 Return error code?
+                        logger.error("Storage name to create cannot be longer than 128 bytes");
+                        break;
+                    }
                     byte[] createStorageNameBytes = new byte[createStorageNameLength];
 
                     // This will create the database and use it for further actions
@@ -113,7 +117,11 @@ public class ElectraServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
                     break;
                 case DELETE_STORAGE:
                     int deleteStorageNameLength = byteBuf.readInt();
-                    // TODO: 16.12.2017 Limit size
+                    if (deleteStorageNameLength > 128) {
+                        // TODO: 05.01.2018 Return error code?
+                        logger.error("Storage name to delete cannot be longer than 128 bytes");
+                        break;
+                    }
                     byte[] deleteStorageNameBytes = new byte[deleteStorageNameLength];
 
                     electraCore.deleteDatabase(new String(deleteStorageNameBytes, Charsets.UTF_8));
