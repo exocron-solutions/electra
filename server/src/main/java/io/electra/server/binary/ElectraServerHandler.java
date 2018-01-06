@@ -109,7 +109,8 @@ public class ElectraServerHandler extends SimpleChannelInboundHandler<ByteBuf> {
                         // TODO: 05.01.2018 Return error code?
                         logger.error("Storage name to create cannot be longer than 128 bytes");
                         break;
-                    }byte[] createStorageNameBytes = new byte[createStorageNameLength];
+                    }
+                    byte[] createStorageNameBytes = new byte[createStorageNameLength];
 
                     // This will create the database and use it for further actions
                     currentDatabase = electraCore.getDatabase(new String(createStorageNameBytes, Charsets.UTF_8));
