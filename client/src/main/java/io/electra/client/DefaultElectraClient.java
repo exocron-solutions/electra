@@ -118,8 +118,10 @@ public class DefaultElectraClient implements ElectraClient {
 
     @Override
     public void createStorage(String name) {
-        // TODO: 16.12.2017 Limit size
         byte[] nameBytes = name.getBytes(Charsets.UTF_8);
+        if (nameBytes.length > 128) {
+            throw new IllegalArgumentException("name cannot be longer than 128 bytes");
+        }
 
         ByteBuf byteBuf = Unpooled.buffer().writeByte(Action.CREATE_STORAGE.getValue()).writeInt(nameBytes.length).writeBytes(nameBytes);
 
@@ -128,8 +130,10 @@ public class DefaultElectraClient implements ElectraClient {
 
     @Override
     public void deleteStorage(String name) {
-        // TODO: 16.12.2017 Limit size
         byte[] nameBytes = name.getBytes(Charsets.UTF_8);
+        if (nameBytes.length > 128) {
+            throw new IllegalArgumentException("name cannot be longer than 128 bytes");
+        }
 
         ByteBuf byteBuf = Unpooled.buffer().writeByte(Action.DELETE_STORAGE.getValue()).writeInt(nameBytes.length).writeBytes(nameBytes);
 
@@ -138,8 +142,10 @@ public class DefaultElectraClient implements ElectraClient {
 
     @Override
     public void useStorage(String name) {
-        // TODO: 16.12.2017 Limit size
         byte[] nameBytes = name.getBytes(Charsets.UTF_8);
+        if (nameBytes.length > 128) {
+            throw new IllegalArgumentException("name cannot be longer than 128 bytes");
+        }
 
         ByteBuf byteBuf = Unpooled.buffer().writeByte(Action.USE_STORAGE.getValue()).writeInt(nameBytes.length).writeBytes(nameBytes);
 
