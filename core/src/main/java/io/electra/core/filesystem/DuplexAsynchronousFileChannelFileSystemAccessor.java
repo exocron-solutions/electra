@@ -55,7 +55,7 @@ public class DuplexAsynchronousFileChannelFileSystemAccessor implements FileSyst
             Files.createFile(filePath);
         }
 
-        inputOutputChannel = AsynchronousFileChannel.open(filePath, StandardOpenOption.CREATE, StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.SYNC);
+        inputOutputChannel = AsynchronousFileChannel.open(filePath, StandardOpenOption.CREATE, StandardOpenOption.READ, StandardOpenOption.WRITE);
     }
 
     @Override
@@ -74,10 +74,10 @@ public class DuplexAsynchronousFileChannelFileSystemAccessor implements FileSyst
 
     @Override
     public Future<ByteBuffer> read(long offset, int length) {
-        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(length);
-        Future<Integer> bytesReadFuture = inputOutputChannel.read(byteBuffer, length);
+        ByteBuffer byteBuffer = ByteBuffer.allocate(length);
+        Future<Integer> bytesReadFuture = inputOutputChannel.read(byteBuffer, offset);
         return Futures.lazyTransform(bytesReadFuture, bytesRead -> {
-            byteBuffer.rewind();
+            byteBuffer.flip();
             return byteBuffer;
         });
     }

@@ -30,7 +30,7 @@ class DuplexAsynchronousFileChannelFileSystemAccessorTest {
     void setUp() throws FileSystemAccessException {
         fileSystemAccessor = new DuplexAsynchronousFileChannelFileSystemAccessor(Paths.get(TEST_FILE));
 
-        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(4);
+        ByteBuffer byteBuffer = ByteBuffer.allocate(4);
         byteBuffer.putInt(TEST_CONTENT);
         byteBuffer.flip();
         fileSystemAccessor.write(4, byteBuffer);
@@ -55,7 +55,7 @@ class DuplexAsynchronousFileChannelFileSystemAccessorTest {
 
     @Test
     void testWrite() throws ExecutionException, InterruptedException {
-        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(4);
+        ByteBuffer byteBuffer = ByteBuffer.allocate(4);
         byteBuffer.putInt(5);
 
         byteBuffer.flip();
