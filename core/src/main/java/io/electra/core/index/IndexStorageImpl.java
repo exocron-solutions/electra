@@ -1,4 +1,4 @@
-package io.electra.core.data;
+package io.electra.core.index;
 
 import io.electra.core.exception.FileSystemAccessException;
 import io.electra.core.storage.AbstractFileSystemStorage;
@@ -8,10 +8,10 @@ import java.nio.file.Path;
 /**
  * @author Felix Klauke <info@felix-klauke.de>
  */
-public class DataStorageImpl extends AbstractFileSystemStorage implements DataStorage {
+public class IndexStorageImpl extends AbstractFileSystemStorage implements IndexStorage {
 
-    public DataStorageImpl(Path dataFilePath) throws FileSystemAccessException {
-        super(dataFilePath);
+    public IndexStorageImpl(Path indexFilePath) throws FileSystemAccessException {
+        super(indexFilePath);
     }
 
     @Override

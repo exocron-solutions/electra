@@ -1,4 +1,4 @@
-package io.electra.core.data;
+package io.electra.core.storage;
 
 import io.electra.core.exception.FileSystemAccessException;
 import org.junit.jupiter.api.AfterEach;
@@ -9,25 +9,41 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * @author Felix Klauke <info@felix-klauke.de>
  */
-class DataStorageImplTest {
+class AbstractFileSystemStorageTest {
 
     private static final String TEST_FILE = "test.acc";
-    private DataStorage dataStorage;
+    private AbstractFileSystemStorage storage;
 
     @BeforeEach
     void setUp() throws FileSystemAccessException {
-        dataStorage = new DataStorageImpl(Paths.get(TEST_FILE));
+        storage = new AbstractFileSystemStorage(Paths.get(TEST_FILE)) {
+            @Override
+            protected void doClear() {
+
+            }
+
+            @Override
+            protected void doClose() {
+
+            }
+        };
+    }
+
+    @AfterEach
+    void tearDown() throws IOException {
+        Files.delete(Paths.get(TEST_FILE));
     }
 
     @Test
     void testClear() {
         try {
-            dataStorage.clear();
+            storage.clear();
         } catch (FileSystemAccessException e) {
             fail();
         }
@@ -36,14 +52,14 @@ class DataStorageImplTest {
     @Test
     void testClose() {
         try {
-            dataStorage.close();
+            storage.close();
         } catch (IOException e) {
             fail();
         }
     }
 
-    @AfterEach
-    void tearDown() throws IOException {
-        Files.delete(Paths.get(TEST_FILE));
+    @Test
+    void testGetFileSystemAccessor() {
+        assertNotNull(storage.getFileSystemAccessor());
     }
 }

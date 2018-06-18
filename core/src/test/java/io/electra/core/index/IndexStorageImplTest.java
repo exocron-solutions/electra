@@ -1,4 +1,4 @@
-package io.electra.core.data;
+package io.electra.core.index;
 
 import io.electra.core.exception.FileSystemAccessException;
 import org.junit.jupiter.api.AfterEach;
@@ -14,36 +14,36 @@ import static org.junit.jupiter.api.Assertions.fail;
 /**
  * @author Felix Klauke <info@felix-klauke.de>
  */
-class DataStorageImplTest {
+class IndexStorageImplTest {
 
     private static final String TEST_FILE = "test.acc";
-    private DataStorage dataStorage;
+    private IndexStorage indexStorage;
 
     @BeforeEach
     void setUp() throws FileSystemAccessException {
-        dataStorage = new DataStorageImpl(Paths.get(TEST_FILE));
+        indexStorage = new IndexStorageImpl(Paths.get(TEST_FILE));
+    }
+
+    @AfterEach
+    void tearDown() throws IOException {
+        Files.delete(Paths.get(TEST_FILE));
     }
 
     @Test
-    void testClear() {
+    void testDoClear() {
         try {
-            dataStorage.clear();
+            indexStorage.clear();
         } catch (FileSystemAccessException e) {
             fail();
         }
     }
 
     @Test
-    void testClose() {
+    void testDoClose() {
         try {
-            dataStorage.close();
+            indexStorage.close();
         } catch (IOException e) {
             fail();
         }
-    }
-
-    @AfterEach
-    void tearDown() throws IOException {
-        Files.delete(Paths.get(TEST_FILE));
     }
 }
