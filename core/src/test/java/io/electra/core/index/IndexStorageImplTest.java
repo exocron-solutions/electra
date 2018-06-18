@@ -34,7 +34,7 @@ class IndexStorageImplTest {
         try {
             indexStorage.clear();
         } catch (FileSystemAccessException e) {
-            fail();
+            fail(e);
         }
     }
 
@@ -43,7 +43,7 @@ class IndexStorageImplTest {
         try {
             indexStorage.close();
         } catch (IOException e) {
-            fail();
+            fail(e);
         }
     }
 }

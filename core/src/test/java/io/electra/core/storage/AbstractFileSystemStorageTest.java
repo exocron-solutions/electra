@@ -45,7 +45,7 @@ class AbstractFileSystemStorageTest {
         try {
             storage.clear();
         } catch (FileSystemAccessException e) {
-            fail();
+            fail(e);
         }
     }
 
@@ -54,7 +54,7 @@ class AbstractFileSystemStorageTest {
         try {
             storage.close();
         } catch (IOException e) {
-            fail();
+            fail(e);
         }
     }
 

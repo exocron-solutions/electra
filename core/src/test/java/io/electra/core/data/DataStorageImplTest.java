@@ -29,7 +29,7 @@ class DataStorageImplTest {
         try {
             dataStorage.clear();
         } catch (FileSystemAccessException e) {
-            fail();
+            fail(e);
         }
     }
 
@@ -38,7 +38,7 @@ class DataStorageImplTest {
         try {
             dataStorage.close();
         } catch (IOException e) {
-            fail();
+            fail(e);
         }
     }
 
