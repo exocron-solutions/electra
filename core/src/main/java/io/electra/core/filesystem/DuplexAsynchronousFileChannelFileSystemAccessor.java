@@ -66,13 +66,8 @@ public class DuplexAsynchronousFileChannelFileSystemAccessor implements FileSyst
 
     @Override
     public void close() throws IOException {
-        if (inputChannel != null) {
-            inputChannel.close();
-        }
-
-        if (outputChannel != null) {
-            outputChannel.close();
-        }
+        inputChannel.close();
+        outputChannel.close();
     }
 
     @Override
