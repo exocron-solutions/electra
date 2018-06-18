@@ -1,2 +1,11 @@
 language: java
-script: mvn clean test
+script: mvn clean test cobertura:cobertura
+
+jdk:
+- oraclejdk8
+
+after_success:
+- bash <(curl -s https://codecov.io/bash)
+
+notifications:
+  email: false

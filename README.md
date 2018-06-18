@@ -2,7 +2,17 @@
 [![Build Status Master](https://travis-ci.org/ExocronSolutions/electra.svg?branch=master)](https://travis-ci.org/ExocronSolutions/electra)
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/FelixKlauke/electra)
 
+Version 2:
+
+[![Build Status v2](https://travis-ci.org/ExocronSolutions/electra.svg?branch=v2)](https://travis-ci.org/ExocronSolutions/electra)
+[![codecov](https://codecov.io/gh/ExocronSolutions/electra/branch/v2/graph/badge.svg)](https://codecov.io/gh/ExocronSolutions/electra)
+
 # electra
+Stable branch: master
+Development branch: dev
+
+Current development of version 2 recode: v2
+
 
 # Usage
 - Install [Maven](http://maven.apache.org/download.cgi)
