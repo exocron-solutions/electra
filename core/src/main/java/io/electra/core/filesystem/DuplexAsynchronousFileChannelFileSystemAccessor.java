@@ -26,12 +26,7 @@ public class DuplexAsynchronousFileChannelFileSystemAccessor implements FileSyst
     /**
      * Channel used to read from file.
      */
-    private AsynchronousFileChannel inputChannel;
-
-    /**
-     * Channel used to write data into the file.
-     */
-    private AsynchronousFileChannel outputChannel;
+    private AsynchronousFileChannel inputOutputChannel;
 
     /**
      * Create a new low level file system accessor based on asynchronous file channels.
@@ -60,29 +55,27 @@ public class DuplexAsynchronousFileChannelFileSystemAccessor implements FileSyst
             Files.createFile(filePath);
         }
 
-        inputChannel = AsynchronousFileChannel.open(filePath, StandardOpenOption.CREATE, StandardOpenOption.READ, StandardOpenOption.SYNC);
-        outputChannel = AsynchronousFileChannel.open(filePath, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.SYNC);
+        inputOutputChannel = AsynchronousFileChannel.open(filePath, StandardOpenOption.CREATE, StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.SYNC);
     }
 
     @Override
     public void close() throws IOException {
-        inputChannel.close();
-        outputChannel.close();
+        inputOutputChannel.close();
     }
 
     @Override
     public void clear() throws FileSystemAccessException {
         try {
-            outputChannel.truncate(0);
+            inputOutputChannel.truncate(0);
         } catch (IOException e) {
-            throw new FileSystemAccessException("Error truncating output channel: " + e.getMessage(), e);
+            throw new FileSystemAccessException("Error truncating channel: " + e.getMessage(), e);
         }
     }
 
     @Override
     public Future<ByteBuffer> read(long offset, int length) {
         ByteBuffer byteBuffer = ByteBuffer.allocateDirect(length);
-        Future<Integer> bytesReadFuture = inputChannel.read(byteBuffer, length);
+        Future<Integer> bytesReadFuture = inputOutputChannel.read(byteBuffer, length);
         return Futures.lazyTransform(bytesReadFuture, bytesRead -> {
             byteBuffer.rewind();
             return byteBuffer;
@@ -91,6 +84,6 @@ public class DuplexAsynchronousFileChannelFileSystemAccessor implements FileSyst
 
     @Override
     public Future<Integer> write(long offset, ByteBuffer content) {
-        return outputChannel.write(content, offset);
+        return inputOutputChannel.write(content, offset);
     }
 }
