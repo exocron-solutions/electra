@@ -80,12 +80,14 @@ class DuplexAsynchronousFileChannelFileSystemAccessorTest {
     }
 
     @Test
-    void testClearWithClosedChannelException() {
+    void testClearWithClosedChannelException() throws IOException {
         Executable executable = () -> {
             fileSystemAccessor.close();
             fileSystemAccessor.clear();
         };
 
         assertThrows(FileSystemAccessException.class, executable);
+
+        fileSystemAccessor.close();
     }
 }
