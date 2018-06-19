@@ -1,5 +1,7 @@
 package io.electra.core.model;
 
+import java.nio.ByteBuffer;
+
 /**
  * @author Felix Klauke <info@felix-klauke.de>
  */
@@ -11,14 +13,9 @@ public class DataBlock {
     public static final int DATA_BLOCK_SIZE = 128;
 
     /**
-     * The index of the next data block or -1.
+     * The header of the data block.
      */
-    private final int nextDataBlockIndex;
-
-    /**
-     * The length of the content of this block.
-     */
-    private final int contentLength;
+    private final DataBlockHeader dataBlockHeader;
 
     /**
      * The actual content of the data block.
@@ -31,9 +28,36 @@ public class DataBlock {
      * @param nextDataBlockIndex The index of the next data block or -1.
      * @param contentLength      The length of the content of this block.
      */
-    public DataBlock(int nextDataBlockIndex, int contentLength) {
-        this.nextDataBlockIndex = nextDataBlockIndex;
-        this.contentLength = contentLength;
+    DataBlock(int nextDataBlockIndex, int contentLength) {
+        this(new DataBlockHeader(nextDataBlockIndex, contentLength));
+    }
+
+    /**
+     * Create a new data block by its header.
+     *
+     * @param dataBlockHeader The header of this data block.
+     */
+    private DataBlock(DataBlockHeader dataBlockHeader) {
+        this.dataBlockHeader = dataBlockHeader;
+    }
+
+    /**
+     * Create a new data block by its header.
+     *
+     * @param dataBlockHeader The header.
+     *
+     * @return The data block instance.
+     */
+    public static DataBlock fromDataBlockHeader(DataBlockHeader dataBlockHeader) {
+        return new DataBlock(dataBlockHeader);
+    }
+
+    public static DataBlock fromDataBlockHeaderAndContentBuffer(DataBlockHeader dataBlockHeader, ByteBuffer contentBuffer) {
+        DataBlock dataBlock = DataBlock.fromDataBlockHeader(dataBlockHeader);
+        byte[] bytes = new byte[dataBlockHeader.getContentLength()];
+        contentBuffer.get(bytes);
+        dataBlock.setContent(bytes);
+        return dataBlock;
     }
 
     /**
@@ -42,7 +66,7 @@ public class DataBlock {
      * @return The length of the content.
      */
     public int getContentLength() {
-        return contentLength;
+        return dataBlockHeader.getContentLength();
     }
 
     /**
@@ -51,7 +75,7 @@ public class DataBlock {
      * @return The index of the next data block.
      */
     public int getNextDataBlockIndex() {
-        return nextDataBlockIndex;
+        return dataBlockHeader.getNextDataBlockIndex();
     }
 
     /**

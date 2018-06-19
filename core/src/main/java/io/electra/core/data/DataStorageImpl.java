@@ -4,6 +4,7 @@ import com.google.common.util.concurrent.Futures;
 import io.electra.core.exception.FileSystemAccessException;
 import io.electra.core.index.Index;
 import io.electra.core.model.DataBlock;
+import io.electra.core.model.DataBlockHeader;
 import io.electra.core.model.DataRecord;
 import io.electra.core.storage.AbstractFileSystemStorage;
 
@@ -77,37 +78,30 @@ public class DataStorageImpl extends AbstractFileSystemStorage implements DataSt
      * @return The data block.
      */
     private Future<DataBlock> readDataBlock(int dataBlockIndex) {
-        Future<ByteBuffer> resultFuture = getFileSystemAccessor().read(getDataBlockPositionByIndex(dataBlockIndex), 8);
+        Future<DataBlockHeader> dataBlockHeaderFuture = readDataBlockHeader(dataBlockIndex);
 
-        Future<Future<DataBlock>> resultResolution = Futures.lazyTransform(resultFuture, byteBuffer -> {
-            DataBlock dataBlock = createDataBlock(Objects.requireNonNull(byteBuffer));
+        return Futures.lazyTransform(dataBlockHeaderFuture, input -> {
+            long contentPosition = getDataBlockPositionByIndex(dataBlockIndex) + 8;
+            int contentLength = Objects.requireNonNull(input).getContentLength();
 
             Future<ByteBuffer> contentFuture = getFileSystemAccessor()
-                    .read(getDataBlockPositionByIndex(dataBlockIndex) + 8, dataBlock.getContentLength());
+                    .read(contentPosition, contentLength);
 
-            return Futures.lazyTransform(contentFuture, byteBuffer1 -> {
-                byte[] content = new byte[dataBlock.getContentLength()];
-                Objects.requireNonNull(byteBuffer1).get(content);
-                dataBlock.setContent(content);
-                return dataBlock;
-            });
+            ByteBuffer contentBuffer = Futures.getUnchecked(contentFuture);
+
+            return DataBlock.fromDataBlockHeaderAndContentBuffer(input, contentBuffer);
         });
-
-        return Futures.lazyTransform(resultResolution, Futures::getUnchecked);
     }
 
     /**
-     * Read a data block instance from its byte buffer.
+     * Read the header at the given data block index.
      *
-     * @param byteBuffer The byte buffer.
-     *
-     * @return The data block.
+     * @param dataBlockIndex The data block index.
+     * @return The future of the data block header.
      */
-    private DataBlock createDataBlock(ByteBuffer byteBuffer) {
-        int nextDataBlockIndex = byteBuffer.getInt();
-        int contentLength = byteBuffer.getInt();
-
-        return new DataBlock(nextDataBlockIndex, contentLength);
+    private Future<DataBlockHeader> readDataBlockHeader(int dataBlockIndex) {
+        Future<ByteBuffer> resultFuture = getFileSystemAccessor().read(getDataBlockPositionByIndex(dataBlockIndex), 8);
+        return Futures.lazyTransform(resultFuture, input -> DataBlockHeader.fromByteBuffer(Objects.requireNonNull(input)));
     }
 
     /**
