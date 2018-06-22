@@ -22,4 +22,11 @@ class IndexTest {
     void getDataBlockIndex() {
         assertEquals(TEST_DATA_BLOCK_INDEX, index.getDataBlockIndex());
     }
+
+    @Test
+    void setDataBlockIndex() {
+        index.setDataBlockIndex(TEST_DATA_BLOCK_INDEX + 1);
+
+        assertEquals(TEST_DATA_BLOCK_INDEX + 1, index.getDataBlockIndex());
+    }
 }

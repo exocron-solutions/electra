@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -31,6 +32,7 @@ class DataStorageImplTest {
     private static final byte[] TEST_SINGLE_BLOCK_CONTENT = "I am a tester moarfuckn king.".getBytes();
     private static final byte[] TEST_CHAIN_BLOCK_CONTENT1 = "IjajajajajajajajajajajajajjajaIjajajajajajajajajajajajajjajaIjajajajajajajajajajajajajjajaIjajajajajajajajajajajajajjaja".getBytes();
     private static final byte[] TEST_CHAIN_BLOCK_CONTENT2 = "IjajajajajajajajajajajajajjajaIjajajajajajajajajajajajajjajaIjajajajajajajajajajajajajjajaIjajajajajajajajajajajajajjaja".getBytes();
+    private static final byte[] TEST_CHAIN_BLOCK_CONTENT3 = "IjajajajaIjajajajajajajajajajajajajjajaIjajajajajajajajajajajajajjajaIjajajajajajajajajajajajajjajaIjajajajajajajajajajajajajjajaIjajajajajajajajajajajajajjajaIjajajajajajajajajajajajajjajaIjajajajajajajajajajajajajjajaIjajajajajajajajajajajajajjajajajajajajajajajajjajaIjajajajajajajajajajajajajjajaIjajajajajajajajajajajajajjajaIjajajajajajajajajajajajajjaja".getBytes();
 
     private static final String TEST_FILE = "test.acc";
     private DataStorage dataStorage;
@@ -64,6 +66,48 @@ class DataStorageImplTest {
         byteBuffer.flip();
 
         Futures.getUnchecked(fileSystemAccessor.write(DataBlock.DATA_BLOCK_SIZE * TEST_CHAIN_BLOCK_INDEX2, byteBuffer));
+
+        byteBuffer = ByteBuffer.allocate(DataBlock.DATA_BLOCK_SIZE);
+        byteBuffer.putInt(5);
+        byteBuffer.putInt(0);
+        byteBuffer.flip();
+
+        Futures.getUnchecked(fileSystemAccessor.write(DataBlock.DATA_BLOCK_SIZE * 3, byteBuffer));
+
+        byteBuffer = ByteBuffer.allocate(DataBlock.DATA_BLOCK_SIZE);
+        byteBuffer.putInt(-1);
+        byteBuffer.putInt(0);
+        byteBuffer.flip();
+
+        Futures.getUnchecked(fileSystemAccessor.write(DataBlock.DATA_BLOCK_SIZE * 4, byteBuffer));
+
+        byteBuffer = ByteBuffer.allocate(DataBlock.DATA_BLOCK_SIZE);
+        byteBuffer.putInt(8);
+        byteBuffer.putInt(0);
+        byteBuffer.flip();
+
+        Futures.getUnchecked(fileSystemAccessor.write(DataBlock.DATA_BLOCK_SIZE * 5, byteBuffer));
+
+        byteBuffer = ByteBuffer.allocate(DataBlock.DATA_BLOCK_SIZE);
+        byteBuffer.putInt(-1);
+        byteBuffer.putInt(0);
+        byteBuffer.flip();
+
+        Futures.getUnchecked(fileSystemAccessor.write(DataBlock.DATA_BLOCK_SIZE * 6, byteBuffer));
+
+        byteBuffer = ByteBuffer.allocate(DataBlock.DATA_BLOCK_SIZE);
+        byteBuffer.putInt(-1);
+        byteBuffer.putInt(0);
+        byteBuffer.flip();
+
+        Futures.getUnchecked(fileSystemAccessor.write(DataBlock.DATA_BLOCK_SIZE * 7, byteBuffer));
+
+        byteBuffer = ByteBuffer.allocate(DataBlock.DATA_BLOCK_SIZE);
+        byteBuffer.putInt(56);
+        byteBuffer.putInt(0);
+        byteBuffer.flip();
+
+        Futures.getUnchecked(fileSystemAccessor.write(DataBlock.DATA_BLOCK_SIZE * 8, byteBuffer));
     }
 
     @Test
@@ -120,6 +164,25 @@ class DataStorageImplTest {
         assertEquals(-1, dataBlock.getNextDataBlockIndex());
         assertEquals(TEST_CHAIN_BLOCK_CONTENT2.length, dataBlock.getContentLength());
         assertArrayEquals(TEST_CHAIN_BLOCK_CONTENT2, dataBlock.getContent());
+    }
+
+    @Test
+    void testWriteData() {
+        Index index = new Index(3);
+
+        Index resultIndex = Futures.getUnchecked(dataStorage.writeData(index, TEST_CHAIN_BLOCK_CONTENT3));
+
+        Future<DataRecord> dataRecordFuture = dataStorage.readDataRecord(new Index(3));
+        DataRecord dataRecord = Futures.getUnchecked(dataRecordFuture);
+
+        assertArrayEquals(Arrays.copyOfRange(TEST_CHAIN_BLOCK_CONTENT3, 0, 120), dataRecord.getDataBlocks().get(0).getContent());
+    }
+
+    @Test
+    void testWriteDataAtEnd() {
+        Index index = new Index(9);
+
+        Index resultIndex = Futures.getUnchecked(dataStorage.writeData(index, TEST_CHAIN_BLOCK_CONTENT3));
     }
 
     @AfterEach

@@ -13,6 +13,11 @@ public class DataBlock {
     public static final int DATA_BLOCK_SIZE = 128;
 
     /**
+     * The size of one data block.
+     */
+    public static final int DATA_BLOCK_CONTENT_SECTION_SIZE = 120;
+
+    /**
      * The header of the data block.
      */
     private final DataBlockHeader dataBlockHeader;
@@ -52,6 +57,14 @@ public class DataBlock {
         return new DataBlock(dataBlockHeader);
     }
 
+    /**
+     * Create a new data block by its header and its content buffer.
+     *
+     * @param dataBlockHeader The header.
+     * @param contentBuffer   The buffer of the content.
+     *
+     * @return The data block instance.
+     */
     public static DataBlock fromDataBlockHeaderAndContentBuffer(DataBlockHeader dataBlockHeader, ByteBuffer contentBuffer) {
         DataBlock dataBlock = DataBlock.fromDataBlockHeader(dataBlockHeader);
         byte[] bytes = new byte[dataBlockHeader.getContentLength()];
@@ -94,5 +107,18 @@ public class DataBlock {
      */
     public void setContent(byte[] content) {
         this.content = content;
+    }
+
+    /**
+     * Convert the data block to a byte buffer. The byte buffer is ready for reading.
+     *
+     * @return The byte buffer.
+     */
+    public ByteBuffer toByteBuffer() {
+        ByteBuffer byteBuffer = ByteBuffer.allocate(DATA_BLOCK_SIZE);
+        dataBlockHeader.toByteBuffer(byteBuffer);
+        byteBuffer.put(content);
+        byteBuffer.flip();
+        return byteBuffer;
     }
 }

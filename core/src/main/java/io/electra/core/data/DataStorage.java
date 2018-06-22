@@ -19,4 +19,14 @@ public interface DataStorage extends Storage {
      * @return The future of the data record.
      */
     Future<DataRecord> readDataRecord(Index index);
+
+    /**
+     * Write the given data indexed by the given index.
+     *
+     * @param index The index.
+     * @param data  The data.
+     *
+     * @return The future of the index.
+     */
+    Future<Index> writeData(Index index, byte[] data);
 }

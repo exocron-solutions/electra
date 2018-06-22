@@ -23,7 +23,7 @@ public class DataBlockHeader {
      * @param nextDataBlockIndex The index if the next data block.
      * @param contentLength      The length of the content.
      */
-    DataBlockHeader(int nextDataBlockIndex, int contentLength) {
+    public DataBlockHeader(int nextDataBlockIndex, int contentLength) {
         this.nextDataBlockIndex = nextDataBlockIndex;
         this.contentLength = contentLength;
     }
@@ -40,6 +40,30 @@ public class DataBlockHeader {
         int contentLength = byteBuffer.getInt();
 
         return new DataBlockHeader(nextDataBlockIndex, contentLength);
+    }
+
+    /**
+     * Convert a data block header to a byte buffer. The byte buffer os ready for reading.
+     *
+     * @return The byte buffer.
+     */
+    public ByteBuffer toByteBuffer() {
+        ByteBuffer byteBuffer = toByteBuffer(ByteBuffer.allocate(8));
+        byteBuffer.flip();
+        return byteBuffer;
+    }
+
+    /**
+     * Convert a data block header to a byte buffer. The byte buffer will remain in write state.
+     *
+     * @param byteBuffer A given byte buffer.
+     *
+     * @return The byte buffer.
+     */
+    public ByteBuffer toByteBuffer(ByteBuffer byteBuffer) {
+        byteBuffer.putInt(nextDataBlockIndex);
+        byteBuffer.putInt(contentLength);
+        return byteBuffer;
     }
 
 

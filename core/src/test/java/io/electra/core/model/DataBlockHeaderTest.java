@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
@@ -23,12 +24,7 @@ class DataBlockHeaderTest {
 
     @Test
     void testFromByteBuffer() {
-        ByteBuffer byteBuffer = ByteBuffer.allocate(8);
-        byteBuffer.putInt(TEST_NEXT_BLOCK_INDEX);
-        byteBuffer.putInt(TEST_CONTENT_LENGTH);
-        byteBuffer.flip();
-
-        DataBlockHeader dataBlockHeader = DataBlockHeader.fromByteBuffer(byteBuffer);
+        DataBlockHeader dataBlockHeader = DataBlockHeader.fromByteBuffer(getByteBuffer());
 
         assertEquals(TEST_CONTENT_LENGTH, dataBlockHeader.getContentLength());
         assertEquals(TEST_NEXT_BLOCK_INDEX, dataBlockHeader.getNextDataBlockIndex());
@@ -42,5 +38,19 @@ class DataBlockHeaderTest {
     @Test
     void getContentLength() {
         assertEquals(TEST_CONTENT_LENGTH, dataBlockHeader.getContentLength());
+    }
+
+    @Test
+    void testToByteBuffer() {
+        assertArrayEquals(getByteBuffer().array(), dataBlockHeader.toByteBuffer().array());
+    }
+
+    private ByteBuffer getByteBuffer() {
+        ByteBuffer byteBuffer = ByteBuffer.allocate(8);
+        byteBuffer.putInt(TEST_NEXT_BLOCK_INDEX);
+        byteBuffer.putInt(TEST_CONTENT_LENGTH);
+        byteBuffer.flip();
+
+        return byteBuffer;
     }
 }

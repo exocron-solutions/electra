@@ -8,7 +8,7 @@ public class Index {
     /**
      * The index of the first data block.
      */
-    private final int dataBlockIndex;
+    private int dataBlockIndex;
 
     /**
      * Create a new index by its underlying values.
@@ -26,5 +26,14 @@ public class Index {
      */
     public int getDataBlockIndex() {
         return dataBlockIndex;
+    }
+
+    /**
+     * Set the index of the data block.
+     *
+     * @param dataBlockIndex The index of the data block.
+     */
+    public void setDataBlockIndex(int dataBlockIndex) {
+        this.dataBlockIndex = dataBlockIndex;
     }
 }
