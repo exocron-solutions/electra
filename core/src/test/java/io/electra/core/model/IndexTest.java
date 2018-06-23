@@ -5,8 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author Felix Klauke <info@felix-klauke.de>
@@ -55,7 +54,7 @@ class IndexTest {
 
     @Test
     void testFromByteBuffer() {
-        ByteBuffer byteBuffer = getTestByteBuffer();
+        ByteBuffer byteBuffer = getTestByteBuffer(false);
 
         Index indexFromByteBuffer = Index.fromByteBuffer(byteBuffer);
 
@@ -67,14 +66,33 @@ class IndexTest {
     void testToByteBuffer() {
         ByteBuffer indexToByteBuffer = index.toByteBuffer();
 
-        assertArrayEquals(getTestByteBuffer().array(), indexToByteBuffer.array());
+        assertArrayEquals(getTestByteBuffer(false).array(), indexToByteBuffer.array());
     }
 
-    private ByteBuffer getTestByteBuffer() {
+    @Test
+    void testFromByteBufferEmpty() {
+        ByteBuffer byteBuffer = getTestByteBuffer(true);
+
+        Index indexFromByteBuffer = Index.fromByteBuffer(byteBuffer);
+
+        assertEquals(TEST_KEY_HASH, indexFromByteBuffer.getKeyHash());
+        assertTrue(indexFromByteBuffer.isEmpty());
+        assertEquals(TEST_DATA_BLOCK_INDEX, indexFromByteBuffer.getBlockIndex());
+    }
+
+    @Test
+    void testToByteBufferEmpty() {
+        index.setEmpty(true);
+        ByteBuffer indexToByteBuffer = index.toByteBuffer();
+
+        assertArrayEquals(getTestByteBuffer(true).array(), indexToByteBuffer.array());
+    }
+
+    private ByteBuffer getTestByteBuffer(boolean empty) {
         ByteBuffer byteBuffer = ByteBuffer.allocate(Index.INDEX_BLOCK_SIZE);
         byteBuffer.putInt(TEST_KEY_HASH);
         byteBuffer.putInt(TEST_DATA_BLOCK_INDEX);
-        byteBuffer.put((byte) (TEST_IS_EMPTY ? 1 : 0));
+        byteBuffer.put((byte) (empty ? 1 : 0));
         byteBuffer.flip();
         return byteBuffer;
     }
