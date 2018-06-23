@@ -1,5 +1,7 @@
 package io.electra.core.model;
 
+import com.google.common.primitives.Bytes;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -65,5 +67,17 @@ public class DataRecord {
      */
     public List<DataBlock> getDataBlocks() {
         return dataBlocks;
+    }
+
+    /**
+     * Get the raw content of the data record.
+     *
+     * @return The content.
+     */
+    public byte[] getContent() {
+        return dataBlocks.stream()
+                .map(DataBlock::getContent)
+                .reduce((bytes, bytes2) -> Bytes.concat(bytes, bytes2))
+                .orElse(null);
     }
 }

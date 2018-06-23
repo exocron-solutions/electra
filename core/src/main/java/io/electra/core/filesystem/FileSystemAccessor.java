@@ -12,6 +12,13 @@ import java.util.concurrent.Future;
 public interface FileSystemAccessor extends Closeable {
 
     /**
+     * If the file had to be created.
+     *
+     * @return If the file had to be created.
+     */
+    boolean hadToCreateFile();
+
+    /**
      * Clear the file we are accessing.
      *
      * @throws FileSystemAccessException If truncating fails.
@@ -37,4 +44,13 @@ public interface FileSystemAccessor extends Closeable {
      * @return The future of the amounts of bytes written.
      */
     Future<Integer> write(long offset, ByteBuffer content);
+
+    /**
+     * Get the length of the file.
+     *
+     * @return The length of the file.
+     *
+     * @throws FileSystemAccessException When the reading fails.
+     */
+    long getFileLength() throws FileSystemAccessException;
 }

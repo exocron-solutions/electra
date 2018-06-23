@@ -29,6 +29,11 @@ public class DuplexAsynchronousFileChannelFileSystemAccessor implements FileSyst
     private AsynchronousFileChannel inputOutputChannel;
 
     /**
+     * If the file our channel is pointing to had to be created.
+     */
+    private boolean hadToCreateFile;
+
+    /**
      * Create a new low level file system accessor based on asynchronous file channels.
      *
      * @param filePath The path of the file to work on.
@@ -52,10 +57,16 @@ public class DuplexAsynchronousFileChannelFileSystemAccessor implements FileSyst
      */
     private void initChannels() throws IOException {
         if (!Files.exists(filePath)) {
+            hadToCreateFile = true;
             Files.createFile(filePath);
         }
 
-        inputOutputChannel = AsynchronousFileChannel.open(filePath, StandardOpenOption.CREATE, StandardOpenOption.READ, StandardOpenOption.WRITE);
+        inputOutputChannel = AsynchronousFileChannel.open(filePath, StandardOpenOption.READ, StandardOpenOption.WRITE);
+    }
+
+    @Override
+    public boolean hadToCreateFile() {
+        return hadToCreateFile;
     }
 
     @Override
@@ -85,5 +96,14 @@ public class DuplexAsynchronousFileChannelFileSystemAccessor implements FileSyst
     @Override
     public Future<Integer> write(long offset, ByteBuffer content) {
         return inputOutputChannel.write(content, offset);
+    }
+
+    @Override
+    public long getFileLength() throws FileSystemAccessException {
+        try {
+            return inputOutputChannel.size();
+        } catch (IOException e) {
+            throw new FileSystemAccessException("Error reading file length: " + e.getMessage(), e);
+        }
     }
 }

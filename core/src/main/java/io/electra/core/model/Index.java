@@ -20,17 +20,22 @@ public class Index {
     /**
      * The index of the first data block.
      */
-    private int dataBlockIndex;
+    private int blockIndex;
+
+    /**
+     * If the index is empty.
+     */
+    private boolean empty = false;
 
     /**
      * Create a new index by its underlying values.
      *
      * @param keyHash The hash of the this value belongs to.
-     * @param dataBlockIndex The data block index.
+     * @param blockIndex The block index.
      */
-    public Index(int keyHash, int dataBlockIndex) {
+    public Index(int keyHash, int blockIndex) {
         this.keyHash = keyHash;
-        this.dataBlockIndex = dataBlockIndex;
+        this.blockIndex = blockIndex;
     }
 
     /**
@@ -43,7 +48,10 @@ public class Index {
     public static Index fromByteBuffer(ByteBuffer byteBuffer) {
         int keyHash = byteBuffer.getInt();
         int dataBlockIndex = byteBuffer.getInt();
-        return new Index(keyHash, dataBlockIndex);
+        boolean empty = byteBuffer.get() == 1;
+        Index index = new Index(keyHash, dataBlockIndex);
+        index.setEmpty(empty);
+        return index;
     }
 
     /**
@@ -56,21 +64,39 @@ public class Index {
     }
 
     /**
-     * Get the index of the first data block.
+     * Get the index of the first block.
      *
-     * @return The data block index.
+     * @return The block index.
      */
-    public int getDataBlockIndex() {
-        return dataBlockIndex;
+    public int getBlockIndex() {
+        return blockIndex;
     }
 
     /**
-     * Set the index of the data block.
+     * Set the index of the block.
      *
-     * @param dataBlockIndex The index of the data block.
+     * @param blockIndex The index of the block.
      */
-    public void setDataBlockIndex(int dataBlockIndex) {
-        this.dataBlockIndex = dataBlockIndex;
+    public void setBlockIndex(int blockIndex) {
+        this.blockIndex = blockIndex;
+    }
+
+    /**
+     * If the index is empty.
+     *
+     * @return If the index is empty.
+     */
+    public boolean isEmpty() {
+        return empty;
+    }
+
+    /**
+     * Set if the index is empty.
+     *
+     * @param empty If the index is empty.
+     */
+    public void setEmpty(boolean empty) {
+        this.empty = empty;
     }
 
     /**
@@ -81,7 +107,8 @@ public class Index {
     public ByteBuffer toByteBuffer() {
         ByteBuffer byteBuffer = ByteBuffer.allocate(INDEX_BLOCK_SIZE);
         byteBuffer.putInt(keyHash);
-        byteBuffer.putInt(dataBlockIndex);
+        byteBuffer.putInt(blockIndex);
+        byteBuffer.put((byte) (empty ? 1 : 0));
         byteBuffer.flip();
         return byteBuffer;
     }

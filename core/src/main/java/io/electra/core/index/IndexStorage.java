@@ -1,8 +1,10 @@
 package io.electra.core.index;
 
+import io.electra.core.exception.IndexScanException;
 import io.electra.core.model.Index;
 import io.electra.core.storage.Storage;
 
+import java.util.List;
 import java.util.concurrent.Future;
 
 /**
@@ -28,4 +30,12 @@ public interface IndexStorage extends Storage {
      * @return The future of the written index.
      */
     Future<Index> writeIndex(int indexBlockIndex, Index index);
+
+    /**
+     * Read all indices from disk. The first index will be the index pointing to the first
+     * free data block.
+     *
+     * @return The indices.
+     */
+    Future<List<Index>> readIndices() throws IndexScanException;
 }

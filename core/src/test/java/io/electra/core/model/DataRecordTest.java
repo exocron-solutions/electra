@@ -12,12 +12,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  */
 class DataRecordTest {
 
+    private static final String TEST_DATA_BLOCK_CONTENT = "ogpagehiaio+gawga+wghwag+paowgh+aogh";
     private static final int TEST_FIRST_BLOCK_INDEX = 300;
-    private final DataBlock dataBlock = new DataBlock(-1, 2);
+    private final DataBlock dataBlock = new DataBlock(-1, TEST_DATA_BLOCK_CONTENT.getBytes().length);
     private DataRecord dataRecord;
 
     @BeforeEach
     void setUp() {
+        dataBlock.setContent("he".getBytes());
         dataRecord = new DataRecord(TEST_FIRST_BLOCK_INDEX);
         dataRecord.addDataBlock(dataBlock);
     }
@@ -44,5 +46,10 @@ class DataRecordTest {
     @Test
     void testGetDataBlocks() {
         assertEquals(Arrays.asList(dataBlock), dataRecord.getDataBlocks());
+    }
+
+    @Test
+    void testGetContent() {
+        assertEquals(dataBlock.getContent(), dataRecord.getContent());
     }
 }

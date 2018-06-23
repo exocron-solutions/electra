@@ -1,12 +1,17 @@
 package io.electra.core.index;
 
 import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.JdkFutureAdapters;
+import com.google.common.util.concurrent.ListenableFuture;
 import io.electra.core.exception.FileSystemAccessException;
+import io.electra.core.exception.IndexScanException;
 import io.electra.core.model.Index;
 import io.electra.core.storage.AbstractFileSystemStorage;
 
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Future;
 
 /**
@@ -14,8 +19,17 @@ import java.util.concurrent.Future;
  */
 public class IndexStorageImpl extends AbstractFileSystemStorage implements IndexStorage {
 
+    /**
+     * The default index that will point to the fist empty index.
+     */
+    private static final Index DEFAULT_EMPTY_INDEX = new Index(-1, 1);
+
     public IndexStorageImpl(Path indexFilePath) throws FileSystemAccessException {
         super(indexFilePath);
+
+        if (getFileSystemAccessor().hadToCreateFile()) {
+            writeIndex(0, DEFAULT_EMPTY_INDEX);
+        }
     }
 
     @Override
@@ -41,6 +55,24 @@ public class IndexStorageImpl extends AbstractFileSystemStorage implements Index
         ByteBuffer byteBuffer = index.toByteBuffer();
         Future<Integer> writeFuture = getFileSystemAccessor().write(positionByIndex, byteBuffer);
         return Futures.lazyTransform(writeFuture, input -> index);
+    }
+
+    @Override
+    public Future<List<Index>> readIndices() throws IndexScanException {
+        try {
+            long fileLength = getFileSystemAccessor().getFileLength();
+            long indexCount = fileLength / Index.INDEX_BLOCK_SIZE;
+
+            List<ListenableFuture<Index>> futureList = new ArrayList<>();
+
+            for (long i = 0; i < indexCount; i++) {
+                futureList.add(JdkFutureAdapters.listenInPoolThread(readIndex(Math.toIntExact(i))));
+            }
+
+            return Futures.allAsList(futureList);
+        } catch (FileSystemAccessException e) {
+            throw new IndexScanException("Error while scanning all indices: " + e.getMessage(), e);
+        }
     }
 
     /**
