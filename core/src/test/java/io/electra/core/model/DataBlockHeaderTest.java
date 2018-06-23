@@ -31,12 +31,12 @@ class DataBlockHeaderTest {
     }
 
     @Test
-    void getNextDataBlockIndex() {
+    void testGetNextDataBlockIndex() {
         assertEquals(TEST_NEXT_BLOCK_INDEX, dataBlockHeader.getNextDataBlockIndex());
     }
 
     @Test
-    void getContentLength() {
+    void testGetContentLength() {
         assertEquals(TEST_CONTENT_LENGTH, dataBlockHeader.getContentLength());
     }
 

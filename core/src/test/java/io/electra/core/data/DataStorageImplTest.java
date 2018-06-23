@@ -3,9 +3,9 @@ package io.electra.core.data;
 import com.google.common.util.concurrent.Futures;
 import io.electra.core.exception.FileSystemAccessException;
 import io.electra.core.filesystem.FileSystemAccessor;
-import io.electra.core.index.Index;
 import io.electra.core.model.DataBlock;
 import io.electra.core.model.DataRecord;
+import io.electra.core.model.Index;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class DataStorageImplTest {
 
+    private static final int DUMMY_KEY_HASH = Integer.MAX_VALUE;
     private static final int TEST_CHAIN_BLOCK_INDEX1 = 0;
     private static final int TEST_CHAIN_BLOCK_INDEX2 = 2;
     private static final int TEST_SINGLE_BLOCK_INDEX = 1;
@@ -130,7 +131,7 @@ class DataStorageImplTest {
 
     @Test
     void testReadDataRecord() throws ExecutionException, InterruptedException {
-        Index index = new Index(TEST_SINGLE_BLOCK_INDEX);
+        Index index = new Index(DUMMY_KEY_HASH, TEST_SINGLE_BLOCK_INDEX);
 
         Future<DataRecord> dataRecordFuture = dataStorage.readDataRecord(index);
         DataRecord dataRecord = dataRecordFuture.get();
@@ -146,7 +147,7 @@ class DataStorageImplTest {
 
     @Test
     void testReadDataRecordWithDataBlockChain() throws ExecutionException, InterruptedException {
-        Index index = new Index(TEST_CHAIN_BLOCK_INDEX1);
+        Index index = new Index(DUMMY_KEY_HASH, TEST_CHAIN_BLOCK_INDEX1);
 
         Future<DataRecord> dataRecordFuture = dataStorage.readDataRecord(index);
         DataRecord dataRecord = dataRecordFuture.get();
@@ -168,11 +169,11 @@ class DataStorageImplTest {
 
     @Test
     void testWriteData() {
-        Index index = new Index(3);
+        Index index = new Index(DUMMY_KEY_HASH, 3);
 
         Index resultIndex = Futures.getUnchecked(dataStorage.writeData(index, TEST_CHAIN_BLOCK_CONTENT3));
 
-        Future<DataRecord> dataRecordFuture = dataStorage.readDataRecord(new Index(3));
+        Future<DataRecord> dataRecordFuture = dataStorage.readDataRecord(new Index(DUMMY_KEY_HASH, 3));
         DataRecord dataRecord = Futures.getUnchecked(dataRecordFuture);
 
         assertArrayEquals(Arrays.copyOfRange(TEST_CHAIN_BLOCK_CONTENT3, 0, 120), dataRecord.getDataBlocks().get(0).getContent());
@@ -180,7 +181,7 @@ class DataStorageImplTest {
 
     @Test
     void testWriteDataAtEnd() {
-        Index index = new Index(9);
+        Index index = new Index(DUMMY_KEY_HASH, 9);
 
         Index resultIndex = Futures.getUnchecked(dataStorage.writeData(index, TEST_CHAIN_BLOCK_CONTENT3));
     }

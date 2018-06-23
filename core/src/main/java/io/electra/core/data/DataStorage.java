@@ -1,7 +1,7 @@
 package io.electra.core.data;
 
-import io.electra.core.index.Index;
 import io.electra.core.model.DataRecord;
+import io.electra.core.model.Index;
 import io.electra.core.storage.Storage;
 
 import java.util.concurrent.Future;

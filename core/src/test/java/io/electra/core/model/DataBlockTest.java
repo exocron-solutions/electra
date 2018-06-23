@@ -25,27 +25,27 @@ class DataBlockTest {
     }
 
     @Test
-    void getContentLength() {
+    void testGetContentLength() {
         assertEquals(TEST_CONTENT_LENGTH, dataBlock.getContentLength());
     }
 
     @Test
-    void getNextDataBlockIndex() {
+    void testGetNextDataBlockIndex() {
         assertEquals(TEST_NEXT_BLOCK_INDEX, dataBlock.getNextDataBlockIndex());
     }
 
     @Test
-    void getContent() {
+    void testGetContent() {
         assertArrayEquals(TEST_CONTENT, dataBlock.getContent());
     }
 
     @Test
-    void setContent() {
+    void testSetContent() {
         assertArrayEquals(TEST_CONTENT, dataBlock.getContent());
     }
 
     @Test
-    void toByteBuffer() {
+    void testToByteBuffer() {
         ByteBuffer test = ByteBuffer.allocate(DataBlock.DATA_BLOCK_SIZE);
         test.putInt(TEST_NEXT_BLOCK_INDEX);
         test.putInt(TEST_CONTENT_LENGTH);

@@ -4,10 +4,10 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.JdkFutureAdapters;
 import com.google.common.util.concurrent.ListenableFuture;
 import io.electra.core.exception.FileSystemAccessException;
-import io.electra.core.index.Index;
 import io.electra.core.model.DataBlock;
 import io.electra.core.model.DataBlockHeader;
 import io.electra.core.model.DataRecord;
+import io.electra.core.model.Index;
 import io.electra.core.storage.AbstractFileSystemStorage;
 
 import java.nio.ByteBuffer;
@@ -128,7 +128,6 @@ public class DataStorageImpl extends AbstractFileSystemStorage implements DataSt
 
             dataBlockHeader = Futures.getUnchecked(readDataBlockHeader(dataBlockIndex));
 
-            System.out.println(dataBlockHeader);
             if (dataBlockHeader == null) {
                 dataBlockIndex++;
             } else {
