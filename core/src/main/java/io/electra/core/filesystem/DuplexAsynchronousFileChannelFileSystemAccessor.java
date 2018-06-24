@@ -46,8 +46,6 @@ public class DuplexAsynchronousFileChannelFileSystemAccessor implements FileSyst
         try {
             initChannels();
         } catch (IOException e) {
-            e.printStackTrace();
-
             throw new FileSystemAccessException("Error while accessing file system on low level: " + e.getMessage(), e);
         }
     }

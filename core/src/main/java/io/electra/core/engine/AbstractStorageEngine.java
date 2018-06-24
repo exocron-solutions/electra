@@ -46,10 +46,10 @@ public abstract class AbstractStorageEngine implements StorageEngine {
 
     @Override
     public void close() throws IOException {
+        doClose();
+
         dataStorage.close();
         indexStorage.close();
-
-        doClose();
     }
 
     /**

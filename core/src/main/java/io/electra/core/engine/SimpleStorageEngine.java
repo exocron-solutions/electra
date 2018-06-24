@@ -58,7 +58,7 @@ public class SimpleStorageEngine extends AbstractStorageEngine {
     void doClose() {
         indices.clear();
 
-        getIndexStorage().writeIndex(0, freeDataBlockIndex);
+        Futures.getUnchecked(getIndexStorage().writeIndex(0, freeDataBlockIndex));
     }
 
     @Override
