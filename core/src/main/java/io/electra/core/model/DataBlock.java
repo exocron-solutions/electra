@@ -1,5 +1,7 @@
 package io.electra.core.model;
 
+import io.electra.core.exception.MalformedDataException;
+
 import java.nio.ByteBuffer;
 
 /**
@@ -66,6 +68,10 @@ public class DataBlock {
      * @return The data block instance.
      */
     public static DataBlock fromDataBlockHeaderAndContentBuffer(DataBlockHeader dataBlockHeader, ByteBuffer contentBuffer) {
+        if (dataBlockHeader.getContentLength() != contentBuffer.remaining()) {
+            throw new MalformedDataException("Block header content length field differs from actual content buffer");
+        }
+
         DataBlock dataBlock = DataBlock.fromDataBlockHeader(dataBlockHeader);
         byte[] bytes = new byte[dataBlockHeader.getContentLength()];
         contentBuffer.get(bytes);

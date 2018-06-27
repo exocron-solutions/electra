@@ -1,12 +1,13 @@
 package io.electra.core.model;
 
+import io.electra.core.exception.MalformedDataException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 
 import java.nio.ByteBuffer;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author Felix Klauke <info@felix-klauke.de>
@@ -42,6 +43,18 @@ class DataBlockTest {
     @Test
     void testSetContent() {
         assertArrayEquals(TEST_CONTENT, dataBlock.getContent());
+    }
+
+    @Test
+    void testFromDataBlockHeaderAndContentBufferWithDifferingLength() {
+        DataBlockHeader dataBlockHeader = new DataBlockHeader(-1, 3);
+        ByteBuffer byteBuffer = ByteBuffer.allocate(1);
+
+        Executable executable = () -> {
+            DataBlock.fromDataBlockHeaderAndContentBuffer(dataBlockHeader, byteBuffer);
+        };
+
+        assertThrows(MalformedDataException.class, executable);
     }
 
     @Test

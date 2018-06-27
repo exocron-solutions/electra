@@ -1,7 +1,9 @@
 package io.electra.core.model;
 
+import io.electra.core.exception.MalformedIndexException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 
 import java.nio.ByteBuffer;
 
@@ -86,6 +88,15 @@ class IndexTest {
         ByteBuffer indexToByteBuffer = index.toByteBuffer();
 
         assertArrayEquals(getTestByteBuffer(true).array(), indexToByteBuffer.array());
+    }
+
+    @Test
+    void testFromByteBufferWithInvalidByteBuffer() {
+        ByteBuffer byteBuffer = ByteBuffer.allocate(3);
+
+        Executable executable = () -> Index.fromByteBuffer(byteBuffer);
+
+        assertThrows(MalformedIndexException.class, executable);
     }
 
     private ByteBuffer getTestByteBuffer(boolean empty) {

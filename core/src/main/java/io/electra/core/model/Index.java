@@ -1,5 +1,8 @@
 package io.electra.core.model;
 
+import io.electra.core.exception.MalformedIndexException;
+
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 
 /**
@@ -46,12 +49,17 @@ public class Index {
      * @return The index instance.
      */
     public static Index fromByteBuffer(ByteBuffer byteBuffer) {
-        int keyHash = byteBuffer.getInt();
-        int dataBlockIndex = byteBuffer.getInt();
-        boolean empty = byteBuffer.get() == 1;
-        Index index = new Index(keyHash, dataBlockIndex);
-        index.setEmpty(empty);
-        return index;
+        try {
+            int keyHash = byteBuffer.getInt();
+            int dataBlockIndex = byteBuffer.getInt();
+
+            boolean empty = byteBuffer.get() == 1;
+            Index index = new Index(keyHash, dataBlockIndex);
+            index.setEmpty(empty);
+            return index;
+        } catch (BufferUnderflowException e) {
+            throw new MalformedIndexException("Error while reading index from byte buffer.", e);
+        }
     }
 
     /**

@@ -1,5 +1,8 @@
 package io.electra.core.model;
 
+import io.electra.core.exception.MalformedHeaderException;
+
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 
 /**
@@ -36,10 +39,14 @@ public class DataBlockHeader {
      * @return The data block header instance.
      */
     public static DataBlockHeader fromByteBuffer(ByteBuffer byteBuffer) {
-        int nextDataBlockIndex = byteBuffer.getInt();
-        int contentLength = byteBuffer.getInt();
+        try {
+            int nextDataBlockIndex = byteBuffer.getInt();
+            int contentLength = byteBuffer.getInt();
 
-        return new DataBlockHeader(nextDataBlockIndex, contentLength);
+            return new DataBlockHeader(nextDataBlockIndex, contentLength);
+        } catch (BufferUnderflowException e) {
+            throw new MalformedHeaderException("Error while reading block header from byte buffer.", e);
+        }
     }
 
     /**
