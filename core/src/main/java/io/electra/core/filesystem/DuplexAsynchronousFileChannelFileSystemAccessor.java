@@ -46,7 +46,7 @@ public class DuplexAsynchronousFileChannelFileSystemAccessor implements FileSyst
         try {
             initChannels();
         } catch (IOException e) {
-            throw new FileSystemAccessException("Error while accessing file system on low level: " + e.getMessage(), e);
+            throw new FileSystemAccessException("Error while accessing file system on low level", e);
         }
     }
 
@@ -77,7 +77,7 @@ public class DuplexAsynchronousFileChannelFileSystemAccessor implements FileSyst
         try {
             inputOutputChannel.truncate(0);
         } catch (IOException e) {
-            throw new FileSystemAccessException("Error truncating channel: " + e.getMessage(), e);
+            throw new FileSystemAccessException("Error truncating channel", e);
         }
     }
 
@@ -101,7 +101,7 @@ public class DuplexAsynchronousFileChannelFileSystemAccessor implements FileSyst
         try {
             return inputOutputChannel.size();
         } catch (IOException e) {
-            throw new FileSystemAccessException("Error reading file length: " + e.getMessage(), e);
+            throw new FileSystemAccessException("Error reading file length", e);
         }
     }
 }

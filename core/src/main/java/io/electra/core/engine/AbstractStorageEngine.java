@@ -40,7 +40,7 @@ public abstract class AbstractStorageEngine implements StorageEngine {
             this.indexStorage = new IndexStorageImpl(indexStoragePath);
             this.dataStorage = new DataStorageImpl(dataStoragePath);
         } catch (FileSystemAccessException e) {
-            throw new EngineInitializationException("Error creating engine: " + e.getMessage(), e);
+            throw new EngineInitializationException("Error creating engine", e);
         }
     }
 

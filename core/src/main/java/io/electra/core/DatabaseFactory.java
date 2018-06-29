@@ -23,7 +23,7 @@ public class DatabaseFactory {
         try {
             return new ElectraDatabaseImpl(databaseFolder);
         } catch (EngineInitializationException e) {
-            throw new DatabaseInitializationException("Error loading storage engine: " + e.getMessage(), e);
+            throw new DatabaseInitializationException("Error loading storage engine", e);
         }
     }
 }

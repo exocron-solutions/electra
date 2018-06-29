@@ -40,7 +40,7 @@ public class SimpleStorageEngine extends AbstractStorageEngine {
         try {
             listFuture = getIndexStorage().readIndices();
         } catch (IndexScanException e) {
-            throw new EngineInitializationException("Error while reading initial indices: " + e.getMessage(), e);
+            throw new EngineInitializationException("Error while reading initial indices", e);
         }
 
         List<Index> indices = Futures.getUnchecked(listFuture);

@@ -71,7 +71,7 @@ public class IndexStorageImpl extends AbstractFileSystemStorage implements Index
 
             return Futures.allAsList(futureList);
         } catch (FileSystemAccessException e) {
-            throw new IndexScanException("Error while scanning all indices: " + e.getMessage(), e);
+            throw new IndexScanException("Error while scanning all indices", e);
         }
     }
 
