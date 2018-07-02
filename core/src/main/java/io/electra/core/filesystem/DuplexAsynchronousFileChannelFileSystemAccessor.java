@@ -6,9 +6,11 @@ import io.electra.core.exception.FileSystemAccessException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
+import java.nio.channels.FileLock;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.Objects;
 import java.util.concurrent.Future;
 
 /**
@@ -83,17 +85,43 @@ public class DuplexAsynchronousFileChannelFileSystemAccessor implements FileSyst
 
     @Override
     public Future<ByteBuffer> read(long offset, int length) {
-        ByteBuffer byteBuffer = ByteBuffer.allocate(length);
-        Future<Integer> bytesReadFuture = inputOutputChannel.read(byteBuffer, offset);
-        return Futures.lazyTransform(bytesReadFuture, bytesRead -> {
-            byteBuffer.flip();
-            return byteBuffer;
+        Future<FileLock> lockFuture = inputOutputChannel.lock(offset, length, false);
+
+        return Futures.lazyTransform(lockFuture, input -> {
+            ByteBuffer byteBuffer = ByteBuffer.allocate(length);
+            Future<Integer> bytesReadFuture = inputOutputChannel.read(byteBuffer, offset);
+
+            Future<ByteBuffer> readFuture = Futures.lazyTransform(bytesReadFuture, bytesRead -> {
+                try {
+                    Objects.requireNonNull(input).release();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                byteBuffer.flip();
+                return byteBuffer;
+            });
+
+            return Futures.getUnchecked(readFuture);
         });
     }
 
     @Override
     public Future<Integer> write(long offset, ByteBuffer content) {
-        return inputOutputChannel.write(content, offset);
+        Future<FileLock> lockFuture = inputOutputChannel.lock(offset, content.remaining(), false);
+
+        return Futures.lazyTransform(lockFuture, input -> {
+            Future<Integer> writeFuture = inputOutputChannel.write(content, offset);
+            int bytesWritten = Futures.getUnchecked(writeFuture);
+
+            try {
+                Objects.requireNonNull(input).release();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            return bytesWritten;
+        });
     }
 
     @Override
