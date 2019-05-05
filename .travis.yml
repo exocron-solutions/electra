@@ -21,8 +21,26 @@ notifications:
 script:
   - mvn clean compile package test jacoco:report
 
+##################
+### Deployment ###
+##################
+deploy:
+  provider: script
+  script: mvn deploy --settings deploy/maven-settings.xml
+  on:
+    branch: master
+    tags: true
+
 #####################
 ### After Success ###
 #####################
 after_success:
   - bash <(curl -s https://codecov.io/bash)
+
+###################
+### Environment ###
+###################
+env:
+  global:
+    - secure: oLbNZjSmOESU0P4VNPdnxrlBOgSMuiEDfaWJfIT7WtvN9DbM93heBhwsO7F52TlHvDwIjdgRReMACdovF2fG4cVf3ng6dfuKxvZL7NlLEULNkiuMH4wfA/wVvRfC4qluZbXADMPANTPWM3fdbCSuNj6DpcJMeDv+Ovh7oQXr+Fhwv/iIIMDscDevdgQSeEjGJ3trQMmiLk8Oa9ZN0Gfj760L6HdcPBxeZQKbdEeZei8fAIHJPO1OYlmUtY++hjZ/Z1hjRtVhqts/JzWUsA4yhC3EQkEdPnfmyBoG6R+j40ewlpBoAYYH2g7DzatWVn5gHsEWbQOShEoXPJrIjG7C0+uSo0lV3pkrEf+HNGjneAqTkRy57jM/KTzqXVFz2r77lxNpKqpgzfa+tQPwY0I+wimqGxDYk+fwFuo3aIusbMJmqbZikK9MJik32AJ7ibZ6LbdfS2p+s4d0MRfQCb25bdnDtZiledbxwNKjAwsA3EeEGxwztmUI70IqrEnTpF1ymoNAcwp0UW4ZxAKmOZyKMzlHPRHMLVtnfnEVwdPyUrpWC266OCuObUOMxjjVkUN/9+e3xrDR2nDfwEpnScEOkfQQ7seYup0AGjsTg/zMDH3LZLEfuqy3sP6WSRr+/3oKDsTkopd4GRUS0SeX+gVhPjHESPiLfcy9S51p7SL7IF4=
+    - secure: pWtgsEXbi8HudCioeov9fjCPBXaSKsCjUlMayrEcybpg/pvFToY1l0vOXAH0R85NVRj2btq7FqtHgGc+nf1HXoDFrI3G/8J1f/29RxfBi1RQGBZi7ND2ysLeiX7Kc5Q6XqnmqJh49G1PqCFaQ3kNcFZGA8LYGOvMQjVEopq4eynkriAaUYqF+vvx8NEi2ilO5H0C3jVviqr8eZ1YitWXiIZ4xkZ6AQ5Hj681IwG+iWB5H0sUyA7lZ7RY731/O/TDmKX1j1UcjrLLpW9Mbzf7JlII2sQurl4GPdCxydx3kEfUaoWSxlrcVclkorbOwpcMxOEQoEjrsh8k2zaIBWt1745VpqLTBSnD649PIJe8pfDvwSKK5eu91JpBKiTWykbSmmgzF++D00jOSLUkoayq3H74J7xiF8uYLygxJS15vXTCGi1mEn1bKOuNZXjMbJB84IgQOwbR8zlV57+x7BoJpksKt+raivStLk2egUGid9oy+4UWeyDJFTbuUNMJuxCfIw8Wc54yludxMkO+0ZL5fh0lBlD85cWQI7GtEoa6RswgyCH+6e6zcYIiklQkg3U+Wg8dvVJC9jLEqsw+EKA9ndtTAxr/5brGQ2uF0K6SHnZTwwIMwKgoXFfnfvA2UWt7Aad70dAx2FCKa43jMKjYo5Sxd/e6VS2VlvYXU4+Uys0=
