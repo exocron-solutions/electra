@@ -40,7 +40,7 @@ class DataStorageImplTest {
 
     @BeforeEach
     void setUp() throws FileSystemAccessException {
-        dataStorage = new DataStorageImpl(Paths.get(TEST_FILE));
+        dataStorage = new DataStorageImpl(Paths.get(TEST_FILE), freeBlockAllocator);
 
         FileSystemAccessor fileSystemAccessor = ((DataStorageImpl) dataStorage).getFileSystemAccessor();
 
