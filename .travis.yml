@@ -1,11 +1,28 @@
+################
+### Language ###
+################
 language: java
-script: mvn clean test jacoco:report
 
+###########
+### JDK ###
+###########
 jdk:
-- oraclejdk11
+  - oraclejdk11
 
-after_success:
-- bash <(curl -s https://codecov.io/bash)
-
+#####################
+### Notifications ###
+#####################
 notifications:
   email: false
+
+####################
+### Build script ###
+####################
+script:
+  - mvn clean compile package test jacoco:report
+
+#####################
+### After Success ###
+#####################
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
