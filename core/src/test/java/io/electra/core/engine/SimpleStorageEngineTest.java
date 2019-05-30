@@ -2,6 +2,7 @@ package io.electra.core.engine;
 
 import com.google.common.util.concurrent.Futures;
 import io.electra.core.exception.EngineInitializationException;
+import io.electra.core.model.Index;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,7 +32,13 @@ class SimpleStorageEngineTest {
     @BeforeEach
     void setUp() throws EngineInitializationException {
         storageEngine = new SimpleStorageEngine(TEST_DATA_FILE_PATH, TEST_INDEX_FILE_PATH);
-        Futures.getUnchecked(storageEngine.save(TEST_KEY_HASH_PRESET, TEST_CONTENT.getBytes()));
+        Future<Index> future = storageEngine.save(TEST_KEY_HASH_PRESET, TEST_CONTENT.getBytes());
+
+        try {
+            future.get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
     }
 
     @Test
