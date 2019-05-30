@@ -19,6 +19,25 @@ Current development of version 2 recode: v2
 - Clone this repo
 - Install: ```mvn clean install```
 
+**Maven repositories**
+```xml
+<repositories>
+    <!-- Klauke Enterprises Releases -->
+    <repository>
+        <id>klauke-enterprises-maven-releases</id>
+        <name>Klauke Enterprises Maven Releases</name>
+        <url>https://repository.klauke-enterprises.com/repository/maven-releases/</url>
+    </repository>
+	
+    <!-- Klauke Enterprises Snapshots -->
+    <repository>
+        <id>klauke-enterprises-maven-snapshots</id>
+        <name>Klauke Enterprises Maven Snapshots</name>
+        <url>https://repository.klauke-enterprises.com/repository/maven-snapshots/</url>
+    </repository>
+</repositories>
+```
+
 **Maven dependencies**
 
 _Electra Client:_
