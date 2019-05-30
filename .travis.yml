@@ -20,6 +20,8 @@ notifications:
 ####################
 script:
   - mvn clean compile package test jacoco:report
+  - mvn verify sonar:sonar -Dsonar.host.url=https://sonar.klauke-enterprises.com -Dsonar.projectKey=electra-Dsonar.login=$SONAR_TOKEN
+
 
 ##################
 ### Deployment ###
