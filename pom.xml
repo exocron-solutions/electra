@@ -39,6 +39,24 @@
                 <version>2.22.1</version>
             </plugin>
 
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.4</version>
+                <executions>
+                    <execution>
+                        <id>agent-for-ut</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                        <configuration>
+                            <append>true</append>
+                            <destFile>${project.basedir}/../target/jacoco.exec</destFile>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
             <!-- SonarQube -->
             <plugin>
                 <groupId>org.sonarsource.scanner.maven</groupId>
