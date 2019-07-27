@@ -5,7 +5,7 @@ package io.electra.core.exception;
  */
 public class FileSystemAccessException extends Exception {
 
-    public FileSystemAccessException(String message, Throwable cause) {
-        super(message, cause);
-    }
+  public FileSystemAccessException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

@@ -5,11 +5,11 @@ package io.electra.core.exception;
  */
 public class MalformedDataException extends MalformedInformationException {
 
-    public MalformedDataException(String message, Throwable cause) {
-        super(message, cause);
-    }
+  public MalformedDataException(String message, Throwable cause) {
+    super(message, cause);
+  }
 
-    public MalformedDataException(String message) {
-        super(message);
-    }
+  public MalformedDataException(String message) {
+    super(message);
+  }
 }

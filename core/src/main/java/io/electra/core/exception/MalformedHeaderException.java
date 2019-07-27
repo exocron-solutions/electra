@@ -5,7 +5,7 @@ package io.electra.core.exception;
  */
 public class MalformedHeaderException extends MalformedDataException {
 
-    public MalformedHeaderException(String message, Throwable cause) {
-        super(message, cause);
-    }
+  public MalformedHeaderException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

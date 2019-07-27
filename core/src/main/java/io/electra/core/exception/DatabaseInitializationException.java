@@ -5,7 +5,7 @@ package io.electra.core.exception;
  */
 public class DatabaseInitializationException extends Exception {
 
-    public DatabaseInitializationException(String message, Throwable cause) {
-        super(message, cause);
-    }
+  public DatabaseInitializationException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

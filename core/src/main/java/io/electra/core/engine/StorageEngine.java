@@ -1,7 +1,6 @@
 package io.electra.core.engine;
 
 import io.electra.core.model.Index;
-
 import java.io.Closeable;
 import java.util.concurrent.Future;
 
@@ -13,13 +12,12 @@ import java.util.concurrent.Future;
  */
 public interface StorageEngine extends Closeable {
 
-    /**
-     * Save the given value for the given key hash.
-     *
-     * @param keyHash The hash of the key.
-     * @param value   The value.
-     *
-     * @return The future of the index.
-     */
-    Future<Index> save(int keyHash, byte[] value);
+  /**
+   * Save the given value for the given key hash.
+   *
+   * @param keyHash The hash of the key.
+   * @param value The value.
+   * @return The future of the index.
+   */
+  Future<Index> save(int keyHash, byte[] value);
 }

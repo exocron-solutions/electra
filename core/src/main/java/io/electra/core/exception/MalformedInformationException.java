@@ -5,11 +5,11 @@ package io.electra.core.exception;
  */
 public class MalformedInformationException extends RuntimeException {
 
-    public MalformedInformationException(String message, Throwable cause) {
-        super(message, cause);
-    }
+  public MalformedInformationException(String message, Throwable cause) {
+    super(message, cause);
+  }
 
-    public MalformedInformationException(String message) {
-        super(message);
-    }
+  public MalformedInformationException(String message) {
+    super(message);
+  }
 }

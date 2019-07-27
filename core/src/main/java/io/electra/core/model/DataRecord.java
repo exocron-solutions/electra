@@ -1,7 +1,6 @@
 package io.electra.core.model;
 
 import com.google.common.primitives.Bytes;
-
 import java.util.LinkedList;
 import java.util.List;
 
@@ -10,74 +9,74 @@ import java.util.List;
  */
 public class DataRecord {
 
-    /**
-     * The index of the first block of the record.
-     */
-    private final int firstDataBlockIndex;
+  /**
+   * The index of the first block of the record.
+   */
+  private final int firstDataBlockIndex;
 
-    /**
-     * The data blocks of this data record.
-     */
-    private final LinkedList<DataBlock> dataBlocks = new LinkedList<>();
+  /**
+   * The data blocks of this data record.
+   */
+  private final LinkedList<DataBlock> dataBlocks = new LinkedList<>();
 
-    /**
-     * Create a new data record.
-     *
-     * @param firstDataBlockIndex The index of the first block of the record.
-     */
-    public DataRecord(int firstDataBlockIndex) {
-        this.firstDataBlockIndex = firstDataBlockIndex;
+  /**
+   * Create a new data record.
+   *
+   * @param firstDataBlockIndex The index of the first block of the record.
+   */
+  public DataRecord(int firstDataBlockIndex) {
+    this.firstDataBlockIndex = firstDataBlockIndex;
+  }
+
+  /**
+   * Add the given data block to the record.
+   *
+   * @param dataBlock The data block.
+   */
+  public void addDataBlock(DataBlock dataBlock) {
+    dataBlocks.add(dataBlock);
+  }
+
+  /**
+   * Get the last data block of the cord.
+   *
+   * @return The last data block.
+   */
+  public DataBlock getLastDataBlock() {
+    if (dataBlocks.isEmpty()) {
+      return null;
     }
 
-    /**
-     * Add the given data block to the record.
-     *
-     * @param dataBlock The data block.
-     */
-    public void addDataBlock(DataBlock dataBlock) {
-        dataBlocks.add(dataBlock);
-    }
+    return dataBlocks.getLast();
+  }
 
-    /**
-     * Get the last data block of the cord.
-     *
-     * @return The last data block.
-     */
-    public DataBlock getLastDataBlock() {
-        if (dataBlocks.isEmpty()) {
-            return null;
-        }
+  /**
+   * Get the index of the first block of the record.
+   *
+   * @return The index of the first block of the record.
+   */
+  public int getFirstDataBlockIndex() {
+    return firstDataBlockIndex;
+  }
 
-        return dataBlocks.getLast();
-    }
+  /**
+   * Get all data blocks.
+   *
+   * @return The data blocks.
+   */
+  public List<DataBlock> getDataBlocks() {
+    return dataBlocks;
+  }
 
-    /**
-     * Get the index of the first block of the record.
-     *
-     * @return The index of the first block of the record.
-     */
-    public int getFirstDataBlockIndex() {
-        return firstDataBlockIndex;
-    }
-
-    /**
-     * Get all data blocks.
-     *
-     * @return The data blocks.
-     */
-    public List<DataBlock> getDataBlocks() {
-        return dataBlocks;
-    }
-
-    /**
-     * Get the raw content of the data record.
-     *
-     * @return The content.
-     */
-    public byte[] getContent() {
-        return dataBlocks.stream()
-                .map(DataBlock::getContent)
-                .reduce((bytes, bytes2) -> Bytes.concat(bytes, bytes2))
-                .orElse(null);
-    }
+  /**
+   * Get the raw content of the data record.
+   *
+   * @return The content.
+   */
+  public byte[] getContent() {
+    return dataBlocks.stream()
+        .map(DataBlock::getContent)
+        .reduce((bytes, bytes2) -> Bytes.concat(bytes, bytes2))
+        .orElse(null);
+  }
 }

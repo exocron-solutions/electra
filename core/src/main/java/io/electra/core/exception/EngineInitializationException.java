@@ -5,7 +5,7 @@ package io.electra.core.exception;
  */
 public class EngineInitializationException extends Exception {
 
-    public EngineInitializationException(String message, Throwable cause) {
-        super(message, cause);
-    }
+  public EngineInitializationException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

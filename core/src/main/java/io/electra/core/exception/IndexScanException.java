@@ -5,7 +5,7 @@ package io.electra.core.exception;
  */
 public class IndexScanException extends Exception {
 
-    public IndexScanException(String message, Throwable cause) {
-        super(message, cause);
-    }
+  public IndexScanException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

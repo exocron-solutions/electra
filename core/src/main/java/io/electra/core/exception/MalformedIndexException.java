@@ -5,7 +5,7 @@ package io.electra.core.exception;
  */
 public class MalformedIndexException extends MalformedInformationException {
 
-    public MalformedIndexException(String message, Throwable cause) {
-        super(message, cause);
-    }
+  public MalformedIndexException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }
